@@ -49,7 +49,7 @@
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "recharts": "^3.7.0",
-    "resend": "^4.0.1",
+    "resend": "^6.9.3",
     "sonner": "^2.0.7",
     "superjson": "^2.2.2",
     "ws": "^8.19.0",
