@@ -38,6 +38,21 @@ interface CacheEntry<T> {
 
 const memoryCache = new Map<string, CacheEntry<unknown>>();
 
+// ✅ SECURITY FIX (M-7): Cap in-memory cache to prevent unbounded growth
+const MAX_MEMORY_CACHE_SIZE = 500;
+
+function evictIfNeeded() {
+  if (memoryCache.size <= MAX_MEMORY_CACHE_SIZE) return;
+  // Evict oldest entries (Map preserves insertion order)
+  const entriesToRemove = memoryCache.size - MAX_MEMORY_CACHE_SIZE;
+  let removed = 0;
+  for (const key of memoryCache.keys()) {
+    if (removed >= entriesToRemove) break;
+    memoryCache.delete(key);
+    removed++;
+  }
+}
+
 // Cleanup expired entries every 5 minutes
 if (typeof setInterval !== 'undefined') {
   setInterval(() => {
@@ -122,6 +137,7 @@ export async function cacheSet<T>(
     value,
     expiresAt: Date.now() + ttl * 1000,
   });
+  evictIfNeeded();
   console.log(`[Cache] Memory SET: ${fullKey} (TTL: ${ttl}s)`);
 }
 
@@ -166,11 +182,18 @@ export async function cacheDeletePattern(
   
   if (redis) {
     try {
-      // Scan and delete matching keys
-      const keys = await redis.keys(fullPattern);
-      if (keys.length > 0) {
-        await redis.del(...keys);
-        console.log(`[Cache] DELETE PATTERN: ${fullPattern} (${keys.length} keys)`);
+      // ✅ SECURITY FIX (M-6): Use SCAN instead of KEYS to avoid blocking Redis
+      const keysToDelete: string[] = [];
+      let cursor = '0';
+      do {
+        const result: [string, string[]] = await redis.scan(Number(cursor), { match: fullPattern, count: 100 });
+        cursor = String(result[0]);
+        keysToDelete.push(...result[1]);
+      } while (cursor !== '0');
+
+      if (keysToDelete.length > 0) {
+        await redis.del(...keysToDelete);
+        console.log(`[Cache] DELETE PATTERN: ${fullPattern} (${keysToDelete.length} keys)`);
       }
       return;
     } catch (error) {

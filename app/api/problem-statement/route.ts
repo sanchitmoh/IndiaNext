@@ -226,7 +226,7 @@ async function notifyAdminsAlmostFull(
 /**
  * Helper function to invalidate cache (call this when problems are updated)
  */
-export async function invalidateCache() {
+async function _invalidateCache() {
   try {
     await cacheDelete(CACHE_KEY);
     console.log('[ProblemStatement] Cache invalidated');

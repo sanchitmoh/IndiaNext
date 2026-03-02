@@ -127,6 +127,8 @@ model Team {
   referralCode    String?
   
   // Admin fields
+  // ✅ SECURITY FIX (M-11): createdBy is nullable; PostgreSQL NULL≠NULL so unique constraint
+  // only applies to non-null values — intentional design for teams without a logged-in creator
   createdBy       String?  // User ID who created the team
   creator         User?    @relation("TeamCreator", fields: [createdBy], references: [id])
   reviewedBy      String?  // Admin user ID
@@ -158,6 +160,8 @@ model Team {
   @@index([track])
   @@index([createdAt])
   @@index([deletedAt])
+  // ✅ SECURITY FIX (L-11): Index team name for search performance
+  @@index([name])
   @@unique([createdBy, track]) // One team per leader per track (belt-and-suspenders with transaction check)
   @@map("teams")
 }
@@ -278,6 +282,8 @@ model Comment {
   updatedAt DateTime @updatedAt
   
   team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  // ✅ SECURITY FIX (M-12): Add FK to Admin for referential integrity
+  author Admin @relation(fields: [authorId], references: [id], onDelete: Cascade)
   
   @@index([teamId])
   @@index([authorId])
@@ -464,7 +470,7 @@ model Admin {
   id          String    @id @default(cuid())
   email       String    @unique
   name        String
-  password    String    // bcrypt hash
+  password    String    // stored as bcrypt hash, never plaintext
   role        AdminRole @default(ADMIN)
   isActive    Boolean   @default(true)
   lastLoginAt DateTime?
@@ -473,6 +479,7 @@ model Admin {
   updatedAt   DateTime  @updatedAt
 
   sessions    AdminSession[]
+  comments    Comment[]
 
   @@index([email])
   @@index([role])

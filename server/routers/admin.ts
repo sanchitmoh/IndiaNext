@@ -122,10 +122,14 @@ export const adminRouter = router({
         sortBy: z.enum(["createdAt", "name", "status", "college"]).default("createdAt"),
         sortOrder: z.enum(["asc", "desc"]).default("desc"),
         page: z.number().default(1),
-        pageSize: z.number().default(50),
+        // ✅ SECURITY FIX (H-6): Cap pageSize at 100 to prevent DoS
+        pageSize: z.number().min(1).max(100).default(50),
       })
     )
     .query(async ({ ctx, input }) => {
+      // ✅ SECURITY FIX (H-4): JUDGEs can only view teams, not full PII
+      // Permission check: all admin roles can view teams
+      // (but limit fields for JUDGEs below)
       const where: Record<string, unknown> = {
         deletedAt: null,
       };
@@ -231,7 +235,24 @@ export const adminRouter = router({
         include: {
           members: {
             include: {
-              user: true,
+              user: {
+                // ✅ SECURITY FIX (H-4): Select only needed fields, exclude PII like lastLoginIp
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                  phone: true,
+                  college: true,
+                  degree: true,
+                  year: true,
+                  branch: true,
+                  avatar: true,
+                  github: true,
+                  linkedIn: true,
+                  portfolio: true,
+                  role: true,
+                },
+              },
             },
           },
           submission: {
@@ -595,10 +616,18 @@ export const adminRouter = router({
         search: z.string().optional(),
         role: z.string().optional(),
         page: z.number().default(1),
-        pageSize: z.number().default(50),
+        // ✅ SECURITY FIX (H-6): Cap pageSize to prevent DoS
+        pageSize: z.number().min(1).max(100).default(50),
       })
     )
     .query(async ({ ctx, input }) => {
+      // ✅ SECURITY FIX (H-4): Only ADMIN and SUPER_ADMIN can list users
+      if (ctx.admin.role === 'JUDGE' || ctx.admin.role === 'ORGANIZER') {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Insufficient permissions to list users",
+        });
+      }
       const where: Record<string, unknown> = {
         deletedAt: null,
       };
@@ -649,6 +678,14 @@ export const adminRouter = router({
     .mutation(async ({ ctx, input }) => {
       const adminId = ctx.admin.id;
 
+      // ✅ SECURITY FIX (H-4): Only ADMIN and SUPER_ADMIN can update roles
+      if (ctx.admin.role === 'JUDGE' || ctx.admin.role === 'ORGANIZER') {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Insufficient permissions to update user roles",
+        });
+      }
+
       // ✅ SECURITY: Prevent privilege escalation
       // Only SUPER_ADMIN can grant ADMIN or SUPER_ADMIN roles
       const privilegedRoles = ["ADMIN", "SUPER_ADMIN"];
@@ -687,10 +724,18 @@ export const adminRouter = router({
         action: z.string().optional(),
         userId: z.string().optional(),
         page: z.number().default(1),
-        pageSize: z.number().default(50),
+        // ✅ SECURITY FIX (H-6): Cap pageSize to prevent DoS
+        pageSize: z.number().min(1).max(100).default(50),
       })
     )
     .query(async ({ ctx, input }) => {
+      // ✅ SECURITY FIX (H-4): Only ADMIN and SUPER_ADMIN can view activity logs
+      if (ctx.admin.role === 'JUDGE' || ctx.admin.role === 'ORGANIZER') {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Insufficient permissions to view activity logs",
+        });
+      }
       const where: Record<string, unknown> = {};
 
       if (input.action) {

@@ -234,7 +234,11 @@ export async function GET(req: Request) {
     for (const row of exportRows) {
       const values = headers.map((h) => {
         const val = row[h] ?? '';
-        const strVal = String(val).replace(/"/g, '""');
+        let strVal = String(val).replace(/"/g, '""');
+        // ✅ SECURITY FIX (M-5): Prevent CSV injection — prefix dangerous chars with tab
+        if (/^[=+\-@\t\r]/.test(strVal)) {
+          strVal = `\t${strVal}`;
+        }
         return `"${strVal}"`;
       });
       csvLines.push(values.join(','));

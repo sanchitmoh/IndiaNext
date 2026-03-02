@@ -71,3 +71,5 @@ SETUP.md
 *.swp
 *.swo
 *~
+
+.vercel

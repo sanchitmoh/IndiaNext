@@ -143,9 +143,10 @@ export function handleGenericError(
   if (error instanceof Error) {
     // Check for specific error patterns
     if (error.message.includes('Unique constraint')) {
+      // ✅ SECURITY FIX (L-9): Use generic conflict message; the constraint may not be email
       const errorResponse = createErrorResponse(
-        'DUPLICATE_EMAIL',
-        'This email is already registered.',
+        'CONFLICT',
+        'A record with this data already exists.',
         undefined,
         path
       );

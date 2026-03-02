@@ -227,22 +227,29 @@ export async function POST(req: Request) {
 
     console.log(`[ReserveProblem] Round-robin assignment - Session ${reservationId} → Problem #${selectedProblem.order}: "${selectedProblem.title}" (Load: ${selectedProblem.totalCommitted + 1}/${selectedProblem.maxSubmissions})`);
 
-    // Fire-and-forget: update isCurrent flag and track analytics (non-critical)
+    // ✅ SECURITY FIX (L-13): Await fire-and-forget ops to surface errors; wrap in try/catch
     if (!selectedProblem.isCurrent) {
-      prisma.problemStatement.updateMany({ where: { isCurrent: true }, data: { isCurrent: false } })
-        .then(() => prisma.problemStatement.update({ where: { id: selectedProblem.id }, data: { isCurrent: true } }))
-        .catch(err => console.error('[ReserveProblem] isCurrent update failed:', err));
+      try {
+        await prisma.problemStatement.updateMany({ where: { isCurrent: true }, data: { isCurrent: false } });
+        await prisma.problemStatement.update({ where: { id: selectedProblem.id }, data: { isCurrent: true } });
+      } catch (err) {
+        console.error('[ReserveProblem] isCurrent update failed:', err);
+      }
     }
 
-    trackReservationAnalytics(prisma, 'reservation_created', {
-      sessionId: reservationId,
-      problemStatementId: selectedProblem.id,
-      problemTitle: selectedProblem.title,
-      problemOrder: selectedProblem.order,
-      loadAfterReservation: selectedProblem.totalCommitted + 1,
-      distributionStrategy: 'round-robin',
-      isAuthenticated: !!sessionId,
-    }).catch(err => console.error('[ReserveProblem] Analytics tracking failed:', err));
+    try {
+      await trackReservationAnalytics(prisma, 'reservation_created', {
+        sessionId: reservationId,
+        problemStatementId: selectedProblem.id,
+        problemTitle: selectedProblem.title,
+        problemOrder: selectedProblem.order,
+        loadAfterReservation: selectedProblem.totalCommitted + 1,
+        distributionStrategy: 'round-robin',
+        isAuthenticated: !!sessionId,
+      });
+    } catch (err) {
+      console.error('[ReserveProblem] Analytics tracking failed:', err);
+    }
 
     return NextResponse.json({
       success: true,
