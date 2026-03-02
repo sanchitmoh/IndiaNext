@@ -1015,6 +1015,13 @@ export default function HackathonForm() {
     setProblemLoading(true);
     setProblemError("");
     try {
+      // Get or create anonymous ID for unauthenticated users
+      let anonymousId = localStorage.getItem('anonymous_id');
+      if (!anonymousId) {
+        anonymousId = `anon_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        localStorage.setItem('anonymous_id', anonymousId);
+      }
+
       const res = await fetch('/api/reserve-problem', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1022,6 +1029,8 @@ export default function HackathonForm() {
         body: JSON.stringify({
           // Fallback: send sessionId in body for mobile browsers that strip cookies
           sessionId: localStorage.getItem('session_token_fallback') || undefined,
+          // For unauthenticated users, send anonymous ID
+          anonymousId: localStorage.getItem('session_token_fallback') ? undefined : anonymousId,
         }),
       });
       const response = await res.json();
@@ -1357,6 +1366,37 @@ export default function HackathonForm() {
           // Store session token as fallback for mobile browsers that may ignore Set-Cookie
           if (response.data?.sessionId) {
             localStorage.setItem('session_token_fallback', response.data.sessionId);
+            
+            // Transfer anonymous reservation to authenticated session
+            const anonymousId = localStorage.getItem('anonymous_id');
+            if (anonymousId) {
+              // Always clean up anonymous ID — whether transfer succeeds or fails,
+              // the authenticated session should be used going forward.
+              localStorage.removeItem('anonymous_id');
+              try {
+                const transferRes = await fetch('/api/transfer-reservation', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  credentials: 'include',
+                  body: JSON.stringify({
+                    anonymousId,
+                    sessionId: response.data.sessionId,
+                  }),
+                });
+                const transferData = await transferRes.json();
+
+                // If anonymous reservation expired (race condition),
+                // re-reserve using the authenticated session
+                if (transferData.needsReReservation) {
+                  console.log('Anonymous reservation expired, re-reserving with authenticated session');
+                  fetchAssignedProblem();
+                }
+              } catch (err) {
+                console.error('Failed to transfer reservation:', err);
+                // Re-reserve using authenticated session as fallback
+                fetchAssignedProblem();
+              }
+            }
           }
           
           setEmailVerified(true);
@@ -1372,7 +1412,7 @@ export default function HackathonForm() {
       } finally {
           setLoading(false);
       }
-  }, [otpValue, currentStep, answers, getNextValidStep]);
+  }, [otpValue, currentStep, answers, getNextValidStep, fetchAssignedProblem]);
 
   const resetVerification = React.useCallback(async () => {
     // Clear verification state
@@ -1391,6 +1431,7 @@ export default function HackathonForm() {
       await fetch('/api/logout', { method: 'POST', credentials: 'include' });
       localStorage.removeItem('user_email');
       localStorage.removeItem('session_token_fallback');
+      localStorage.removeItem('anonymous_id');
     } catch (err) {
       console.error('Failed to invalidate session:', err);
     }
