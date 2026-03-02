@@ -187,13 +187,27 @@ export async function POST(req: Request) {
       sanitizeUrls: true,
     });
 
-    // ✅ CHECK FOR XSS in critical fields
+    // ✅ SECURITY FIX (L-1): Expanded XSS check to cover all user-supplied string fields
     const criticalFields = [
       sanitizedData.teamName,
       sanitizedData.leaderName,
+      sanitizedData.leaderEmail,
+      sanitizedData.leaderMobile,
+      sanitizedData.leaderCollege,
+      sanitizedData.leaderDegree,
       sanitizedData.ideaTitle,
       sanitizedData.problemStatement,
       sanitizedData.proposedSolution,
+      sanitizedData.targetUsers,
+      sanitizedData.expectedImpact,
+      sanitizedData.techStack,
+      sanitizedData.problemDesc,
+      sanitizedData.additionalNotes,
+      sanitizedData.hearAbout,
+      // Member fields
+      sanitizedData.member2Name, sanitizedData.member2Email, sanitizedData.member2College, sanitizedData.member2Degree,
+      sanitizedData.member3Name, sanitizedData.member3Email, sanitizedData.member3College, sanitizedData.member3Degree,
+      sanitizedData.member4Name, sanitizedData.member4Email, sanitizedData.member4College, sanitizedData.member4Degree,
     ].filter(Boolean);
 
     for (const field of criticalFields) {
@@ -231,9 +245,9 @@ export async function POST(req: Request) {
     }
 
     // Verify OTP was verified AND validate session token
-    // ✅ SECURITY FIX: Validate session token from cookie, with body fallback for mobile
+    // ✅ SECURITY FIX (M-13): Only accept session token from HttpOnly cookie, not from body
     const cookieStore = await cookies();
-    const sessionToken = cookieStore.get('session_token')?.value || sanitizedData.sessionId;
+    const sessionToken = cookieStore.get('session_token')?.value;
     
     if (!sessionToken) {
       return NextResponse.json(
@@ -272,7 +286,8 @@ export async function POST(req: Request) {
         {
           success: false,
           error: 'EMAIL_MISMATCH',
-          message: `Session email (${session.user.email}) does not match leader email (${sanitizedData.leaderEmail}). Please use the same email you verified with OTP.`,
+          // ✅ SECURITY FIX (M-3): Don't expose email addresses in error
+          message: 'Leader email does not match the email used during OTP verification. Please use the same email.',
         },
         { status: 403 }
       );
@@ -295,7 +310,8 @@ export async function POST(req: Request) {
         {
           success: false,
           error: 'EMAIL_NOT_VERIFIED',
-          message: `Email not verified. Please verify OTP first. (Looking for: ${normalizedLeaderEmail})`,
+          // ✅ SECURITY FIX (M-4): Don't expose email in debug info
+          message: 'Email not verified. Please verify OTP first.',
         },
         { status: 403 }
       );

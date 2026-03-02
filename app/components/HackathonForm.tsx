@@ -321,8 +321,6 @@ const QUESTIONS: Question[] = [
     options: [
       "I confirm that this idea is original and not copied.",
       "I agree that plagiarism will lead to disqualification.",
-      "I agree that submission must be in PDF format (max 10 slides).",
-      "I agree that pitch video must be max 3 minutes.",
       "I agree organizers may use idea name for promotion.",
       "I understand judges decision is final.",
       "I agree to maintain respectful communication."
@@ -447,10 +445,36 @@ const ThankYouScreen = ({ track }: { track: string }) => (
              <Check size={64} strokeWidth={1.5} />
          </div>
          <h1 className="text-3xl md:text-4xl font-bold mb-4 uppercase tracking-tight">Transmission Received</h1>
-         <p className="text-lg text-green-400/80 mb-8 leading-relaxed">
+         <p className="text-lg text-green-400/80 mb-6 leading-relaxed">
            Subject registered for protocol: <strong className="text-white">{track}</strong>.<br/>
            Directives have been forwarded to the designated communication channel (Email).
          </p>
+
+         {/* Community Links */}
+         <div className="border border-green-500/30 bg-green-500/5 p-5 mb-8">
+           <p className="text-sm text-green-400/70 uppercase tracking-wider mb-4 font-bold">Join the Community</p>
+           <div className="flex flex-col sm:flex-row gap-3">
+             <a
+               href="https://chat.whatsapp.com/JMriiPQLVL92R8CCxBo7Te?mode=gi_t"
+               target="_blank"
+               rel="noopener noreferrer"
+               className="flex items-center justify-center gap-2 px-5 py-2.5 bg-[#25D366]/10 border border-[#25D366]/40 text-[#25D366] hover:bg-[#25D366] hover:text-black transition-colors uppercase text-sm tracking-wider"
+             >
+               <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+               WhatsApp Group
+             </a>
+             <a
+               href="https://discord.gg/TWjJXRh2vT"
+               target="_blank"
+               rel="noopener noreferrer"
+               className="flex items-center justify-center gap-2 px-5 py-2.5 bg-[#5865F2]/10 border border-[#5865F2]/40 text-[#5865F2] hover:bg-[#5865F2] hover:text-white transition-colors uppercase text-sm tracking-wider"
+             >
+               <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current" aria-hidden="true"><path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.8732.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189z"/></svg>
+               Discord Server
+             </a>
+           </div>
+         </div>
+
          <Link href="/" className="inline-block px-6 py-2 border border-green-500 text-green-400 hover:bg-green-500 hover:text-black transition-colors uppercase text-sm tracking-wider">
              [ Return to HQ ]
          </Link>
@@ -584,7 +608,7 @@ const ComboboxInput = ({ value, onChange, suggestions, placeholder }: {
 const InputRenderer = ({ question, value, onChange, onCheckbox, answers, emailVerified, verifiedEmail, onResetVerification, showChangeEmailWarning, onChangeEmailClick, onCancelChangeEmail, assignedProblem, problemLoading, problemError, fetchAssignedProblem }: { 
   question: Question; 
   value: string | string[] | undefined; 
-  onChange: (val: string) => void; 
+  onChange: (val: string | string[]) => void; 
   onCheckbox: (opt: string) => void; 
   answers: Answers;
   emailVerified?: boolean;
@@ -710,9 +734,29 @@ const InputRenderer = ({ question, value, onChange, onCheckbox, answers, emailVe
 
   if (question.type === 'checkbox') {
     const selected = value || [];
+    const allOptions = question.options || [];
+    const allChecked = allOptions.length > 0 && allOptions.every((opt: string) => selected.includes(opt));
+    const handleAcceptAll = () => {
+      if (allChecked) {
+        onChange([]);
+      } else {
+        onChange([...allOptions]);
+      }
+    };
     return (
       <div className="flex flex-col gap-2 max-w-xl w-full">
-        {question.options?.map((opt: string, idx: number) => (
+        {/* Accept All button */}
+        <button
+          onClick={handleAcceptAll}
+          className={`self-end px-3 py-1 text-[11px] font-mono uppercase tracking-wider border rounded transition-all mb-1
+            ${allChecked
+              ? 'bg-orange-500/20 border-orange-500/50 text-orange-400 hover:bg-transparent hover:text-slate-400 hover:border-slate-600'
+              : 'bg-transparent border-slate-600 text-slate-400 hover:border-orange-500 hover:text-orange-400'}
+          `}
+        >
+          {allChecked ? '✓ All Accepted' : 'Accept All'}
+        </button>
+        {allOptions.map((opt: string, idx: number) => (
            <button
              key={idx}
              onClick={() => onCheckbox(opt)}

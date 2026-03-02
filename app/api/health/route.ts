@@ -13,24 +13,20 @@ export const dynamic = 'force-dynamic';
 interface HealthStatus {
   status: 'healthy' | 'degraded' | 'unhealthy';
   timestamp: string;
-  version: string;
   checks: {
     database: {
       status: 'up' | 'down';
       responseTime?: number;
-      error?: string;
     };
     redis: {
       status: 'up' | 'down';
       responseTime?: number;
-      error?: string;
     };
     api: {
       status: 'up';
       responseTime: number;
     };
   };
-  uptime: number;
 }
 
 export async function GET() {
@@ -38,13 +34,12 @@ export async function GET() {
   const health: HealthStatus = {
     status: 'healthy',
     timestamp: new Date().toISOString(),
-    version: process.env.npm_package_version || '1.0.0',
+    // ✅ SECURITY FIX (L-3): Removed version and uptime (info disclosure)
     checks: {
       database: { status: 'down' },
       redis: { status: 'down' },
       api: { status: 'up', responseTime: 0 },
     },
-    uptime: process.uptime(),
   };
 
   // Check Database
@@ -55,10 +50,10 @@ export async function GET() {
       status: 'up',
       responseTime: Date.now() - dbStart,
     };
-  } catch (error) {
+  } catch {
+    // ✅ SECURITY FIX (M-2): Don't expose error.message
     health.checks.database = {
       status: 'down',
-      error: error instanceof Error ? error.message : 'Unknown error',
     };
     health.status = 'degraded';
   }
@@ -82,13 +77,12 @@ export async function GET() {
     } else {
       health.checks.redis = {
         status: 'down',
-        error: 'Redis not configured',
       };
     }
-  } catch (error) {
+  } catch {
+    // ✅ SECURITY FIX (M-2): Don't expose error.message
     health.checks.redis = {
       status: 'down',
-      error: error instanceof Error ? error.message : 'Unknown error',
     };
     health.status = 'degraded';
   }

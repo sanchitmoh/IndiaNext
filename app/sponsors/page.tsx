@@ -73,7 +73,7 @@ const Navbar = () => {
         <div className="fixed inset-0 z-[200]">
           <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
           <motion.div initial={{ x: "100%" }} animate={{ x: 0 }} className="absolute right-0 top-0 h-full w-72 bg-[#0a0a0a] border-l border-white/10 p-8 flex flex-col">
-            <button onClick={() => setSidebarOpen(false)} className="self-end mb-8"><X size={24} /></button>
+            <button onClick={() => setSidebarOpen(false)} className="self-end mb-8" title="Close menu" aria-label="Close menu"><X size={24} /></button>
             <div className="flex flex-col gap-6">
               {NAV_LINKS.map((link) => (
                 <Link key={link.href} href={link.href} onClick={() => setSidebarOpen(false)} className="text-gray-400 hover:text-white font-mono text-sm tracking-widest font-bold uppercase">

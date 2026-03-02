@@ -81,7 +81,8 @@ export function middleware(request: NextRequest) {
       'Content-Security-Policy',
       [
         "default-src 'self'",
-        "script-src 'self' 'unsafe-inline' 'unsafe-eval'",  // Next.js requires inline scripts
+        // ✅ SECURITY FIX (M-9): Removed 'unsafe-eval'; kept 'unsafe-inline' for Next.js hydration
+        "script-src 'self' 'unsafe-inline'",
         "style-src 'self' 'unsafe-inline'",                   // Tailwind/inline styles
         "img-src 'self' res.cloudinary.com data: blob:",       // Cloudinary images
         "font-src 'self'",

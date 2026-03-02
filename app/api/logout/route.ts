@@ -23,6 +23,8 @@ export async function POST(_req: Request) {
     });
 
     response.cookies.delete('session_token');
+    // ✅ SECURITY FIX (M-1): Also clear admin session cookie
+    response.cookies.delete('admin_token');
 
     return response;
   } catch (error) {
@@ -35,6 +37,8 @@ export async function POST(_req: Request) {
     });
 
     response.cookies.delete('session_token');
+    // ✅ SECURITY FIX (M-1): Also clear admin session cookie
+    response.cookies.delete('admin_token');
 
     return response;
   }

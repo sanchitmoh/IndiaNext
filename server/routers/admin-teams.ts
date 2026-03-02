@@ -1,14 +1,23 @@
 // Admin Teams Management Router
 import { z } from 'zod';
-import { router, protectedProcedure } from '../trpc';
+import { router, adminProcedure } from '../trpc';
 import { TRPCError } from '@trpc/server';
 import { prisma } from '@/lib/prisma';
 import { 
-  requirePermission, 
+  hasPermission,
   logAdminAction,
+  type Permission,
 } from '@/lib/auth-admin';
 import { sendStatusUpdateEmail } from '@/lib/email';
 import type { Prisma } from '@prisma/client/edge';
+
+// ✅ SECURITY FIX (C-1): Helper to check permission via ctx.admin (from adminProcedure)
+// instead of re-reading cookies with requirePermission()
+function checkPermission(adminRole: string, permission: Permission): void {
+  if (!hasPermission(adminRole as any, permission)) {
+    throw new TRPCError({ code: 'FORBIDDEN', message: `Insufficient permissions: ${permission} required` });
+  }
+}
 
 // ═══════════════════════════════════════════════════════════
 // INPUT SCHEMAS
@@ -44,14 +53,14 @@ export const adminTeamsRouter = router({
   // GET TEAMS LIST (with pagination, filters, sorting)
   // ═══════════════════════════════════════════════════════════
   
-  list: protectedProcedure
+  list: adminProcedure
     .input(z.object({
       filters: TeamFiltersSchema.optional(),
       pagination: PaginationSchema.optional(),
     }))
-    .query(async ({ input }) => {
-      // Check permission
-      await requirePermission('VIEW_ALL_TEAMS');
+    .query(async ({ ctx, input }) => {
+      // ✅ SECURITY FIX (C-1): Use ctx.admin from adminProcedure
+      checkPermission(ctx.admin.role, 'VIEW_ALL_TEAMS');
       
       const { filters = {}, pagination } = input;
       const { page = 1, pageSize = 50, sortBy = 'createdAt', sortOrder = 'desc' } = pagination ?? {};
@@ -210,12 +219,12 @@ export const adminTeamsRouter = router({
   // GET TEAM DETAILS
   // ═══════════════════════════════════════════════════════════
   
-  getById: protectedProcedure
+  getById: adminProcedure
     .input(z.object({
       teamId: z.string(),
     }))
-    .query(async ({ input }) => {
-      await requirePermission('VIEW_ALL_TEAMS');
+    .query(async ({ ctx, input }) => {
+      checkPermission(ctx.admin.role, 'VIEW_ALL_TEAMS');
       
       const team = await prisma.team.findUnique({
         where: { id: input.teamId },
@@ -281,14 +290,15 @@ export const adminTeamsRouter = router({
   // APPROVE TEAM
   // ═══════════════════════════════════════════════════════════
   
-  approve: protectedProcedure
+  approve: adminProcedure
     .input(z.object({
       teamId: z.string(),
       notes: z.string().optional(),
       sendEmail: z.boolean().default(true),
     }))
-    .mutation(async ({ input }) => {
-      const session = await requirePermission('APPROVE_TEAMS');
+    .mutation(async ({ ctx, input }) => {
+      checkPermission(ctx.admin.role, 'APPROVE_TEAMS');
+      const adminUser = ctx.admin;
       
       // Get team with leader info
       const team = await prisma.team.findUnique({
@@ -320,7 +330,7 @@ export const adminTeamsRouter = router({
         where: { id: input.teamId },
         data: {
           status: 'APPROVED',
-          reviewedBy: session.user.id,
+          reviewedBy: adminUser.id,
           reviewedAt: new Date(),
           reviewNotes: input.notes,
         },
@@ -328,7 +338,7 @@ export const adminTeamsRouter = router({
       
       // Log action
       await logAdminAction({
-        userId: session.user.id,
+        userId: adminUser.id,
         action: 'team.approved',
         entity: 'Team',
         entityId: input.teamId,
@@ -361,14 +371,15 @@ export const adminTeamsRouter = router({
   // REJECT TEAM
   // ═══════════════════════════════════════════════════════════
   
-  reject: protectedProcedure
+  reject: adminProcedure
     .input(z.object({
       teamId: z.string(),
       reason: z.string().min(10, 'Rejection reason must be at least 10 characters'),
       sendEmail: z.boolean().default(true),
     }))
-    .mutation(async ({ input }) => {
-      const session = await requirePermission('REJECT_TEAMS');
+    .mutation(async ({ ctx, input }) => {
+      checkPermission(ctx.admin.role, 'REJECT_TEAMS');
+      const adminUser = ctx.admin;
       
       // Get team with leader info
       const team = await prisma.team.findUnique({
@@ -400,7 +411,7 @@ export const adminTeamsRouter = router({
         where: { id: input.teamId },
         data: {
           status: 'REJECTED',
-          reviewedBy: session.user.id,
+          reviewedBy: adminUser.id,
           reviewedAt: new Date(),
           rejectionReason: input.reason,
         },
@@ -408,7 +419,7 @@ export const adminTeamsRouter = router({
       
       // Log action
       await logAdminAction({
-        userId: session.user.id,
+        userId: adminUser.id,
         action: 'team.rejected',
         entity: 'Team',
         entityId: input.teamId,
@@ -440,14 +451,15 @@ export const adminTeamsRouter = router({
   // BULK APPROVE
   // ═══════════════════════════════════════════════════════════
   
-  bulkApprove: protectedProcedure
+  bulkApprove: adminProcedure
     .input(z.object({
       teamIds: z.array(z.string()).min(1),
       notes: z.string().optional(),
       sendEmail: z.boolean().default(true),
     }))
-    .mutation(async ({ input }) => {
-      const session = await requirePermission('APPROVE_TEAMS');
+    .mutation(async ({ ctx, input }) => {
+      checkPermission(ctx.admin.role, 'APPROVE_TEAMS');
+      const adminUser = ctx.admin;
       
       // Get teams with leader info
       const teams = await prisma.team.findMany({
@@ -476,7 +488,7 @@ export const adminTeamsRouter = router({
         },
         data: {
           status: 'APPROVED',
-          reviewedBy: session.user.id,
+          reviewedBy: adminUser.id,
           reviewedAt: new Date(),
           reviewNotes: input.notes,
         },
@@ -485,7 +497,7 @@ export const adminTeamsRouter = router({
       // Log actions
       for (const team of teams) {
         await logAdminAction({
-          userId: session.user.id,
+          userId: adminUser.id,
           action: 'team.approved',
           entity: 'Team',
           entityId: team.id,
@@ -525,14 +537,15 @@ export const adminTeamsRouter = router({
   // BULK REJECT
   // ═══════════════════════════════════════════════════════════
   
-  bulkReject: protectedProcedure
+  bulkReject: adminProcedure
     .input(z.object({
       teamIds: z.array(z.string()).min(1),
       reason: z.string().min(10),
       sendEmail: z.boolean().default(true),
     }))
-    .mutation(async ({ input }) => {
-      const session = await requirePermission('REJECT_TEAMS');
+    .mutation(async ({ ctx, input }) => {
+      checkPermission(ctx.admin.role, 'REJECT_TEAMS');
+      const adminUser = ctx.admin;
       
       // Get teams with leader info
       const teams = await prisma.team.findMany({
@@ -561,7 +574,7 @@ export const adminTeamsRouter = router({
         },
         data: {
           status: 'REJECTED',
-          reviewedBy: session.user.id,
+          reviewedBy: adminUser.id,
           reviewedAt: new Date(),
           rejectionReason: input.reason,
         },
@@ -570,7 +583,7 @@ export const adminTeamsRouter = router({
       // Log actions
       for (const team of teams) {
         await logAdminAction({
-          userId: session.user.id,
+          userId: adminUser.id,
           action: 'team.rejected',
           entity: 'Team',
           entityId: team.id,
@@ -610,19 +623,20 @@ export const adminTeamsRouter = router({
   // ADD COMMENT
   // ═══════════════════════════════════════════════════════════
   
-  addComment: protectedProcedure
+  addComment: adminProcedure
     .input(z.object({
       teamId: z.string(),
       content: z.string().min(1),
       isInternal: z.boolean().default(true),
     }))
-    .mutation(async ({ input }) => {
-      const session = await requirePermission('ADD_COMMENTS');
+    .mutation(async ({ ctx, input }) => {
+      checkPermission(ctx.admin.role, 'ADD_COMMENTS');
+      const adminUser = ctx.admin;
       
       const comment = await prisma.comment.create({
         data: {
           teamId: input.teamId,
-          authorId: session.user.id,
+          authorId: adminUser.id,
           content: input.content,
           isInternal: input.isInternal,
         },
@@ -630,7 +644,7 @@ export const adminTeamsRouter = router({
       
       // Log action
       await logAdminAction({
-        userId: session.user.id,
+        userId: adminUser.id,
         action: 'comment.created',
         entity: 'Comment',
         entityId: comment.id,
@@ -647,21 +661,22 @@ export const adminTeamsRouter = router({
   // ADD TAG
   // ═══════════════════════════════════════════════════════════
   
-  addTag: protectedProcedure
+  addTag: adminProcedure
     .input(z.object({
       teamId: z.string(),
       tag: z.string().min(1).max(50),
       color: z.string().regex(/^#[0-9A-F]{6}$/i).default('#6366f1'),
     }))
-    .mutation(async ({ input }) => {
-      const session = await requirePermission('EDIT_TEAMS');
+    .mutation(async ({ ctx, input }) => {
+      checkPermission(ctx.admin.role, 'EDIT_TEAMS');
+      const adminUser = ctx.admin;
       
       const tag = await prisma.teamTag.create({
         data: {
           teamId: input.teamId,
           tag: input.tag,
           color: input.color,
-          addedBy: session.user.id,
+          addedBy: adminUser.id,
         },
       });
       
@@ -672,12 +687,12 @@ export const adminTeamsRouter = router({
   // REMOVE TAG
   // ═══════════════════════════════════════════════════════════
   
-  removeTag: protectedProcedure
+  removeTag: adminProcedure
     .input(z.object({
       tagId: z.string(),
     }))
-    .mutation(async ({ input }) => {
-      await requirePermission('EDIT_TEAMS');
+    .mutation(async ({ ctx, input }) => {
+      checkPermission(ctx.admin.role, 'EDIT_TEAMS');
       
       await prisma.teamTag.delete({
         where: { id: input.tagId },
@@ -690,12 +705,12 @@ export const adminTeamsRouter = router({
   // GET ACTIVITY TIMELINE
   // ═══════════════════════════════════════════════════════════
   
-  getActivity: protectedProcedure
+  getActivity: adminProcedure
     .input(z.object({
       teamId: z.string(),
     }))
-    .query(async ({ input }) => {
-      await requirePermission('VIEW_ALL_TEAMS');
+    .query(async ({ ctx, input }) => {
+      checkPermission(ctx.admin.role, 'VIEW_ALL_TEAMS');
       
       const activities = await prisma.activityLog.findMany({
         where: {

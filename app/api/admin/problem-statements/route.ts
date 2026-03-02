@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
+import { requirePermission, type AdminRole } from '@/lib/rbac';
+import { sanitizeHtml } from '@/lib/input-sanitizer';
 
 // Validation schema
 const CreateProblemSchema = z.object({
@@ -47,6 +49,11 @@ export async function GET(req: Request) {
     const admin = await verifyAdmin(req);
     if (!admin) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // ✅ SECURITY FIX (H-3): Check granular permission
+    if (!requirePermission(admin.role as AdminRole, 'viewProblems')) {
+      return NextResponse.json({ success: false, error: 'Insufficient permissions' }, { status: 403 });
     }
 
     const problems = await prisma.problemStatement.findMany({
@@ -97,6 +104,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
+    // ✅ SECURITY FIX (H-3): Check granular permission
+    if (!requirePermission(admin.role as AdminRole, 'createProblems')) {
+      return NextResponse.json({ success: false, error: 'Insufficient permissions' }, { status: 403 });
+    }
+
     const body = await req.json();
     const validation = CreateProblemSchema.safeParse(body);
 
@@ -125,9 +137,10 @@ export async function POST(req: Request) {
 
     const problem = await prisma.problemStatement.create({
       data: {
-        title: data.title,
-        objective: data.objective,
-        description: data.description,
+        // ✅ SECURITY FIX (L-5): Sanitize HTML in user-supplied fields
+        title: sanitizeHtml(data.title),
+        objective: sanitizeHtml(data.objective),
+        description: data.description ? sanitizeHtml(data.description) : undefined,
         maxSubmissions: data.maxSubmissions,
         isActive: data.isActive,
         order: data.order,
@@ -175,6 +188,11 @@ export async function PATCH(req: Request) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
+    // ✅ SECURITY FIX (H-3): Check granular permission
+    if (!requirePermission(admin.role as AdminRole, 'editProblems')) {
+      return NextResponse.json({ success: false, error: 'Insufficient permissions' }, { status: 403 });
+    }
+
     const body = await req.json();
     const validation = UpdateProblemSchema.safeParse(body);
 
@@ -188,9 +206,21 @@ export async function PATCH(req: Request) {
 
     const { id, ...data } = validation.data;
 
+    // ✅ SECURITY FIX (L-6): Verify resource exists before update
+    const existing = await prisma.problemStatement.findUnique({ where: { id } });
+    if (!existing) {
+      return NextResponse.json({ success: false, error: 'Problem statement not found' }, { status: 404 });
+    }
+
+    // ✅ SECURITY FIX (L-5): Sanitize HTML in updated fields
+    const sanitizedData: Record<string, unknown> = { ...data };
+    if (data.title) sanitizedData.title = sanitizeHtml(data.title);
+    if (data.objective) sanitizedData.objective = sanitizeHtml(data.objective);
+    if (data.description) sanitizedData.description = sanitizeHtml(data.description);
+
     const problem = await prisma.problemStatement.update({
       where: { id },
-      data,
+      data: sanitizedData,
     });
 
     // Log activity
@@ -231,6 +261,11 @@ export async function DELETE(req: Request) {
     const admin = await verifyAdmin(req);
     if (!admin) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // ✅ SECURITY FIX (H-3): Check granular permission
+    if (!requirePermission(admin.role as AdminRole, 'deleteProblems')) {
+      return NextResponse.json({ success: false, error: 'Insufficient permissions' }, { status: 403 });
     }
 
     const { searchParams } = new URL(req.url);

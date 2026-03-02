@@ -219,8 +219,6 @@ export async function POST(req: Request) {
     });
 
     // ✅ SECURITY FIX: Set session as HttpOnly cookie instead of returning in response
-    // Also include sessionId in body as fallback for mobile in-app browsers
-    // that may silently ignore Set-Cookie headers
     const response = NextResponse.json(
       {
         success: true,
@@ -232,8 +230,8 @@ export async function POST(req: Request) {
             name: user.name,
             role: user.role,
           },
-          // Fallback session token for mobile browsers that strip cookies
-          sessionId: session.token,
+          // ✅ SECURITY FIX (H-1): Session token REMOVED from response body.
+          // Exposing it here defeats HttpOnly cookie protection.
         },
       },
       {

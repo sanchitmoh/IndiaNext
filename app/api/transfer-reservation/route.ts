@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
 
 /**
@@ -10,12 +11,37 @@ import { prisma } from '@/lib/prisma';
  */
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    const { anonymousId, sessionId } = body;
+    // ✅ SECURITY FIX (H-2): Authenticate via HttpOnly cookie, not body
+    const cookieStore = await cookies();
+    const sessionToken = cookieStore.get('session_token')?.value;
 
-    if (!anonymousId || !sessionId) {
+    if (!sessionToken) {
       return NextResponse.json(
-        { success: false, message: 'Both anonymousId and sessionId are required.' },
+        { success: false, message: 'Authentication required.' },
+        { status: 401 }
+      );
+    }
+
+    // Verify the session is valid
+    const session = await prisma.session.findUnique({
+      where: { token: sessionToken },
+    });
+
+    if (!session || session.expiresAt < new Date()) {
+      return NextResponse.json(
+        { success: false, message: 'Invalid or expired session.' },
+        { status: 401 }
+      );
+    }
+
+    const body = await req.json();
+    const { anonymousId } = body;
+    // Use the authenticated sessionId from cookie, ignore any body.sessionId
+    const sessionId = sessionToken;
+
+    if (!anonymousId) {
+      return NextResponse.json(
+        { success: false, message: 'anonymousId is required.' },
         { status: 400 }
       );
     }

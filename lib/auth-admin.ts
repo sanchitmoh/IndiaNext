@@ -87,22 +87,24 @@ export function isAdmin(userRole: UserRole): boolean {
 export async function getAdminSession(): Promise<AdminSession | null> {
   try {
     const cookieStore = await cookies();
-    const sessionToken = cookieStore.get('admin_session')?.value;
+    // ✅ SECURITY FIX (C-2): Read 'admin_token' cookie (matches what admin login sets)
+    const sessionToken = cookieStore.get('admin_token')?.value;
 
     if (!sessionToken) {
       return null;
     }
 
-    // Validate session
-    const session = await prisma.session.findUnique({
+    // ✅ SECURITY FIX (C-2): Query AdminSession table (not Session)
+    const session = await prisma.adminSession.findUnique({
       where: { token: sessionToken },
       include: {
-        user: {
+        admin: {
           select: {
             id: true,
             email: true,
             name: true,
             role: true,
+            isActive: true,
           },
         },
       },
@@ -111,18 +113,23 @@ export async function getAdminSession(): Promise<AdminSession | null> {
     if (!session || session.expiresAt < new Date()) {
       // Clean up expired session
       if (session) {
-        await prisma.session.delete({ where: { id: session.id } });
+        await prisma.adminSession.delete({ where: { id: session.id } });
       }
       return null;
     }
 
-    // Check if user has admin access
-    if (!isAdmin(session.user.role)) {
+    // Check if admin is active and has admin access
+    if (!session.admin.isActive || !isAdmin(session.admin.role)) {
       return null;
     }
 
     return {
-      user: session.user,
+      user: {
+        id: session.admin.id,
+        email: session.admin.email,
+        name: session.admin.name,
+        role: session.admin.role,
+      },
       expiresAt: session.expiresAt,
     };
   } catch (error) {
