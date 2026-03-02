@@ -52,171 +52,104 @@ export async function POST(req: Request) {
       console.log(`[ReserveProblem] Cleaned up ${deletedCount.count} expired reservations`);
     }
 
-    // We will do all the read/write inside a transaction to prevent race conditions
-    return await prisma.$transaction(async (tx) => {
-      // 2. Check if this session already has an ACTIVE reservation
-      const existingReservation = await tx.problemReservation.findUnique({
-        where: { sessionId },
-        include: { problemStatement: true },
-      });
+    // 2. Check if this session already has an ACTIVE reservation (outside tx for speed)
+    const existingReservation = await prisma.problemReservation.findUnique({
+      where: { sessionId },
+      include: { problemStatement: true },
+    });
 
-      if (existingReservation) {
-        // Check if extension limit reached
-        if (existingReservation.extensionCount >= MAX_EXTENSIONS) {
-          return NextResponse.json({
-            success: false,
-            error: 'EXTENSION_LIMIT_REACHED',
-            message: `You have reached the maximum number of extensions (${MAX_EXTENSIONS}). Please complete your registration.`,
-          }, { status: 429 });
-        }
-
-        // Extend the expiry by 15 minutes since they are still active
-        await tx.problemReservation.update({
-          where: { id: existingReservation.id },
-          data: { 
-            expiresAt: new Date(Date.now() + RESERVATION_DURATION),
-            extensionCount: existingReservation.extensionCount + 1,
-          },
-        });
-
-        console.log(`[ReserveProblem] Extended reservation for session ${sessionId} (extension #${existingReservation.extensionCount + 1})`);
-
+    if (existingReservation) {
+      // Check if extension limit reached
+      if (existingReservation.extensionCount >= MAX_EXTENSIONS) {
         return NextResponse.json({
-          success: true,
-          data: {
-            id: existingReservation.problemStatement.id,
-            title: existingReservation.problemStatement.title,
-            objective: existingReservation.problemStatement.objective,
-            description: existingReservation.problemStatement.description,
-            extensionsRemaining: MAX_EXTENSIONS - (existingReservation.extensionCount + 1),
-          },
-          extended: true,
-        });
+          success: false,
+          error: 'EXTENSION_LIMIT_REACHED',
+          message: `You have reached the maximum number of extensions (${MAX_EXTENSIONS}). Please complete your registration.`,
+        }, { status: 429 });
       }
 
-      // 3. ROUND-ROBIN ASSIGNMENT: Find the problem with the LEAST assignments
-      const availableProblems = await tx.problemStatement.findMany({
-        where: { isActive: true },
-        orderBy: { order: 'asc' },
+      // Extend the expiry by 15 minutes since they are still active
+      await prisma.problemReservation.update({
+        where: { id: existingReservation.id },
+        data: {
+          expiresAt: new Date(Date.now() + RESERVATION_DURATION),
+          extensionCount: existingReservation.extensionCount + 1,
+        },
       });
 
-      if (availableProblems.length === 0) {
-        return NextResponse.json({
-          success: true,
-          data: null,
-          message: 'No active problem statements available.',
-          allFilled: true,
+      console.log(`[ReserveProblem] Extended reservation for session ${sessionId} (extension #${existingReservation.extensionCount + 1})`);
+
+      return NextResponse.json({
+        success: true,
+        data: {
+          id: existingReservation.problemStatement.id,
+          title: existingReservation.problemStatement.title,
+          objective: existingReservation.problemStatement.objective,
+          description: existingReservation.problemStatement.description,
+          extensionsRemaining: MAX_EXTENSIONS - (existingReservation.extensionCount + 1),
+        },
+        extended: true,
+      });
+    }
+
+    // 3. ROUND-ROBIN ASSIGNMENT: Find the problem with the LEAST assignments
+    const availableProblems = await prisma.problemStatement.findMany({
+      where: { isActive: true },
+      orderBy: { order: 'asc' },
+    });
+
+    if (availableProblems.length === 0) {
+      return NextResponse.json({
+        success: true,
+        data: null,
+        message: 'No active problem statements available.',
+        allFilled: true,
+      });
+    }
+
+    // Get all reservation counts in a SINGLE grouped query instead of N separate counts
+    const reservationCounts = await prisma.problemReservation.groupBy({
+      by: ['problemStatementId'],
+      _count: { id: true },
+    });
+    const reservationCountMap = new Map(
+      reservationCounts.map(r => [r.problemStatementId, r._count.id])
+    );
+
+    const problemsWithLoad = availableProblems.map((problem) => {
+      const activeReservations = reservationCountMap.get(problem.id) || 0;
+      const totalCommitted = problem.submissionCount + activeReservations;
+      return {
+        ...problem,
+        activeReservations,
+        totalCommitted,
+        hasCapacity: totalCommitted < problem.maxSubmissions,
+      };
+    });
+
+    // Filter problems that still have capacity
+    let availableWithCapacity = problemsWithLoad.filter(p => p.hasCapacity);
+
+    if (availableWithCapacity.length === 0) {
+      // Check if we can expand capacity from 30 to 50 slots per problem
+      const canExpand = availableProblems.some(p => p.maxSubmissions < 50);
+
+      if (canExpand) {
+        // Expand maxSubmissions for all active problems to 50
+        await prisma.problemStatement.updateMany({
+          where: { isActive: true },
+          data: { maxSubmissions: 50 },
         });
+        console.log('[ReserveProblem] Expanded capacity to 50 slots per problem');
+
+        // Recalculate with expanded capacity
+        availableWithCapacity = problemsWithLoad.map(p => ({
+          ...p,
+          hasCapacity: p.totalCommitted < 50,
+        })).filter(p => p.hasCapacity);
       }
-
-      // Calculate total committed (submissions + active reservations) for each problem
-      const problemsWithLoad = await Promise.all(
-        availableProblems.map(async (problem) => {
-          const activeReservationsCount = await tx.problemReservation.count({
-            where: { problemStatementId: problem.id },
-          });
-
-          const totalCommitted = problem.submissionCount + activeReservationsCount;
-          const hasCapacity = totalCommitted < problem.maxSubmissions;
-
-          return {
-            ...problem,
-            activeReservations: activeReservationsCount,
-            totalCommitted,
-            hasCapacity,
-          };
-        })
-      );
-
-      // Filter problems that still have capacity
-      const availableWithCapacity = problemsWithLoad.filter(p => p.hasCapacity);
 
       if (availableWithCapacity.length === 0) {
-        // Check if we can expand capacity from 30 to 50 slots per problem
-        const canExpand = availableProblems.some(p => p.maxSubmissions < 50);
-
-        if (canExpand) {
-          // Expand maxSubmissions for all active problems to 50
-          await tx.problemStatement.updateMany({
-            where: { isActive: true },
-            data: { maxSubmissions: 50 },
-          });
-
-          console.log('[ReserveProblem] Expanded capacity to 50 slots per problem');
-
-          // Retry with expanded capacity
-          const expandedProblems = await tx.problemStatement.findMany({
-            where: { isActive: true },
-            orderBy: { order: 'asc' },
-          });
-
-          const expandedWithLoad = await Promise.all(
-            expandedProblems.map(async (problem) => {
-              const activeReservationsCount = await tx.problemReservation.count({
-                where: { problemStatementId: problem.id },
-              });
-
-              const totalCommitted = problem.submissionCount + activeReservationsCount;
-
-              return {
-                ...problem,
-                activeReservations: activeReservationsCount,
-                totalCommitted,
-                hasCapacity: totalCommitted < 50,
-              };
-            })
-          );
-
-          const expandedAvailable = expandedWithLoad.filter(p => p.hasCapacity);
-
-          if (expandedAvailable.length === 0) {
-            return NextResponse.json({
-              success: true,
-              data: null,
-              message: 'All problem statements have been fully reserved or filled.',
-              allFilled: true,
-            });
-          }
-
-          // Select problem with least load + rotating tiebreaker from expanded capacity
-          const selectedProblem = await selectWithRotatingTiebreaker(expandedAvailable);
-
-          // Create reservation
-          const newReservation = await tx.problemReservation.create({
-            data: {
-              sessionId,
-              problemStatementId: selectedProblem.id,
-              expiresAt: new Date(Date.now() + RESERVATION_DURATION),
-              extensionCount: 0,
-            },
-            include: { problemStatement: true },
-          });
-
-          console.log(`[ReserveProblem] Created reservation for session ${sessionId} - Problem #${selectedProblem.order}: "${selectedProblem.title}" (Load: ${selectedProblem.totalCommitted + 1}/${selectedProblem.maxSubmissions})`);
-
-          await trackReservationAnalytics(tx, 'reservation_created', {
-            sessionId,
-            problemStatementId: selectedProblem.id,
-            problemTitle: selectedProblem.title,
-            problemOrder: selectedProblem.order,
-            loadAfterReservation: selectedProblem.totalCommitted + 1,
-          });
-
-          return NextResponse.json({
-            success: true,
-            data: {
-              id: newReservation.problemStatement.id,
-              title: newReservation.problemStatement.title,
-              objective: newReservation.problemStatement.objective,
-              description: newReservation.problemStatement.description,
-              extensionsRemaining: MAX_EXTENSIONS,
-            },
-            allFilled: false,
-            extended: false,
-          });
-        }
-
-        // Cannot expand further
         return NextResponse.json({
           success: true,
           data: null,
@@ -224,26 +157,15 @@ export async function POST(req: Request) {
           allFilled: true,
         });
       }
+    }
 
-      // 4. TRUE ROUND-ROBIN: Select problem with least load + rotating tiebreaker
-      // When multiple problems have equal load, rotate the starting point
-      // so consecutive users get different problems instead of always #1
-      const selectedProblem = await selectWithRotatingTiebreaker(availableWithCapacity);
+    // 4. TRUE ROUND-ROBIN: Select problem with least load + rotating tiebreaker
+    // Redis call is outside the DB transaction — this is safe since it's just a hint
+    const selectedProblem = await selectWithRotatingTiebreaker(availableWithCapacity);
 
-      // Update isCurrent flag to the selected problem
-      if (!selectedProblem.isCurrent) {
-        await tx.problemStatement.updateMany({
-          where: { isCurrent: true },
-          data: { isCurrent: false },
-        });
-        await tx.problemStatement.update({
-          where: { id: selectedProblem.id },
-          data: { isCurrent: true },
-        });
-      }
-
-      // 5. Create the new reservation
-      const newReservation = await tx.problemReservation.create({
+    // 5. Create the reservation inside a SHORT transaction (only the critical write)
+    const newReservation = await prisma.$transaction(async (tx) => {
+      return tx.problemReservation.create({
         data: {
           sessionId,
           problemStatementId: selectedProblem.id,
@@ -252,34 +174,39 @@ export async function POST(req: Request) {
         },
         include: { problemStatement: true },
       });
-
-      console.log(`[ReserveProblem] Round-robin assignment - Session ${sessionId} → Problem #${selectedProblem.order}: "${selectedProblem.title}" (Load: ${selectedProblem.totalCommitted + 1}/${selectedProblem.maxSubmissions})`);
-
-      // Track analytics: reservation created
-      await trackReservationAnalytics(tx, 'reservation_created', {
-        sessionId,
-        problemStatementId: selectedProblem.id,
-        problemTitle: selectedProblem.title,
-        problemOrder: selectedProblem.order,
-        loadAfterReservation: selectedProblem.totalCommitted + 1,
-        distributionStrategy: 'round-robin',
-      });
-
-      return NextResponse.json({
-        success: true,
-        data: {
-          id: newReservation.problemStatement.id,
-          title: newReservation.problemStatement.title,
-          objective: newReservation.problemStatement.objective,
-          description: newReservation.problemStatement.description,
-          extensionsRemaining: MAX_EXTENSIONS,
-        },
-        allFilled: false,
-        extended: false,
-      });
     }, {
-      timeout: 10000,
-      isolationLevel: 'Serializable', // Prevent race conditions
+      timeout: 15000,
+    });
+
+    console.log(`[ReserveProblem] Round-robin assignment - Session ${sessionId} → Problem #${selectedProblem.order}: "${selectedProblem.title}" (Load: ${selectedProblem.totalCommitted + 1}/${selectedProblem.maxSubmissions})`);
+
+    // Fire-and-forget: update isCurrent flag and track analytics (non-critical)
+    if (!selectedProblem.isCurrent) {
+      prisma.problemStatement.updateMany({ where: { isCurrent: true }, data: { isCurrent: false } })
+        .then(() => prisma.problemStatement.update({ where: { id: selectedProblem.id }, data: { isCurrent: true } }))
+        .catch(err => console.error('[ReserveProblem] isCurrent update failed:', err));
+    }
+
+    trackReservationAnalytics(prisma, 'reservation_created', {
+      sessionId,
+      problemStatementId: selectedProblem.id,
+      problemTitle: selectedProblem.title,
+      problemOrder: selectedProblem.order,
+      loadAfterReservation: selectedProblem.totalCommitted + 1,
+      distributionStrategy: 'round-robin',
+    }).catch(err => console.error('[ReserveProblem] Analytics tracking failed:', err));
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        id: newReservation.problemStatement.id,
+        title: newReservation.problemStatement.title,
+        objective: newReservation.problemStatement.objective,
+        description: newReservation.problemStatement.description,
+        extensionsRemaining: MAX_EXTENSIONS,
+      },
+      allFilled: false,
+      extended: false,
     });
 
   } catch (error) {
@@ -340,12 +267,12 @@ async function selectWithRotatingTiebreaker<
  * Track analytics for reservation events
  */
 async function trackReservationAnalytics(
-  tx: any,
+  db: typeof prisma,
   eventType: string,
   metadata: Record<string, any>
 ) {
   try {
-    await tx.metric.create({
+    await db.metric.create({
       data: {
         name: eventType,
         value: 1,
