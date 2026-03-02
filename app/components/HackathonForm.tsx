@@ -780,41 +780,62 @@ const InputRenderer = ({ question, value, onChange, onCheckbox, answers, emailVe
 
   if (question.type === 'long-text') {
     return (
-      <div className="flex flex-col md:flex-row gap-6 w-full">
-         <textarea
-            ref={inputRef as React.RefObject<HTMLTextAreaElement & HTMLInputElement>}
-            value={value || ''}
-            onChange={(e) => onChange(e.target.value)}
-            onPaste={(e) => {
-                if (question.noPaste) {
-                    e.preventDefault();
-                    // Optional: Toast or simple alert
-                    alert("Pasting is disabled for this section. Please type your response.");
-                }
-            }}
-            placeholder={question.placeholder ? question.placeholder.toUpperCase() : ''}
-            className="flex-1 bg-slate-900/50 border border-slate-700 p-4 text-xl font-mono text-white placeholder-slate-700 focus:outline-none focus:border-orange-500 transition-all resize-none h-48 md:h-64 tracking-tight leading-relaxed"
-         />
-         
-         {/* Guidance Panel */}
-         {(question.guidance || (question.id === 'problemDesc' && assignedProblem)) && (
-             <div className="md:w-64 shrink-0 bg-slate-900 border border-slate-800 p-4 rounded text-sm text-slate-400 font-mono hidden md:block">
-                 <div className="text-orange-500 font-bold mb-2 uppercase tracking-wider text-xs border-b border-orange-500/20 pb-1">
-                     RESPONSE PATTERN
-                 </div>
-                 <div className="whitespace-pre-wrap leading-relaxed text-xs">
-                     {question.id === 'problemDesc' && assignedProblem
-                       ? `PROBLEM STATEMENT:\n${assignedProblem.title} - ${assignedProblem.objective}\n\nSuggested Response Pattern:\n\n1. Analysis: Breakdown of the specific problem statement.\n2. Technical Approach: Architecture & Stack choice.\n3. Innovation: What makes your fix unique?\n4. Execution Plan: 24-hour timeline strategy.`
-                       : question.guidance
-                     }
-                 </div>
-                 {question.noPaste && (
-                     <div className="mt-4 text-xs text-red-500 border border-red-900/50 bg-red-900/10 p-2 text-center uppercase tracking-widest font-bold">
-                         [ NO PASTE ALLOWED ]
-                     </div>
-                 )}
+      <div className="w-full space-y-4">
+         {/* Show assigned problem statement in the problem solving area */}
+         {question.id === 'problemDesc' && assignedProblem && (
+           <div className="bg-slate-900 border border-slate-700 p-4 rounded relative overflow-hidden">
+             <div className="absolute top-0 left-0 w-full h-0.5 bg-orange-500/50" />
+             <div className="flex items-center gap-2 text-orange-400 font-bold mb-2 uppercase tracking-widest text-[10px]">
+               <span className="w-1.5 h-1.5 bg-orange-500 animate-pulse rounded-full" />
+               Your Assigned Problem Statement
              </div>
+             <h4 className="text-lg font-mono text-white font-bold mb-1">{assignedProblem.title}</h4>
+             <p className="text-sm font-mono text-slate-300 leading-relaxed">
+               <span className="text-orange-400 font-bold">Objective: </span>{assignedProblem.objective}
+             </p>
+             <div className="mt-3 bg-yellow-950/40 border border-yellow-500/20 p-2.5 rounded">
+               <p className="text-yellow-300/80 text-xs font-mono leading-relaxed">
+                 ⚠ This problem statement is for the <span className="font-bold text-yellow-300">filtering process only</span>. The actual problem statement will be assigned on the day of the event.
+               </p>
+             </div>
+           </div>
          )}
+
+         <div className="flex flex-col md:flex-row gap-6 w-full">
+           <textarea
+              ref={inputRef as React.RefObject<HTMLTextAreaElement & HTMLInputElement>}
+              value={value || ''}
+              onChange={(e) => onChange(e.target.value)}
+              onPaste={(e) => {
+                  if (question.noPaste) {
+                      e.preventDefault();
+                      alert("Pasting is disabled for this section. Please type your response.");
+                  }
+              }}
+              placeholder={question.placeholder ? question.placeholder.toUpperCase() : ''}
+              className="flex-1 bg-slate-900/50 border border-slate-700 p-4 text-xl font-mono text-white placeholder-slate-700 focus:outline-none focus:border-orange-500 transition-all resize-none h-48 md:h-64 tracking-tight leading-relaxed"
+           />
+           
+           {/* Guidance Panel */}
+           {(question.guidance || (question.id === 'problemDesc' && assignedProblem)) && (
+               <div className="md:w-64 shrink-0 bg-slate-900 border border-slate-800 p-4 rounded text-sm text-slate-400 font-mono hidden md:block">
+                   <div className="text-orange-500 font-bold mb-2 uppercase tracking-wider text-xs border-b border-orange-500/20 pb-1">
+                       RESPONSE PATTERN
+                   </div>
+                   <div className="whitespace-pre-wrap leading-relaxed text-xs">
+                       {question.id === 'problemDesc' && assignedProblem
+                         ? `PROBLEM STATEMENT:\n${assignedProblem.title} - ${assignedProblem.objective}\n\nSuggested Response Pattern:\n\n1. Analysis: Breakdown of the specific problem statement.\n2. Technical Approach: Architecture & Stack choice.\n3. Innovation: What makes your fix unique?\n4. Execution Plan: 24-hour timeline strategy.`
+                         : question.guidance
+                       }
+                   </div>
+                   {question.noPaste && (
+                       <div className="mt-4 text-xs text-red-500 border border-red-900/50 bg-red-900/10 p-2 text-center uppercase tracking-widest font-bold">
+                           [ NO PASTE ALLOWED ]
+                       </div>
+                   )}
+               </div>
+           )}
+         </div>
       </div>
     );
   }
@@ -881,25 +902,35 @@ const InputRenderer = ({ question, value, onChange, onCheckbox, answers, emailVe
           </div>
         )}
         {assignedProblem && !problemLoading && (
-          <div className="bg-slate-900 border border-slate-700 p-6 rounded relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-full h-1 bg-orange-500/50" />
-            <div className="flex items-center gap-2 text-orange-400 font-bold mb-4 uppercase tracking-widest text-xs">
-              <span className="w-2 h-2 bg-orange-500 animate-pulse rounded-full" />
-              Your Assigned Problem Statement
-            </div>
-            <div>
-              <h3 className="text-2xl md:text-3xl font-mono text-white font-bold mb-3">
-                {assignedProblem.title}
-              </h3>
-              <div className="text-lg md:text-xl font-mono text-slate-300 leading-relaxed mb-3">
-                <span className="text-orange-400 font-bold">Objective: </span>
-                {assignedProblem.objective}
+          <div className="space-y-4">
+            <div className="bg-slate-900 border border-slate-700 p-6 rounded relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-full h-1 bg-orange-500/50" />
+              <div className="flex items-center gap-2 text-orange-400 font-bold mb-4 uppercase tracking-widest text-xs">
+                <span className="w-2 h-2 bg-orange-500 animate-pulse rounded-full" />
+                Your Assigned Problem Statement
               </div>
-              {assignedProblem.description && (
-                <p className="text-sm font-mono text-slate-400 leading-relaxed border-l-2 border-slate-700 pl-4">
-                  {assignedProblem.description}
-                </p>
-              )}
+              <div>
+                <h3 className="text-2xl md:text-3xl font-mono text-white font-bold mb-3">
+                  {assignedProblem.title}
+                </h3>
+                <div className="text-lg md:text-xl font-mono text-slate-300 leading-relaxed mb-3">
+                  <span className="text-orange-400 font-bold">Objective: </span>
+                  {assignedProblem.objective}
+                </div>
+                {assignedProblem.description && (
+                  <p className="text-sm font-mono text-slate-400 leading-relaxed border-l-2 border-slate-700 pl-4">
+                    {assignedProblem.description}
+                  </p>
+                )}
+              </div>
+            </div>
+            <div className="bg-yellow-950/40 border border-yellow-500/30 p-4 rounded">
+              <p className="text-yellow-400 text-xs font-mono uppercase tracking-wider font-bold mb-1">
+                ⚠ Important Note
+              </p>
+              <p className="text-yellow-300/80 text-sm font-mono leading-relaxed">
+                This problem statement is for the <span className="font-bold text-yellow-300">filtering process only</span>. The actual problem statement for the hackathon will be assigned on the day of the event.
+              </p>
             </div>
           </div>
         )}
