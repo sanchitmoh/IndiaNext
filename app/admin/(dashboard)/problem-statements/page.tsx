@@ -363,7 +363,7 @@ export default function ProblemStatementsPage() {
             >
               <div className="flex items-start gap-4">
                 {/* Drag Handle */}
-                <button className="mt-1 text-gray-600 hover:text-gray-400 cursor-grab active:cursor-grabbing">
+                <button type="button" className="mt-1 text-gray-600 hover:text-gray-400 cursor-grab active:cursor-grabbing" title="Drag to reorder">
                   <GripVertical className="w-5 h-5" />
                 </button>
 
@@ -482,8 +482,10 @@ export default function ProblemStatementsPage() {
                 Create Problem Statement
               </h2>
               <button
+                type="button"
                 onClick={() => setShowCreateModal(false)}
                 className="p-2 text-gray-500 hover:text-white hover:bg-white/[0.05] rounded-md transition-colors"
+                title="Close"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -498,6 +500,7 @@ export default function ProblemStatementsPage() {
                   onChange={(e) => setFormData({ ...formData, order: parseInt(e.target.value) || 1 })}
                   className="w-full px-4 py-2 bg-black/40 border border-white/[0.1] rounded-md text-white focus:outline-none focus:border-orange-500/50"
                   min="1"
+                  title="Order number for the problem statement"
                 />
               </div>
 
@@ -509,6 +512,7 @@ export default function ProblemStatementsPage() {
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   className="w-full px-4 py-2 bg-black/40 border border-white/[0.1] rounded-md text-white focus:outline-none focus:border-orange-500/50"
                   placeholder="e.g., Disaster Response Coordination"
+                  title="Title of the problem statement"
                 />
               </div>
 
@@ -519,6 +523,7 @@ export default function ProblemStatementsPage() {
                   onChange={(e) => setFormData({ ...formData, objective: e.target.value })}
                   className="w-full px-4 py-2 bg-black/40 border border-white/[0.1] rounded-md text-white focus:outline-none focus:border-orange-500/50 min-h-[80px]"
                   placeholder="Brief objective of the problem statement"
+                  title="Objective of the problem statement"
                 />
               </div>
 
@@ -529,6 +534,7 @@ export default function ProblemStatementsPage() {
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   className="w-full px-4 py-2 bg-black/40 border border-white/[0.1] rounded-md text-white focus:outline-none focus:border-orange-500/50 min-h-[120px]"
                   placeholder="Detailed description of the problem statement"
+                  title="Detailed description of the problem statement"
                 />
               </div>
 
@@ -541,6 +547,7 @@ export default function ProblemStatementsPage() {
                   className="w-full px-4 py-2 bg-black/40 border border-white/[0.1] rounded-md text-white focus:outline-none focus:border-orange-500/50"
                   min="1"
                   max="100"
+                  title="Maximum number of submissions allowed"
                 />
               </div>
 
@@ -591,6 +598,7 @@ export default function ProblemStatementsPage() {
               <button
                 onClick={() => setShowEditModal(false)}
                 className="p-2 text-gray-500 hover:text-white hover:bg-white/[0.05] rounded-md transition-colors"
+                title="Close"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -605,6 +613,7 @@ export default function ProblemStatementsPage() {
                   onChange={(e) => setFormData({ ...formData, order: parseInt(e.target.value) || 1 })}
                   className="w-full px-4 py-2 bg-black/40 border border-white/[0.1] rounded-md text-white focus:outline-none focus:border-cyan-500/50"
                   min="1"
+                  title="Order number for the problem statement"
                 />
               </div>
 
@@ -615,6 +624,7 @@ export default function ProblemStatementsPage() {
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   className="w-full px-4 py-2 bg-black/40 border border-white/[0.1] rounded-md text-white focus:outline-none focus:border-cyan-500/50"
+                  title="Title of the problem statement"
                 />
               </div>
 
@@ -624,6 +634,8 @@ export default function ProblemStatementsPage() {
                   value={formData.objective}
                   onChange={(e) => setFormData({ ...formData, objective: e.target.value })}
                   className="w-full px-4 py-2 bg-black/40 border border-white/[0.1] rounded-md text-white focus:outline-none focus:border-cyan-500/50 min-h-[80px]"
+                  placeholder="Brief objective of the problem statement"
+                  title="Objective of the problem statement"
                 />
               </div>
 
@@ -633,6 +645,8 @@ export default function ProblemStatementsPage() {
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   className="w-full px-4 py-2 bg-black/40 border border-white/[0.1] rounded-md text-white focus:outline-none focus:border-cyan-500/50 min-h-[120px]"
+                  placeholder="Detailed description of the problem statement"
+                  title="Detailed description of the problem statement"
                 />
               </div>
 
@@ -645,6 +659,7 @@ export default function ProblemStatementsPage() {
                   className="w-full px-4 py-2 bg-black/40 border border-white/[0.1] rounded-md text-white focus:outline-none focus:border-cyan-500/50"
                   min="1"
                   max="100"
+                  title="Maximum number of submissions allowed"
                 />
                 <p className="text-xs text-gray-600 mt-1 font-mono">
                   Current: {selectedProblem.submissionCount} submissions
