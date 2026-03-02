@@ -902,7 +902,7 @@ const SponsorsSection = () => (
             <p className="text-gray-300 font-mono text-xs sm:text-sm tracking-[0.4em] sm:tracking-[1em] mb-12 md:mb-20 uppercase font-black italic select-none">{"// STRATEGIC_BACKING_INITIATIVE"}</p>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
                 {[
-                    { name: "Devfolio", image: "/Devfolio /Devfolio_Logo-White.svg", status: "PARTNERSHIP_ACTIVE" },
+                    { name: "Devfolio", image: "/Devfolio/Devfolio_Logo-White.svg", status: "PARTNERSHIP_ACTIVE" },
                     { name: "Sponsor Alpha", status: "LINK_ACTIVE" },
                     { name: "Partner Bravo", status: "LINK_ACTIVE" },
                     { name: "Node Delta", status: "LINK_ACTIVE" }

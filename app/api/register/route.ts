@@ -74,6 +74,9 @@ const RegisterSchema = z.object({
   // Meta
   hearAbout: z.string().optional(),
   additionalNotes: z.string().optional(),
+  
+  // Session fallback for mobile browsers that strip cookies
+  sessionId: z.string().optional(),
 }).superRefine((data, ctx) => {
   // Collect all non-empty emails
   const emails: string[] = [data.leaderEmail];
@@ -228,9 +231,9 @@ export async function POST(req: Request) {
     }
 
     // Verify OTP was verified AND validate session token
-    // ✅ SECURITY FIX: Validate session token from cookie
+    // ✅ SECURITY FIX: Validate session token from cookie, with body fallback for mobile
     const cookieStore = await cookies();
-    const sessionToken = cookieStore.get('session_token')?.value;
+    const sessionToken = cookieStore.get('session_token')?.value || sanitizedData.sessionId;
     
     if (!sessionToken) {
       return NextResponse.json(

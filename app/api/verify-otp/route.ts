@@ -219,6 +219,8 @@ export async function POST(req: Request) {
     });
 
     // ✅ SECURITY FIX: Set session as HttpOnly cookie instead of returning in response
+    // Also include sessionId in body as fallback for mobile in-app browsers
+    // that may silently ignore Set-Cookie headers
     const response = NextResponse.json(
       {
         success: true,
@@ -230,7 +232,8 @@ export async function POST(req: Request) {
             name: user.name,
             role: user.role,
           },
-          // ❌ DO NOT return token in response body
+          // Fallback session token for mobile browsers that strip cookies
+          sessionId: session.token,
         },
       },
       {
@@ -239,10 +242,12 @@ export async function POST(req: Request) {
     );
 
     // Set HttpOnly, Secure, SameSite cookie
+    // NOTE: Using 'lax' (not 'strict') so the cookie survives cross-site
+    // navigations on mobile (in-app browsers, email links, etc.)
     response.cookies.set('session_token', session.token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'lax',
       expires: expiresAt,
       path: '/',
     });

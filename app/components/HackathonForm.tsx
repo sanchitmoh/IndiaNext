@@ -1018,8 +1018,11 @@ export default function HackathonForm() {
       const res = await fetch('/api/reserve-problem', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        // session_token cookie is sent automatically (HttpOnly)
-        body: JSON.stringify({}),
+        credentials: 'include', // Ensure session_token cookie is sent (critical on mobile)
+        body: JSON.stringify({
+          // Fallback: send sessionId in body for mobile browsers that strip cookies
+          sessionId: localStorage.getItem('session_token_fallback') || undefined,
+        }),
       });
       const response = await res.json();
 
@@ -1082,6 +1085,7 @@ export default function HackathonForm() {
           const res = await fetch('/api/send-otp', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
+              credentials: 'include',
               body: JSON.stringify({ 
                 email: answers.leaderEmail,
                 purpose: 'REGISTRATION',
@@ -1148,9 +1152,12 @@ export default function HackathonForm() {
               headers: {
                 'Content-Type': 'application/json',
               },
+              credentials: 'include', // Ensure session cookie is sent for auth
               body: JSON.stringify({
                 idempotencyKey,
                 ...finalAnswers,
+                // Fallback: send sessionId in body for mobile browsers that strip cookies
+                sessionId: localStorage.getItem('session_token_fallback') || undefined,
               }),
           });
           
@@ -1325,6 +1332,7 @@ export default function HackathonForm() {
           const res = await fetch('/api/verify-otp', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
+              credentials: 'include', // Required for Set-Cookie to work on mobile browsers
               body: JSON.stringify({ 
                 email: answers.leaderEmail, 
                 otp: otpValue,
@@ -1345,6 +1353,10 @@ export default function HackathonForm() {
             // Only store non-sensitive user info for UI purposes
             localStorage.setItem('user_email', response.data.user.email);
             console.log('OTP verified successfully for:', response.data.user.email);
+          }
+          // Store session token as fallback for mobile browsers that may ignore Set-Cookie
+          if (response.data?.sessionId) {
+            localStorage.setItem('session_token_fallback', response.data.sessionId);
           }
           
           setEmailVerified(true);
@@ -1376,8 +1388,9 @@ export default function HackathonForm() {
     
     // Invalidate session cookie by calling logout endpoint
     try {
-      await fetch('/api/logout', { method: 'POST' });
+      await fetch('/api/logout', { method: 'POST', credentials: 'include' });
       localStorage.removeItem('user_email');
+      localStorage.removeItem('session_token_fallback');
     } catch (err) {
       console.error('Failed to invalidate session:', err);
     }
