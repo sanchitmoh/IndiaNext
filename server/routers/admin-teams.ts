@@ -191,6 +191,7 @@ export const adminTeamsRouter = router({
       return {
         teams: teams.map((team) => ({
           id: team.id,
+          shortCode: team.shortCode,
           name: team.name,
           track: team.track,
           status: team.status,

@@ -113,6 +113,7 @@ model Otp {
 
 model Team {
   id        String   @id @default(cuid())
+  shortCode String   @unique // Human-friendly ID e.g. "IS-7K3X" (track prefix + 4 alphanumeric)
   name      String
   track     Track
   status    RegistrationStatus @default(PENDING)

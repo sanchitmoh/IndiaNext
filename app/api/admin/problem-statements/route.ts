@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
@@ -256,7 +256,7 @@ export async function PATCH(req: Request) {
  * DELETE /api/admin/problem-statements
  * Delete a problem statement (only if no submissions)
  */
-export async function DELETE(req: Request) {
+export async function DELETE(req: NextRequest) {
   try {
     const admin = await verifyAdmin(req);
     if (!admin) {
@@ -268,8 +268,7 @@ export async function DELETE(req: Request) {
       return NextResponse.json({ success: false, error: 'Insufficient permissions' }, { status: 403 });
     }
 
-    const { searchParams } = new URL(req.url);
-    const id = searchParams.get('id');
+    const id = req.nextUrl.searchParams.get('id');
 
     if (!id) {
       return NextResponse.json({ success: false, error: 'Missing problem ID' }, { status: 400 });
@@ -277,7 +276,7 @@ export async function DELETE(req: Request) {
 
     const problem = await prisma.problemStatement.findUnique({
       where: { id },
-      include: { _count: { select: { submissions: true } } },
+      include: { _count: { select: { submissions: true, reservations: true } } },
     });
 
     if (!problem) {
@@ -292,7 +291,13 @@ export async function DELETE(req: Request) {
       }, { status: 409 });
     }
 
-    await prisma.problemStatement.delete({ where: { id } });
+    // Delete reservations first, then the problem statement
+    await prisma.$transaction(async (tx) => {
+      if (problem._count.reservations > 0) {
+        await tx.problemReservation.deleteMany({ where: { problemStatementId: id } });
+      }
+      await tx.problemStatement.delete({ where: { id } });
+    });
 
     // Log activity
     await prisma.activityLog.create({

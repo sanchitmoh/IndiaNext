@@ -60,7 +60,12 @@ export async function GET(req: Request) {
     // Fetch all approved teams with submissions and criterion scores
     const teams = await prisma.team.findMany({
       where,
-      include: {
+      select: {
+        id: true,
+        shortCode: true,
+        name: true,
+        track: true,
+        status: true,
         submission: {
           include: {
             criterionScores: {
@@ -172,6 +177,7 @@ export async function GET(req: Request) {
       } else {
         // CSV: one row per team, flat structure
         const row: Record<string, string | number> = {
+          'Team Code': team.shortCode,
           'Team Name': team.name,
           'Track': team.track === 'IDEA_SPRINT' ? 'Idea Sprint' : 'Build Storm',
           'Status': team.status,

@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma';
 import { rateLimitRegister, createRateLimitHeaders } from '@/lib/rate-limit';
 import { sendRegistrationBatchEmails } from '@/lib/email';
 import { sanitizeObject, containsXss, containsSqlInjection } from '@/lib/input-sanitizer';
+import { generateShortCodeTx } from '@/lib/short-code';
 import { z } from 'zod';
 import type { Prisma } from '@prisma/client/edge';
 
@@ -466,10 +467,14 @@ export async function POST(req: Request) {
         userIds.push({ userId: user.id, role: member.role });
       }
 
-      // 2. Create team
+      // 2. Generate human-friendly short code (e.g. IS-7K3X, BS-A9M2)
+      const shortCode = await generateShortCodeTx(tx, trackEnum);
+
+      // 3. Create team
       const team = await tx.team.create({
         data: {
           name: sanitizedData.teamName,
+          shortCode,
           track: trackEnum,
           status: 'PENDING',
           size: members.length,
@@ -480,7 +485,7 @@ export async function POST(req: Request) {
         },
       });
 
-      // 3. Create team members
+      // 4. Create team members
       for (const { userId, role } of userIds) {
         await tx.teamMember.create({
           data: {
@@ -491,7 +496,7 @@ export async function POST(req: Request) {
         });
       }
 
-      // 4. Create submission
+      // 5. Create submission
       const submission = await tx.submission.create({
         data: {
           teamId: team.id,
@@ -510,7 +515,7 @@ export async function POST(req: Request) {
         },
       });
 
-      // 5. Create activity log
+      // 6. Create activity log
       await tx.activityLog.create({
         data: {
           userId: userIds[0].userId,
@@ -527,7 +532,7 @@ export async function POST(req: Request) {
         },
       });
 
-      // 5b. ✅ BuildStorm: Increment submissionCount and clean up reservation
+      // 6b. ✅ BuildStorm: Increment submissionCount and clean up reservation
       if (trackEnum === 'BUILD_STORM' && sanitizedData.assignedProblemStatementId) {
         await tx.problemStatement.update({
           where: { id: sanitizedData.assignedProblemStatementId },
@@ -546,7 +551,7 @@ export async function POST(req: Request) {
         }
       }
 
-      // 6. ✅ SECURITY FIX: Delete OTP record after successful registration
+      // 7. ✅ SECURITY FIX: Delete OTP record after successful registration
       await tx.otp.delete({
         where: {
           email_purpose: {
@@ -558,7 +563,7 @@ export async function POST(req: Request) {
         // Ignore if already deleted
       });
 
-      // 7. Track analytics: successful registration
+      // 8. Track analytics: successful registration
       await tx.metric.create({
         data: {
           name: 'registration_completed',
@@ -574,7 +579,7 @@ export async function POST(req: Request) {
         },
       });
 
-      // 8. If BuildStorm with reservation, track conversion rate
+      // 9. If BuildStorm with reservation, track conversion rate
       if (trackEnum === 'BUILD_STORM' && sanitizedData.assignedProblemStatementId) {
         await tx.metric.create({
           data: {
@@ -598,7 +603,7 @@ export async function POST(req: Request) {
       success: true,
       message: 'Registration successful!',
       data: {
-        teamId: result.team.id,
+        teamId: result.team.shortCode,
         submissionId: result.submission.id,
         teamName: result.team.name,
         track: result.team.track,
@@ -621,7 +626,7 @@ export async function POST(req: Request) {
       try {
         const results = await sendRegistrationBatchEmails({
           leaderEmail: sanitizedData.leaderEmail,
-          teamId: result.team.id,
+          teamId: result.team.shortCode,
           teamName: result.team.name,
           track: trackLabel,
           members: members.map(m => ({ name: m.name, email: m.email, role: m.role, college: m.college, degree: m.degree, phone: m.phone })),

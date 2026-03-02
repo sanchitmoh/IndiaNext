@@ -146,6 +146,7 @@ export default function TeamsManagementPage() {
 
 interface ExportTeam {
   id: string;
+  shortCode?: string | null;
   name: string;
   track: string;
   status: string;
@@ -296,7 +297,7 @@ function convertToCSV(teams: ExportTeam[]): string {
     };
 
     return [
-      team.id,
+      team.shortCode || team.id,
       team.name,
       team.track,
       team.status,

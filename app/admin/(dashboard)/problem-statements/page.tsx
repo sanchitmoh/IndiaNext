@@ -197,12 +197,16 @@ export default function ProblemStatementsPage() {
       const data = await res.json();
       if (data.success) {
         setShowDeleteModal(false);
+        setSelectedProblem(null);
         fetchProblems();
       } else {
-        alert(data.error || data.message || "Failed to delete problem");
+        const errorMsg = data.message || data.error || "Failed to delete problem";
+        alert(`Delete failed: ${errorMsg}`);
+        console.error("[Delete Problem]", data);
       }
-    } catch (_err) {
-      alert("Network error");
+    } catch (err) {
+      console.error("[Delete Problem] Network error:", err);
+      alert("Network error: Could not reach the server. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -420,8 +424,8 @@ export default function ProblemStatementsPage() {
                       </button>
                       <button 
                         onClick={() => openDeleteModal(problem)}
-                        className="p-2 text-red-400 hover:bg-red-500/10 rounded-md transition-colors"
-                        title="Delete"
+                        className="p-2 text-red-400 hover:bg-red-500/10 rounded-md transition-colors disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                        title={problem.submissionCount > 0 ? `Cannot delete: ${problem.submissionCount} submission(s)` : "Delete"}
                         disabled={problem.submissionCount > 0}
                       >
                         <Trash2 className="w-4 h-4" />
