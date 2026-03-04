@@ -18,10 +18,16 @@ export default function AdminDashboard() {
   const { data: analytics, isLoading: analyticsLoading } =
     trpc.admin.getAnalytics.useQuery();
 
-  // Redirect judges to teams page (they don't have dashboard access)
+  // Redirect judges to teams page, logistics to logistics page
   useEffect(() => {
-    // Check if user is a judge by trying to access stats
-    // If stats query fails with permission error, redirect
+    // Check role from DOM attribute set by layout
+    const roleEl = document.querySelector("[data-admin-role]");
+    const role = roleEl?.getAttribute("data-admin-role");
+    if (role === "LOGISTICS") {
+      router.replace("/admin/logistics");
+      return;
+    }
+    // If stats query fails with permission error, redirect (judge fallback)
     if (!statsLoading && !stats) {
       router.push("/admin/teams");
     }

@@ -18,6 +18,10 @@ export async function getSession() {
   });
 
   if (!session || session.expiresAt < new Date()) {
+    // ✅ SECURITY FIX: Clean up expired session from DB
+    if (session) {
+      await prisma.session.delete({ where: { id: session.id } }).catch(() => {});
+    }
     return null;
   }
 
@@ -43,6 +47,10 @@ export async function getAdminSession() {
   });
 
   if (!session || session.expiresAt < new Date()) {
+    // ✅ SECURITY FIX: Clean up expired admin session from DB
+    if (session) {
+      await prisma.adminSession.delete({ where: { id: session.id } }).catch(() => {});
+    }
     return null;
   }
 

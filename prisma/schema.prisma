@@ -141,6 +141,12 @@ model Team {
   score           Float?
   rank            Int?
   
+  // Event-day logistics (attendance tracking)
+  attendance      AttendanceStatus @default(NOT_MARKED)
+  checkedInAt     DateTime?
+  checkedInBy     String?          // Admin ID who checked in
+  attendanceNotes String?          @db.Text
+  
   // Metadata
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -163,6 +169,7 @@ model Team {
   @@index([deletedAt])
   // ✅ SECURITY FIX (L-11): Index team name for search performance
   @@index([name])
+  @@index([attendance])
   @@unique([createdBy, track]) // One team per leader per track (belt-and-suspenders with transaction check)
   @@map("teams")
 }
@@ -176,6 +183,11 @@ model TeamMember {
   // Member-specific data
   joinedAt  DateTime   @default(now())
   leftAt    DateTime?  // If member leaves
+  
+  // Event-day attendance (per-member)
+  isPresent   Boolean   @default(false)
+  checkedInAt DateTime?
+  checkedInBy String?   // Admin ID who checked in
   
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
@@ -559,6 +571,7 @@ model ProblemReservation {
 enum AdminRole {
   ORGANIZER
   JUDGE
+  LOGISTICS
   ADMIN
   SUPER_ADMIN
 }
@@ -567,6 +580,7 @@ enum UserRole {
   PARTICIPANT
   ORGANIZER
   JUDGE
+  LOGISTICS
   ADMIN
   SUPER_ADMIN
 }
@@ -590,6 +604,13 @@ enum RegistrationStatus {
   REJECTED       // Not accepted
   WAITLISTED     // On waitlist
   WITHDRAWN      // Team withdrew
+}
+
+enum AttendanceStatus {
+  NOT_MARKED
+  PRESENT
+  ABSENT
+  PARTIAL        // Some members showed up
 }
 
 enum FileCategory {

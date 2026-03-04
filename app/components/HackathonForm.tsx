@@ -1102,10 +1102,9 @@ export default function HackathonForm() {
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include', // Ensure session_token cookie is sent (critical on mobile)
         body: JSON.stringify({
-          // Fallback: send sessionId in body for mobile browsers that strip cookies
-          sessionId: localStorage.getItem('session_token_fallback') || undefined,
+          // ✅ SECURITY FIX: Removed sessionId body fallback - use HttpOnly cookie only
           // For unauthenticated users, send anonymous ID
-          anonymousId: localStorage.getItem('session_token_fallback') ? undefined : anonymousId,
+          anonymousId,
         }),
       });
       const response = await res.json();
@@ -1240,8 +1239,7 @@ export default function HackathonForm() {
               body: JSON.stringify({
                 idempotencyKey,
                 ...finalAnswers,
-                // Fallback: send sessionId in body for mobile browsers that strip cookies
-                sessionId: localStorage.getItem('session_token_fallback') || undefined,
+                // ✅ SECURITY FIX: Removed sessionId body fallback - use HttpOnly cookie only
               }),
           });
           
@@ -1438,11 +1436,11 @@ export default function HackathonForm() {
             localStorage.setItem('user_email', response.data.user.email);
             console.log('OTP verified successfully for:', response.data.user.email);
           }
-          // Store session token as fallback for mobile browsers that may ignore Set-Cookie
-          if (response.data?.sessionId) {
-            localStorage.setItem('session_token_fallback', response.data.sessionId);
-            
-            // Transfer anonymous reservation to authenticated session
+          // ✅ SECURITY FIX: Removed session_token_fallback localStorage storage
+          // Session tokens are now only transmitted via HttpOnly cookies
+          
+          // Transfer anonymous reservation to authenticated session
+          {
             const anonymousId = localStorage.getItem('anonymous_id');
             if (anonymousId) {
               // Always clean up anonymous ID — whether transfer succeeds or fails,
@@ -1455,7 +1453,6 @@ export default function HackathonForm() {
                   credentials: 'include',
                   body: JSON.stringify({
                     anonymousId,
-                    sessionId: response.data.sessionId,
                   }),
                 });
                 const transferData = await transferRes.json();
@@ -1505,7 +1502,7 @@ export default function HackathonForm() {
     try {
       await fetch('/api/logout', { method: 'POST', credentials: 'include' });
       localStorage.removeItem('user_email');
-      localStorage.removeItem('session_token_fallback');
+      // ✅ SECURITY FIX: Removed session_token_fallback cleanup (no longer stored)
       localStorage.removeItem('anonymous_id');
     } catch (err) {
       console.error('Failed to invalidate session:', err);

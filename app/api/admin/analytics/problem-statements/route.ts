@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
+import { requirePermission, type AdminRole } from '@/lib/rbac';
+import { checkRateLimit } from '@/lib/rate-limit';
 
 async function verifyAdmin(_req: Request) {
   const cookieStore = await cookies();
@@ -28,9 +30,27 @@ async function verifyAdmin(_req: Request) {
  */
 export async function GET(req: Request) {
   try {
+    // ✅ SECURITY FIX: Rate limit admin analytics endpoint
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+    const rl = await checkRateLimit(`admin-analytics:${ip}`, 30, 60); // 30 per minute
+    if (!rl.success) {
+      return NextResponse.json(
+        { success: false, error: 'Too many requests' },
+        { status: 429, headers: { 'Retry-After': String(Math.ceil((rl.reset - Date.now()) / 1000)) } }
+      );
+    }
+
     const admin = await verifyAdmin(req);
     if (!admin) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // ✅ SECURITY FIX: Check RBAC permission for viewing analytics
+    if (!requirePermission(admin.role as AdminRole, 'viewAnalytics')) {
+      return NextResponse.json(
+        { success: false, error: 'Insufficient permissions to view analytics' },
+        { status: 403 }
+      );
     }
 
     const { searchParams } = new URL(req.url);

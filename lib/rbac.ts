@@ -6,9 +6,10 @@
  * - ADMIN: Full access except user management
  * - ORGANIZER: Can manage teams, view analytics
  * - JUDGE: Can only view teams and add scores/comments
+ * - LOGISTICS: Event-day role — view approved teams, edit members, mark attendance
  */
 
-export type AdminRole = 'SUPER_ADMIN' | 'ADMIN' | 'ORGANIZER' | 'JUDGE';
+export type AdminRole = 'SUPER_ADMIN' | 'ADMIN' | 'ORGANIZER' | 'JUDGE' | 'LOGISTICS';
 
 export interface Permission {
   // Dashboard
@@ -40,6 +41,12 @@ export interface Permission {
   // Admin Management
   manageAdmins: boolean;
   viewActivityLogs: boolean;
+  
+  // Logistics (event-day)
+  editMembers: boolean;
+  swapMembers: boolean;
+  markAttendance: boolean;
+  viewAttendance: boolean;
 }
 
 /**
@@ -66,6 +73,10 @@ export function getPermissions(role: AdminRole): Permission {
       exportAnalytics: true,
       manageAdmins: true,
       viewActivityLogs: true,
+      editMembers: true,
+      swapMembers: true,
+      markAttendance: true,
+      viewAttendance: true,
     },
     ADMIN: {
       viewDashboard: true,
@@ -86,6 +97,10 @@ export function getPermissions(role: AdminRole): Permission {
       exportAnalytics: true,
       manageAdmins: false,
       viewActivityLogs: true,
+      editMembers: true,
+      swapMembers: true,
+      markAttendance: true,
+      viewAttendance: true,
     },
     ORGANIZER: {
       viewDashboard: true,
@@ -106,6 +121,10 @@ export function getPermissions(role: AdminRole): Permission {
       exportAnalytics: true,
       manageAdmins: false,
       viewActivityLogs: false,
+      editMembers: false,
+      swapMembers: false,
+      markAttendance: false,
+      viewAttendance: true,
     },
     JUDGE: {
       viewDashboard: false,
@@ -126,6 +145,34 @@ export function getPermissions(role: AdminRole): Permission {
       exportAnalytics: false,
       manageAdmins: false,
       viewActivityLogs: false,
+      editMembers: false,
+      swapMembers: false,
+      markAttendance: false,
+      viewAttendance: false,
+    },
+    LOGISTICS: {
+      viewDashboard: false,
+      viewTeams: true,       // Can see approved teams
+      editTeams: false,      // Cannot change team status
+      deleteTeams: false,
+      exportTeams: false,
+      bulkActions: false,
+      viewSubmissions: false,
+      scoreSubmissions: false,
+      commentOnSubmissions: false,
+      viewProblems: false,
+      createProblems: false,
+      editProblems: false,
+      deleteProblems: false,
+      toggleProblems: false,
+      viewAnalytics: false,
+      exportAnalytics: false,
+      manageAdmins: false,
+      viewActivityLogs: false,
+      editMembers: true,     // Can edit non-leader member info
+      swapMembers: true,     // Can replace non-leader members
+      markAttendance: true,  // Can mark present/absent
+      viewAttendance: true,  // Can view attendance status
     },
   };
 
@@ -171,6 +218,12 @@ export function getAllowedNavItems(role: AdminRole) {
       code: "04", 
       permission: 'viewAnalytics' as keyof Permission,
     },
+    {
+      href: "/admin/logistics",
+      label: "LOGISTICS",
+      code: "05",
+      permission: 'markAttendance' as keyof Permission,
+    },
   ];
 
   return allNavItems.filter(item => permissions[item.permission]);
@@ -192,6 +245,7 @@ export function getRoleDisplayName(role: AdminRole): string {
     ADMIN: 'Admin',
     ORGANIZER: 'Organizer',
     JUDGE: 'Judge',
+    LOGISTICS: 'Logistics',
   };
   return names[role];
 }
@@ -205,6 +259,7 @@ export function getRoleDescription(role: AdminRole): string {
     ADMIN: 'Full access to teams, problems, and analytics',
     ORGANIZER: 'Can manage teams and view analytics',
     JUDGE: 'Can view teams and score submissions',
+    LOGISTICS: 'Event-day: view approved teams, edit members, mark attendance',
   };
   return descriptions[role];
 }

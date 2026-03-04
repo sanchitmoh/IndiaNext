@@ -3,6 +3,8 @@ import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 import { requirePermission, type AdminRole } from '@/lib/rbac';
+import { sanitizeText } from '@/lib/input-sanitizer';
+import { checkRateLimit } from '@/lib/rate-limit';
 
 const CommentSchema = z.object({
   teamId: z.string(),
@@ -38,6 +40,16 @@ async function verifyAdmin(_req: Request) {
  */
 export async function POST(req: Request) {
   try {
+    // ✅ SECURITY FIX: Rate limit admin comment endpoint
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+    const rl = await checkRateLimit(`admin-comment:${ip}`, 20, 60); // 20 per minute
+    if (!rl.success) {
+      return NextResponse.json(
+        { success: false, error: 'Too many requests' },
+        { status: 429, headers: { 'Retry-After': String(Math.ceil((rl.reset - Date.now()) / 1000)) } }
+      );
+    }
+
     const admin = await verifyAdmin(req);
     if (!admin) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
@@ -63,6 +75,9 @@ export async function POST(req: Request) {
     }
 
     const { teamId, content, isInternal } = validation.data;
+
+    // ✅ SECURITY FIX: Sanitize comment content to prevent XSS
+    const sanitizedContent = sanitizeText(content);
 
     // Get team
     const team = await prisma.team.findUnique({
@@ -93,7 +108,7 @@ export async function POST(req: Request) {
       data: {
         teamId,
         authorId: admin.id,
-        content,
+        content: sanitizedContent, // ✅ SECURITY FIX: Use sanitized content
         isInternal,
       },
     });

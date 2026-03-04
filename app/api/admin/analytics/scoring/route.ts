@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
 import { requirePermission, type AdminRole } from '@/lib/rbac';
+import { checkRateLimit } from '@/lib/rate-limit';
 
 async function verifyAdmin() {
   const cookieStore = await cookies();
@@ -33,6 +34,16 @@ async function verifyAdmin() {
  */
 export async function GET(req: Request) {
   try {
+    // ✅ SECURITY FIX: Rate limit scoring analytics endpoint
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+    const rl = await checkRateLimit(`admin-scoring-analytics:${ip}`, 30, 60);
+    if (!rl.success) {
+      return NextResponse.json(
+        { success: false, error: 'Too many requests' },
+        { status: 429, headers: { 'Retry-After': String(Math.ceil((rl.reset - Date.now()) / 1000)) } }
+      );
+    }
+
     const admin = await verifyAdmin();
     if (!admin) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });

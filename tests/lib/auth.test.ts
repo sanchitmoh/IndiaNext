@@ -1,9 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // vi.hoisted ensures these are available when vi.mock factories run
-const { mockSessionFindUnique, mockAdminSessionFindUnique, mockCookieGet } = vi.hoisted(() => ({
+const { mockSessionFindUnique, mockSessionDelete, mockAdminSessionFindUnique, mockAdminSessionDelete, mockCookieGet } = vi.hoisted(() => ({
   mockSessionFindUnique: vi.fn(),
+  mockSessionDelete: vi.fn().mockResolvedValue({}),
   mockAdminSessionFindUnique: vi.fn(),
+  mockAdminSessionDelete: vi.fn().mockResolvedValue({}),
   mockCookieGet: vi.fn(),
 }));
 
@@ -11,9 +13,11 @@ vi.mock('@/lib/prisma', () => ({
   prisma: {
     session: {
       findUnique: mockSessionFindUnique,
+      delete: mockSessionDelete,
     },
     adminSession: {
       findUnique: mockAdminSessionFindUnique,
+      delete: mockAdminSessionDelete,
     },
   },
 }));

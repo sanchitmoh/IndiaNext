@@ -31,9 +31,11 @@ export function middleware(request: NextRequest) {
   if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(request.method)) {
     const origin = request.headers.get('origin');
 
-    // In production, strictly validate origin
-    if (process.env.NODE_ENV === 'production') {
-      // Block requests with NO origin header in production for state-changing methods.
+    // ✅ SECURITY FIX: CSRF validation enabled in production by default
+    // In development, enable with ENABLE_CSRF=true for local testing
+    const csrfEnabled = process.env.NODE_ENV === 'production' || process.env.ENABLE_CSRF === 'true';
+    if (csrfEnabled) {
+      // Block requests with NO origin header for state-changing methods.
       // Same-origin browser requests always include Origin; its absence means
       // server-to-server or curl — which should use API keys, not cookies.
       if (!origin) {

@@ -23,6 +23,12 @@ export default function TeamsManagementPage() {
   });
 
   const [selectedTeams, setSelectedTeams] = useState<string[]>([]);
+  const [userRole] = useState<string>(() => {
+    if (typeof document === 'undefined') return "ADMIN";
+    const roleElement = document.querySelector('[data-admin-role]');
+    return roleElement?.getAttribute('data-admin-role') || "ADMIN";
+  });
+  const isReadOnly = userRole === "LOGISTICS";
 
   const { data, isLoading, refetch } = trpc.admin.getTeams.useQuery(filters);
   const exportMutation = trpc.admin.exportTeams.useMutation();
@@ -92,15 +98,17 @@ export default function TeamsManagementPage() {
             <RefreshCw className="h-3.5 w-3.5" />
             REFRESH
           </button>
-          <button
-            onClick={handleExport}
-            disabled={exportMutation.isPending}
-            className="inline-flex items-center gap-2 px-3 py-1.5 text-[10px] font-mono font-bold tracking-wider text-gray-400 bg-white/[0.03] border border-white/[0.06] rounded-md hover:text-orange-400 hover:border-orange-500/20 transition-all disabled:opacity-40"
-            title={`Export ${filters.track !== "all" ? (filters.track === "IDEA_SPRINT" ? "IdeaSprint" : "BuildStorm") + " teams" : "all teams"}${filters.status !== "all" ? " with status: " + filters.status : ""}`}
-          >
-            <Download className="h-3.5 w-3.5" />
-            {exportMutation.isPending ? "EXPORTING..." : "EXPORT CSV"}
-          </button>
+          {!isReadOnly && (
+            <button
+              onClick={handleExport}
+              disabled={exportMutation.isPending}
+              className="inline-flex items-center gap-2 px-3 py-1.5 text-[10px] font-mono font-bold tracking-wider text-gray-400 bg-white/[0.03] border border-white/[0.06] rounded-md hover:text-orange-400 hover:border-orange-500/20 transition-all disabled:opacity-40"
+              title={`Export ${filters.track !== "all" ? (filters.track === "IDEA_SPRINT" ? "IdeaSprint" : "BuildStorm") + " teams" : "all teams"}${filters.status !== "all" ? " with status: " + filters.status : ""}`}
+            >
+              <Download className="h-3.5 w-3.5" />
+              {exportMutation.isPending ? "EXPORTING..." : "EXPORT CSV"}
+            </button>
+          )}
         </div>
       </div>
 
@@ -113,7 +121,7 @@ export default function TeamsManagementPage() {
         });
       }} />
 
-      {selectedTeams.length > 0 && (
+      {selectedTeams.length > 0 && !isReadOnly && (
         <BulkActions
           selectedTeams={selectedTeams}
           onComplete={() => {
@@ -129,8 +137,8 @@ export default function TeamsManagementPage() {
         currentPage={filters.page}
         pageSize={filters.pageSize}
         isLoading={isLoading}
-        selectedTeams={selectedTeams}
-        onSelectionChange={setSelectedTeams}
+        selectedTeams={isReadOnly ? [] : selectedTeams}
+        onSelectionChange={isReadOnly ? () => {} : setSelectedTeams}
         onPageChange={(page: number) => setFilters({ ...filters, page })}
         onSort={(field: string, order: string) => {
           if (field === "createdAt" || field === "name" || field === "status" || field === "college") {
@@ -139,6 +147,7 @@ export default function TeamsManagementPage() {
             }
           }
         }}
+        readOnly={isReadOnly}
       />
     </div>
   );

@@ -34,18 +34,17 @@ export async function POST(req: Request) {
     const cookieStore = await cookies();
     const sessionTokenFromCookie = cookieStore.get('session_token')?.value;
 
-    // Fallback: also accept sessionId from request body
-    let bodySessionId: string | undefined;
+    // ✅ SECURITY FIX: Only accept anonymousId from body, NOT sessionId
+    // Session tokens must come from HttpOnly cookies only
     let anonymousId: string | undefined;
     try {
       const body = await req.json();
-      bodySessionId = body.sessionId;
       anonymousId = body.anonymousId; // For unauthenticated users
     } catch {
       // Body may be empty if only using cookie
     }
 
-    const sessionId = sessionTokenFromCookie || bodySessionId;
+    const sessionId = sessionTokenFromCookie;
 
     // Validate anonymousId format if provided
     if (anonymousId) {
@@ -63,7 +62,6 @@ export async function POST(req: Request) {
     // Enhanced logging for debugging
     console.log('[ReserveProblem] Auth check:', {
       hasCookie: !!sessionTokenFromCookie,
-      hasBodySession: !!bodySessionId,
       hasAnonymousId: !!anonymousId,
       finalReservationId: !!reservationId,
       isAuthenticated: !!sessionId,

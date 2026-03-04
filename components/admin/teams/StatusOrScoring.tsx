@@ -171,6 +171,47 @@ export function StatusOrScoring({
     );
   }
 
+  // LOGISTICS role: read-only status view (no update buttons)
+  if (userRole === "LOGISTICS") {
+    return (
+      <div className="space-y-4">
+        <div className="bg-[#0A0A0A] rounded-lg border border-white/[0.06] p-5">
+          <h3 className="text-[9px] font-mono font-bold text-gray-500 uppercase tracking-[0.3em] mb-3">
+            TEAM_STATUS
+          </h3>
+          <div className="flex items-center gap-3">
+            <span className={`text-[10px] font-mono font-bold px-2 py-1 rounded border ${{
+              PENDING: "bg-amber-500/10 text-amber-400 border-amber-500/20",
+              UNDER_REVIEW: "bg-cyan-500/10 text-cyan-400 border-cyan-500/20",
+              APPROVED: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+              REJECTED: "bg-red-500/10 text-red-400 border-red-500/20",
+              WAITLISTED: "bg-orange-500/10 text-orange-400 border-orange-500/20",
+              WITHDRAWN: "bg-gray-500/10 text-gray-400 border-gray-500/20",
+            }[teamStatus] || "bg-white/[0.03] text-gray-400 border-white/[0.06]"}`}>
+              {teamStatus.replace("_", " ")}
+            </span>
+            <span className="text-[10px] font-mono text-gray-600">Read-only</span>
+          </div>
+          {reviewNotes && (
+            <div className="mt-3 text-xs font-mono text-gray-400 bg-white/[0.02] border border-white/[0.04] rounded-md p-3">
+              <span className="text-gray-500 font-bold">LAST_NOTE: </span>
+              {reviewNotes}
+            </div>
+          )}
+        </div>
+
+        {/* Judge Scores Panel (visible to logistics when scores exist) */}
+        {teamStatus === "APPROVED" && (
+          <AdminJudgeScoresPanel
+            criteria={criteria}
+            multiJudge={multiJudge}
+            isLoading={isLoadingRubric}
+          />
+        )}
+      </div>
+    );
+  }
+
   // Admins/Organizers see status management + judge scores
   return (
     <div className="space-y-4">

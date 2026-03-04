@@ -13,6 +13,7 @@ const pageTitles: Record<string, { title: string; code: string }> = {
   "/admin": { title: "DASHBOARD", code: "SYS://OVERVIEW" },
   "/admin/teams": { title: "TEAMS", code: "SYS://TEAM_MGMT" },
   "/admin/analytics": { title: "ANALYTICS", code: "SYS://DATA_VIZ" },
+  "/admin/logistics": { title: "LOGISTICS", code: "SYS://EVENT_DAY" },
 };
 
 export function AdminHeader({

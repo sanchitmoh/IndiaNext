@@ -701,6 +701,12 @@ export const adminRouter = router({
         data: { role: input.role },
       });
 
+      // ✅ SECURITY FIX: Invalidate all existing sessions when role changes
+      // Prevents users from retaining old permissions via cached sessions
+      await ctx.prisma.session.deleteMany({
+        where: { userId: input.userId },
+      });
+
       await ctx.prisma.activityLog.create({
         data: {
           userId: null,

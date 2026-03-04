@@ -27,14 +27,15 @@ const ROLE_HIERARCHY: Record<UserRole, number> = {
   PARTICIPANT: 0,
   ORGANIZER: 1,
   JUDGE: 2,
+  LOGISTICS: 2,  // Same level as JUDGE — event-day role
   ADMIN: 3,
   SUPER_ADMIN: 4,
 };
 
 export const PERMISSIONS = {
   // View permissions
-  VIEW_OWN_TEAM: ['PARTICIPANT', 'ORGANIZER', 'JUDGE', 'ADMIN', 'SUPER_ADMIN'],
-  VIEW_ALL_TEAMS: ['ORGANIZER', 'JUDGE', 'ADMIN', 'SUPER_ADMIN'],
+  VIEW_OWN_TEAM: ['PARTICIPANT', 'ORGANIZER', 'JUDGE', 'LOGISTICS', 'ADMIN', 'SUPER_ADMIN'],
+  VIEW_ALL_TEAMS: ['ORGANIZER', 'JUDGE', 'LOGISTICS', 'ADMIN', 'SUPER_ADMIN'],
   VIEW_SUBMISSIONS: ['ORGANIZER', 'JUDGE', 'ADMIN', 'SUPER_ADMIN'],
   VIEW_ANALYTICS: ['ORGANIZER', 'JUDGE', 'ADMIN', 'SUPER_ADMIN'],
   VIEW_AUDIT_LOGS: ['ADMIN', 'SUPER_ADMIN'],
@@ -59,6 +60,13 @@ export const PERMISSIONS = {
   // User management
   MANAGE_USERS: ['SUPER_ADMIN'],
   ASSIGN_ROLES: ['SUPER_ADMIN'],
+  
+  // Logistics (event-day)
+  EDIT_TEAM_MEMBERS: ['LOGISTICS', 'ADMIN', 'SUPER_ADMIN'],
+  SWAP_TEAM_MEMBERS: ['LOGISTICS', 'ADMIN', 'SUPER_ADMIN'],
+  MARK_ATTENDANCE: ['LOGISTICS', 'ADMIN', 'SUPER_ADMIN'],
+  VIEW_ATTENDANCE: ['LOGISTICS', 'ADMIN', 'SUPER_ADMIN', 'ORGANIZER'],
+  EXPORT_ATTENDANCE: ['LOGISTICS', 'ADMIN', 'SUPER_ADMIN'],
 } as const;
 
 export type Permission = keyof typeof PERMISSIONS;
@@ -77,7 +85,8 @@ export function hasMinimumRole(userRole: UserRole, minimumRole: UserRole): boole
 }
 
 export function isAdmin(userRole: UserRole): boolean {
-  return hasMinimumRole(userRole, 'ORGANIZER');
+  // LOGISTICS is an admin-level role for event-day access
+  return hasMinimumRole(userRole, 'ORGANIZER') || userRole === 'LOGISTICS';
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -208,6 +217,7 @@ export function getRoleLabel(role: UserRole): string {
     PARTICIPANT: 'Participant',
     ORGANIZER: 'Organizer',
     JUDGE: 'Judge',
+    LOGISTICS: 'Logistics',
     ADMIN: 'Admin',
     SUPER_ADMIN: 'Super Admin',
   };
@@ -219,6 +229,7 @@ export function getRoleBadgeColor(role: UserRole): string {
     PARTICIPANT: 'gray',
     ORGANIZER: 'blue',
     JUDGE: 'purple',
+    LOGISTICS: 'green',
     ADMIN: 'orange',
     SUPER_ADMIN: 'red',
   };
