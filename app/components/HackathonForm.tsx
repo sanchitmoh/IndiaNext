@@ -1146,6 +1146,63 @@ export default function HackathonForm() {
     }
   }, [currentQuestion, assignedProblem, problemLoading, fetchAssignedProblem]);
 
+  // ✅ AUTO-RESTORE: Check for existing problem assignment on mount
+  // Industry standard — returning users see their previously assigned problem
+  useEffect(() => {
+    const restoreAssignment = async () => {
+      try {
+        const anonymousId = localStorage.getItem('anonymous_id');
+        const params = new URLSearchParams();
+        if (anonymousId) params.set('anonymousId', anonymousId);
+
+        const res = await fetch(`/api/my-problem?${params.toString()}`, {
+          credentials: 'include',
+        });
+        const response = await res.json();
+
+        if (response.success && response.data) {
+          setAssignedProblem({
+            id: response.data.id,
+            title: response.data.title,
+            objective: response.data.objective,
+            description: response.data.description || null,
+            extensionsRemaining: 0, // Read-only check, extensions don't apply
+          });
+          console.log(`[HackathonForm] Restored problem assignment: "${response.data.title}" (source: ${response.data.source})`);
+        }
+      } catch {
+        // Silent fail — auto-restore is best-effort
+      }
+    };
+
+    restoreAssignment();
+  }, []); // Run once on mount
+
+  // ✅ HEARTBEAT: Keep reservation alive while form is open (every 5 minutes)
+  // Industry standard — prevents expiry while user is actively filling the form
+  useEffect(() => {
+    if (!assignedProblem) return;
+
+    const HEARTBEAT_INTERVAL = 5 * 60 * 1000; // 5 minutes
+
+    const heartbeat = setInterval(async () => {
+      try {
+        const anonymousId = localStorage.getItem('anonymous_id');
+        await fetch('/api/reserve-problem', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ anonymousId: anonymousId || undefined }),
+        });
+        console.log('[HackathonForm] Heartbeat: reservation extended');
+      } catch {
+        // Silent fail — heartbeat is best-effort
+      }
+    }, HEARTBEAT_INTERVAL);
+
+    return () => clearInterval(heartbeat);
+  }, [assignedProblem]);
+
   // Logic Helpers
   const getNextValidStep = React.useCallback((current: number, dir: number, currentAnswers: Answers) => {
     let nextStep = current + dir;

@@ -4,8 +4,10 @@ import { prisma } from '@/lib/prisma';
 import { cacheGet, cacheSet } from '@/lib/redis-cache';
 import { rateLimitByIP, createRateLimitHeaders } from '@/lib/rate-limit';
 
-const MAX_EXTENSIONS = 3; // Maximum number of times a reservation can be extended
-const RESERVATION_DURATION = 15 * 60 * 1000; // 15 minutes
+const MAX_EXTENSIONS_ANON = 3; // Maximum extensions for anonymous users
+const MAX_EXTENSIONS_AUTH = 50; // Effectively unlimited for authenticated users
+const RESERVATION_DURATION_ANON = 15 * 60 * 1000; // 15 minutes for anonymous
+const RESERVATION_DURATION_AUTH = 24 * 60 * 60 * 1000; // 24 hours for authenticated (industry standard)
 const LAST_ASSIGNED_KEY = 'problem:last_assigned_order'; // Redis key for rotating tiebreaker
 
 // Anonymous ID validation: must match `anon_<timestamp>_<random>` and be ≤ 60 chars
@@ -86,10 +88,21 @@ export async function POST(req: Request) {
       }
     }
 
-    // 1. Cleanup expired reservations globally to free up slots
+    // Determine TTL and extension limits based on auth status
+    const maxExtensions = isAnonymous ? MAX_EXTENSIONS_ANON : MAX_EXTENSIONS_AUTH;
+    const reservationDuration = isAnonymous ? RESERVATION_DURATION_ANON : RESERVATION_DURATION_AUTH;
+
+    // 1. Cleanup expired reservations — only delete ANONYMOUS expired reservations aggressively.
+    //    Authenticated reservations get a 2-hour grace period so returning users keep their problem.
+    const gracePeriod = 2 * 60 * 60 * 1000; // 2 hours
     const deletedCount = await prisma.problemReservation.deleteMany({
       where: {
-        expiresAt: { lt: new Date() },
+        OR: [
+          // Anonymous reservations: delete immediately on expiry
+          { expiresAt: { lt: new Date() }, sessionId: { startsWith: 'anon_' } },
+          // Authenticated reservations: delete only after grace period
+          { expiresAt: { lt: new Date(Date.now() - gracePeriod) }, sessionId: { not: { startsWith: 'anon_' } } },
+        ],
       },
     });
 
@@ -104,20 +117,49 @@ export async function POST(req: Request) {
     });
 
     if (existingReservation) {
+      // If reservation is expired but within grace period (auth users returning),
+      // revive it instead of creating a new one
+      const isExpired = existingReservation.expiresAt < new Date();
+      if (isExpired && !isAnonymous) {
+        // Revive: reset expiry and extension count for authenticated returning user
+        await prisma.problemReservation.update({
+          where: { id: existingReservation.id },
+          data: {
+            expiresAt: new Date(Date.now() + reservationDuration),
+            extensionCount: 0,
+          },
+        });
+
+        console.log(`[ReserveProblem] Revived expired reservation for authenticated session ${reservationId} → Problem "${existingReservation.problemStatement.title}"`);
+
+        return NextResponse.json({
+          success: true,
+          data: {
+            id: existingReservation.problemStatement.id,
+            title: existingReservation.problemStatement.title,
+            objective: existingReservation.problemStatement.objective,
+            description: existingReservation.problemStatement.description,
+            extensionsRemaining: maxExtensions,
+          },
+          extended: true,
+          revived: true,
+        });
+      }
+
       // Check if extension limit reached
-      if (existingReservation.extensionCount >= MAX_EXTENSIONS) {
+      if (existingReservation.extensionCount >= maxExtensions) {
         return NextResponse.json({
           success: false,
           error: 'EXTENSION_LIMIT_REACHED',
-          message: `You have reached the maximum number of extensions (${MAX_EXTENSIONS}). Please complete your registration.`,
+          message: `You have reached the maximum number of extensions (${maxExtensions}). Please complete your registration.`,
         }, { status: 429 });
       }
 
-      // Extend the expiry by 15 minutes since they are still active
+      // Extend the expiry since user is still active
       await prisma.problemReservation.update({
         where: { id: existingReservation.id },
         data: {
-          expiresAt: new Date(Date.now() + RESERVATION_DURATION),
+          expiresAt: new Date(Date.now() + reservationDuration),
           extensionCount: existingReservation.extensionCount + 1,
         },
       });
@@ -131,7 +173,7 @@ export async function POST(req: Request) {
           title: existingReservation.problemStatement.title,
           objective: existingReservation.problemStatement.objective,
           description: existingReservation.problemStatement.description,
-          extensionsRemaining: MAX_EXTENSIONS - (existingReservation.extensionCount + 1),
+          extensionsRemaining: maxExtensions - (existingReservation.extensionCount + 1),
         },
         extended: true,
       });
@@ -214,7 +256,7 @@ export async function POST(req: Request) {
         data: {
           sessionId: reservationId,
           problemStatementId: selectedProblem.id,
-          expiresAt: new Date(Date.now() + RESERVATION_DURATION),
+          expiresAt: new Date(Date.now() + reservationDuration),
           extensionCount: 0,
         },
         include: { problemStatement: true },
@@ -256,7 +298,7 @@ export async function POST(req: Request) {
         title: newReservation.problemStatement.title,
         objective: newReservation.problemStatement.objective,
         description: newReservation.problemStatement.description,
-        extensionsRemaining: MAX_EXTENSIONS,
+        extensionsRemaining: maxExtensions,
       },
       allFilled: false,
       extended: false,
