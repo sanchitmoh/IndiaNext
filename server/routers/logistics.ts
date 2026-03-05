@@ -24,6 +24,7 @@ import { TRPCError } from "@trpc/server";
 // ── Permission guard ────────────────────────────────────────
 
 const LOGISTICS_ROLES = ["LOGISTICS", "ADMIN", "SUPER_ADMIN"];
+const ADMIN_OVERRIDE_ROLES = ["ADMIN", "SUPER_ADMIN"];
 
 function requireLogisticsRole(role: string, action: string) {
   if (!LOGISTICS_ROLES.includes(role)) {
@@ -32,6 +33,11 @@ function requireLogisticsRole(role: string, action: string) {
       message: `${action} requires LOGISTICS, ADMIN, or SUPER_ADMIN role`,
     });
   }
+}
+
+/** Returns true if the role is ADMIN or SUPER_ADMIN (can override locked attendance) */
+function canOverrideAttendance(role: string): boolean {
+  return ADMIN_OVERRIDE_ROLES.includes(role);
 }
 
 // ── Router ──────────────────────────────────────────────────
@@ -329,6 +335,17 @@ export const logisticsRouter = router({
         });
       }
 
+      // Attendance lock: once set, only ADMIN/SUPER_ADMIN can change
+      if (
+        currentTeam.attendance !== "NOT_MARKED" &&
+        !canOverrideAttendance(ctx.admin.role)
+      ) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Attendance already recorded. Only an Admin can modify it.",
+        });
+      }
+
       const now = new Date();
 
       // Last-write-wins: update with current admin and timestamp
@@ -417,6 +434,17 @@ export const logisticsRouter = router({
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "Can only mark attendance for approved teams",
+        });
+      }
+
+      // Attendance lock: if member already checked in, only ADMIN/SUPER_ADMIN can change
+      if (
+        member.checkedInAt !== null &&
+        !canOverrideAttendance(ctx.admin.role)
+      ) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Member attendance already recorded. Only an Admin can modify it.",
         });
       }
 

@@ -18,6 +18,7 @@ import {
   Filter,
   Wifi,
   WifiOff,
+  Lock,
 } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
@@ -68,6 +69,15 @@ export default function LogisticsPage() {
   const [isOnline, setIsOnline] = useState(
     typeof navigator !== "undefined" ? navigator.onLine : true
   );
+
+  // Detect admin role for attendance lock override
+  const isAdmin = (() => {
+    if (typeof document === "undefined") return false;
+    const el = document.querySelector("[data-admin-role]");
+    if (!el) return false;
+    const role = el.getAttribute("data-admin-role") || "";
+    return role === "ADMIN" || role === "SUPER_ADMIN";
+  })();
 
   // Monitor online status for offline support awareness
   useEffect(() => {
@@ -404,26 +414,44 @@ export default function LogisticsPage() {
                     </span>
 
                     {/* Quick actions */}
-                    {team.attendance !== "PRESENT" && (
-                      <button
-                        onClick={() => handleQuickCheckIn(team.id, "PRESENT")}
-                        disabled={markAttendance.isPending}
-                        className="px-2 py-1 text-[9px] font-mono font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded hover:bg-emerald-500/20 transition-all disabled:opacity-40"
-                        title="Mark as Present"
-                      >
-                        CHECK IN
-                      </button>
-                    )}
-                    {team.attendance !== "ABSENT" && (
-                      <button
-                        onClick={() => handleQuickCheckIn(team.id, "ABSENT")}
-                        disabled={markAttendance.isPending}
-                        className="px-2 py-1 text-[9px] font-mono font-bold text-red-400 bg-red-500/10 border border-red-500/20 rounded hover:bg-red-500/20 transition-all disabled:opacity-40"
-                        title="Mark as Absent"
-                      >
-                        ABSENT
-                      </button>
-                    )}
+                    {(() => {
+                      const locked = team.attendance !== "NOT_MARKED" && !isAdmin;
+                      if (locked) {
+                        return (
+                          <span
+                            className="inline-flex items-center gap-1 px-2 py-1 text-[9px] font-mono font-bold text-gray-500 bg-white/[0.02] border border-white/[0.04] rounded"
+                            title="Attendance locked — only Admin can change"
+                          >
+                            <Lock className="h-3 w-3" />
+                            LOCKED
+                          </span>
+                        );
+                      }
+                      return (
+                        <>
+                          {team.attendance !== "PRESENT" && (
+                            <button
+                              onClick={() => handleQuickCheckIn(team.id, "PRESENT")}
+                              disabled={markAttendance.isPending}
+                              className="px-2 py-1 text-[9px] font-mono font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded hover:bg-emerald-500/20 transition-all disabled:opacity-40"
+                              title="Mark as Present"
+                            >
+                              CHECK IN
+                            </button>
+                          )}
+                          {team.attendance !== "ABSENT" && (
+                            <button
+                              onClick={() => handleQuickCheckIn(team.id, "ABSENT")}
+                              disabled={markAttendance.isPending}
+                              className="px-2 py-1 text-[9px] font-mono font-bold text-red-400 bg-red-500/10 border border-red-500/20 rounded hover:bg-red-500/20 transition-all disabled:opacity-40"
+                              title="Mark as Absent"
+                            >
+                              ABSENT
+                            </button>
+                          )}
+                        </>
+                      );
+                    })()}
 
                     <Link
                       href={`/admin/logistics/${team.id}`}

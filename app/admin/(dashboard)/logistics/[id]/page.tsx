@@ -22,6 +22,7 @@ import {
   RefreshCw,
   Save,
   X,
+  Lock,
 } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
@@ -50,6 +51,14 @@ export default function LogisticsTeamDetailPage({ params }: { params: Promise<{ 
   const [showQR, setShowQR] = useState(false);
   const [attendanceNotes, setAttendanceNotes] = useState("");
   const [notesEditing, setNotesEditing] = useState(false);
+
+  // Get admin role from layout's data attribute
+  const adminRole = (() => {
+    if (typeof document === "undefined") return "LOGISTICS";
+    const el = document.querySelector("[data-admin-role]");
+    return el?.getAttribute("data-admin-role") || "LOGISTICS";
+  })();
+  const isAdmin = adminRole === "ADMIN" || adminRole === "SUPER_ADMIN";
 
   const { data: currentTeam, isLoading, refetch } = trpc.logistics.getTeamById.useQuery(
     { teamId: id },
@@ -131,6 +140,9 @@ export default function LogisticsTeamDetailPage({ params }: { params: Promise<{ 
   const _leader = currentTeam.members.find((m) => m.role === "LEADER");
   const presentCount = currentTeam.members.filter((m) => m.isPresent).length;
 
+  // Attendance is locked once set — only ADMIN/SUPER_ADMIN can change
+  const attendanceLocked = currentTeam.attendance !== "NOT_MARKED" && !isAdmin;
+
   return (
     <div className="space-y-6">
       {/* Header nav */}
@@ -186,30 +198,39 @@ export default function LogisticsTeamDetailPage({ params }: { params: Promise<{ 
 
         {/* Attendance actions */}
         <div className="flex items-center gap-2 mb-4">
-          <button
-            onClick={() => handleTeamAttendance("PRESENT")}
-            disabled={markTeamAttendance.isPending}
-            className={`flex-1 py-2.5 text-[11px] font-mono font-bold rounded border transition-all disabled:opacity-40 ${
-              currentTeam.attendance === "PRESENT"
-                ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40"
-                : "bg-emerald-500/5 text-emerald-400 border-emerald-500/15 hover:bg-emerald-500/15"
-            }`}
-          >
-            <CheckCircle2 className="h-4 w-4 inline mr-2" />
-            CHECK IN (ALL PRESENT)
-          </button>
-          <button
-            onClick={() => handleTeamAttendance("ABSENT")}
-            disabled={markTeamAttendance.isPending}
-            className={`flex-1 py-2.5 text-[11px] font-mono font-bold rounded border transition-all disabled:opacity-40 ${
-              currentTeam.attendance === "ABSENT"
-                ? "bg-red-500/20 text-red-300 border-red-500/40"
-                : "bg-red-500/5 text-red-400 border-red-500/15 hover:bg-red-500/15"
-            }`}
-          >
-            <XCircle className="h-4 w-4 inline mr-2" />
-            MARK ABSENT
-          </button>
+          {attendanceLocked ? (
+            <div className="flex-1 flex items-center justify-center gap-2 py-2.5 text-[11px] font-mono font-bold rounded border bg-white/[0.02] border-white/[0.06] text-gray-500">
+              <Lock className="h-3.5 w-3.5" />
+              ATTENDANCE LOCKED — ONLY ADMIN CAN CHANGE
+            </div>
+          ) : (
+            <>
+              <button
+                onClick={() => handleTeamAttendance("PRESENT")}
+                disabled={markTeamAttendance.isPending}
+                className={`flex-1 py-2.5 text-[11px] font-mono font-bold rounded border transition-all disabled:opacity-40 ${
+                  currentTeam.attendance === "PRESENT"
+                    ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40"
+                    : "bg-emerald-500/5 text-emerald-400 border-emerald-500/15 hover:bg-emerald-500/15"
+                }`}
+              >
+                <CheckCircle2 className="h-4 w-4 inline mr-2" />
+                CHECK IN (ALL PRESENT)
+              </button>
+              <button
+                onClick={() => handleTeamAttendance("ABSENT")}
+                disabled={markTeamAttendance.isPending}
+                className={`flex-1 py-2.5 text-[11px] font-mono font-bold rounded border transition-all disabled:opacity-40 ${
+                  currentTeam.attendance === "ABSENT"
+                    ? "bg-red-500/20 text-red-300 border-red-500/40"
+                    : "bg-red-500/5 text-red-400 border-red-500/15 hover:bg-red-500/15"
+                }`}
+              >
+                <XCircle className="h-4 w-4 inline mr-2" />
+                MARK ABSENT
+              </button>
+            </>
+          )}
         </div>
 
         {/* Attendance notes */}
@@ -286,8 +307,9 @@ export default function LogisticsTeamDetailPage({ params }: { params: Promise<{ 
                     {/* Attendance checkbox */}
                     <button
                       onClick={() => handleMemberToggle(member.id, !member.isPresent)}
-                      disabled={markMemberAttendance.isPending}
-                      className={`shrink-0 w-6 h-6 rounded border-2 flex items-center justify-center transition-all disabled:opacity-30 ${
+                      disabled={markMemberAttendance.isPending || (member.checkedInAt !== null && !isAdmin)}
+                      title={member.checkedInAt !== null && !isAdmin ? "Attendance locked — only Admin can change" : undefined}
+                      className={`shrink-0 w-6 h-6 rounded border-2 flex items-center justify-center transition-all disabled:opacity-30 disabled:cursor-not-allowed ${
                         member.isPresent
                           ? "bg-emerald-500 border-emerald-500 text-white"
                           : "border-gray-600 hover:border-emerald-500/50"
