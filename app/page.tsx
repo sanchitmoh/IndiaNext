@@ -901,12 +901,11 @@ const SponsorsSection = () => (
         <div className="max-w-7xl mx-auto px-4 md:px-6 text-center">
             <p className="text-gray-300 font-mono text-xs sm:text-sm tracking-[0.4em] sm:tracking-[1em] mb-12 md:mb-20 uppercase font-black italic select-none">{"// STRATEGIC_BACKING_INITIATIVE"}</p>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
-                {[
-                    { name: "Devfolio", image: "/Devfolio/Devfolio_Logo-White.svg", status: "PARTNERSHIP_ACTIVE" },
+                {([
                     { name: "Sponsor Alpha", status: "LINK_ACTIVE" },
                     { name: "Partner Bravo", status: "LINK_ACTIVE" },
                     { name: "Node Delta", status: "LINK_ACTIVE" }
-                ].map((brand, i) => (
+                ] as { name: string; status: string; image?: string }[]).map((brand, i) => (
                     <motion.div 
                         key={i}
                         whileHover={{ y: -5, borderColor: "rgba(255,102,0,0.5)", backgroundColor: "rgba(255,102,0,0.05)" }}
@@ -947,7 +946,7 @@ const FAQSection = () => (
             <div className="grid md:grid-cols-2 gap-8">
                 {[
                     { q: "Registration Fees?", a: "Negative. IndiaNext is mission-critical and free for all elite teams selected." },
-                    { q: "Team Structure?", a: "Strictly 4 operatives per squad. Inter-college alliances are authorized." },
+                    { q: "Team Structure?", a: "2 to 4 operatives per squad. Inter-college alliances are authorized." },
                     { q: "Pre-built Code?", a: "Unauthorized. All systems must be engineered on-site. Timestamp audit in effect." },
                     { q: "Equipment Loadout?", a: "Bring your own hardware (Laptops, Chargers). Power grids and Wi-Fi uplink provided." }
                 ].map((faq, i) => (

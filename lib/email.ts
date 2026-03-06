@@ -924,38 +924,38 @@ async function sendApprovalEmail(
               <p style="color: #FF6600; margin: 0 0 10px 0; font-size: 12px; font-weight: bold; letter-spacing: 1px;">DAY 1 — MARCH 15, 2026</p>
               <table style="width: 100%; border-collapse: collapse; margin-bottom: 16px;">
                 <tr>
-                  <td class="sch-time" style="padding: 7px 10px; color: #FF6600; font-size: 12px; font-weight: bold; width: 90px; background: rgba(255,102,0,0.06); border-radius: 4px 0 0 4px;">08:00 AM</td>
-                  <td class="sch-desc" style="padding: 7px 10px; color: #ededed; font-size: 12px; background: rgba(255,102,0,0.03); border-radius: 0 4px 4px 0;">Registration & Check-in</td>
+                  <td class="sch-time" style="padding: 7px 10px; color: #FF6600; font-size: 12px; font-weight: bold; width: 90px; background: rgba(255,102,0,0.06); border-radius: 4px 0 0 4px;">Morning</td>
+                  <td class="sch-desc" style="padding: 7px 10px; color: #ededed; font-size: 12px; background: rgba(255,102,0,0.03); border-radius: 0 4px 4px 0;">Check-in & Breakfast</td>
                 </tr>
                 <tr><td colspan="2" style="padding: 2px;"></td></tr>
                 <tr>
                   <td class="sch-time" style="padding: 7px 10px; color: #FF6600; font-size: 12px; font-weight: bold; background: rgba(255,102,0,0.06); border-radius: 4px 0 0 4px;">09:00 AM</td>
-                  <td class="sch-desc" style="padding: 7px 10px; color: #ededed; font-size: 12px; background: rgba(255,102,0,0.03); border-radius: 0 4px 4px 0;">Opening Ceremony & Keynote</td>
+                  <td class="sch-desc" style="padding: 7px 10px; color: #ededed; font-size: 12px; background: rgba(255,102,0,0.03); border-radius: 0 4px 4px 0;">Opening Ceremony (9:00 - 9:30 AM)</td>
                 </tr>
                 <tr><td colspan="2" style="padding: 2px;"></td></tr>
                 <tr>
-                  <td class="sch-time" style="padding: 7px 10px; color: #FF6600; font-size: 12px; font-weight: bold; background: rgba(255,102,0,0.06); border-radius: 4px 0 0 4px;">10:00 AM</td>
-                  <td class="sch-desc" style="padding: 7px 10px; color: #10b981; font-size: 12px; font-weight: bold; background: rgba(16,185,129,0.06); border-radius: 0 4px 4px 0;">[START] Hacking Begins!</td>
+                  <td class="sch-time" style="padding: 7px 10px; color: #FF6600; font-size: 12px; font-weight: bold; background: rgba(255,102,0,0.06); border-radius: 4px 0 0 4px;">09:30 AM</td>
+                  <td class="sch-desc" style="padding: 7px 10px; color: #10b981; font-size: 12px; font-weight: bold; background: rgba(16,185,129,0.06); border-radius: 0 4px 4px 0;">Idea Discussion (9:30 - 10:30 AM)</td>
                 </tr>
                 <tr><td colspan="2" style="padding: 2px;"></td></tr>
                 <tr>
-                  <td class="sch-time" style="padding: 7px 10px; color: #FF6600; font-size: 12px; font-weight: bold; background: rgba(255,102,0,0.06); border-radius: 4px 0 0 4px;">01:00 PM</td>
-                  <td class="sch-desc" style="padding: 7px 10px; color: #ededed; font-size: 12px; background: rgba(255,102,0,0.03); border-radius: 0 4px 4px 0;">Lunch Break</td>
+                  <td class="sch-time" style="padding: 7px 10px; color: #FF6600; font-size: 12px; font-weight: bold; background: rgba(255,102,0,0.06); border-radius: 4px 0 0 4px;">12:30 PM</td>
+                  <td class="sch-desc" style="padding: 7px 10px; color: #ededed; font-size: 12px; background: rgba(255,102,0,0.03); border-radius: 0 4px 4px 0;">Lunch Break (12:30 - 2:00 PM)</td>
                 </tr>
                 <tr><td colspan="2" style="padding: 2px;"></td></tr>
                 <tr>
-                  <td class="sch-time" style="padding: 7px 10px; color: #FF6600; font-size: 12px; font-weight: bold; background: rgba(255,102,0,0.06); border-radius: 4px 0 0 4px;">04:00 PM</td>
-                  <td class="sch-desc" style="padding: 7px 10px; color: #ededed; font-size: 12px; background: rgba(255,102,0,0.03); border-radius: 0 4px 4px 0;">Mentor Round 1</td>
+                  <td class="sch-time" style="padding: 7px 10px; color: #FF6600; font-size: 12px; font-weight: bold; background: rgba(255,102,0,0.06); border-radius: 4px 0 0 4px;">02:00 PM</td>
+                  <td class="sch-desc" style="padding: 7px 10px; color: #10b981; font-size: 12px; font-weight: bold; background: rgba(16,185,129,0.06); border-radius: 0 4px 4px 0;">[START] Development Begins (2:00 - 9:00 PM)</td>
                 </tr>
                 <tr><td colspan="2" style="padding: 2px;"></td></tr>
                 <tr>
-                  <td class="sch-time" style="padding: 7px 10px; color: #FF6600; font-size: 12px; font-weight: bold; background: rgba(255,102,0,0.06); border-radius: 4px 0 0 4px;">08:00 PM</td>
-                  <td class="sch-desc" style="padding: 7px 10px; color: #ededed; font-size: 12px; background: rgba(255,102,0,0.03); border-radius: 0 4px 4px 0;">Dinner & Networking</td>
+                  <td class="sch-time" style="padding: 7px 10px; color: #FF6600; font-size: 12px; font-weight: bold; background: rgba(255,102,0,0.06); border-radius: 4px 0 0 4px;">—</td>
+                  <td class="sch-desc" style="padding: 7px 10px; color: #ededed; font-size: 12px; background: rgba(255,102,0,0.03); border-radius: 0 4px 4px 0;">Mentorship Round 1 (during development)</td>
                 </tr>
                 <tr><td colspan="2" style="padding: 2px;"></td></tr>
                 <tr>
-                  <td class="sch-time" style="padding: 7px 10px; color: #FF6600; font-size: 12px; font-weight: bold; background: rgba(255,102,0,0.06); border-radius: 4px 0 0 4px;">11:00 PM</td>
-                  <td class="sch-desc" style="padding: 7px 10px; color: #ededed; font-size: 12px; background: rgba(255,102,0,0.03); border-radius: 0 4px 4px 0;">Midnight Checkpoint</td>
+                  <td class="sch-time" style="padding: 7px 10px; color: #FF6600; font-size: 12px; font-weight: bold; background: rgba(255,102,0,0.06); border-radius: 4px 0 0 4px;">—</td>
+                  <td class="sch-desc" style="padding: 7px 10px; color: #ededed; font-size: 12px; background: rgba(255,102,0,0.03); border-radius: 0 4px 4px 0;">Dinner (during development)</td>
                 </tr>
               </table>
 
@@ -963,42 +963,22 @@ async function sendApprovalEmail(
               <table style="width: 100%; border-collapse: collapse;">
                 <tr>
                   <td class="sch-time" style="padding: 7px 10px; color: #00CCFF; font-size: 12px; font-weight: bold; width: 90px; background: rgba(0,204,255,0.06); border-radius: 4px 0 0 4px;">08:00 AM</td>
-                  <td class="sch-desc" style="padding: 7px 10px; color: #ededed; font-size: 12px; background: rgba(0,204,255,0.03); border-radius: 0 4px 4px 0;">Breakfast</td>
+                  <td class="sch-desc" style="padding: 7px 10px; color: #ededed; font-size: 12px; background: rgba(0,204,255,0.03); border-radius: 0 4px 4px 0;">Breakfast (8:00 - 9:00 AM)</td>
                 </tr>
                 <tr><td colspan="2" style="padding: 2px;"></td></tr>
                 <tr>
                   <td class="sch-time" style="padding: 7px 10px; color: #00CCFF; font-size: 12px; font-weight: bold; background: rgba(0,204,255,0.06); border-radius: 4px 0 0 4px;">09:00 AM</td>
-                  <td class="sch-desc" style="padding: 7px 10px; color: #ededed; font-size: 12px; background: rgba(0,204,255,0.03); border-radius: 0 4px 4px 0;">Mentor Round 2 — Final Guidance</td>
+                  <td class="sch-desc" style="padding: 7px 10px; color: #ededed; font-size: 12px; background: rgba(0,204,255,0.03); border-radius: 0 4px 4px 0;">Mentorship Round 2 (9:00 - 10:00 AM)</td>
                 </tr>
                 <tr><td colspan="2" style="padding: 2px;"></td></tr>
                 <tr>
-                  <td class="sch-time" style="padding: 7px 10px; color: #00CCFF; font-size: 12px; font-weight: bold; background: rgba(0,204,255,0.06); border-radius: 4px 0 0 4px;">10:00 AM</td>
-                  <td class="sch-desc" style="padding: 7px 10px; color: #ef4444; font-size: 12px; font-weight: bold; background: rgba(239,68,68,0.06); border-radius: 0 4px 4px 0;">[TIME] Hacking Stops — Code Freeze!</td>
+                  <td class="sch-time" style="padding: 7px 10px; color: #00CCFF; font-size: 12px; font-weight: bold; background: rgba(0,204,255,0.06); border-radius: 4px 0 0 4px;">11:00 AM</td>
+                  <td class="sch-desc" style="padding: 7px 10px; color: #ef4444; font-size: 12px; font-weight: bold; background: rgba(239,68,68,0.06); border-radius: 0 4px 4px 0;">[TIME] Development Stops — Code Freeze!</td>
                 </tr>
                 <tr><td colspan="2" style="padding: 2px;"></td></tr>
                 <tr>
-                  <td class="sch-time" style="padding: 7px 10px; color: #00CCFF; font-size: 12px; font-weight: bold; background: rgba(0,204,255,0.06); border-radius: 4px 0 0 4px;">10:30 AM</td>
-                  <td class="sch-desc" style="padding: 7px 10px; color: #ededed; font-size: 12px; background: rgba(0,204,255,0.03); border-radius: 0 4px 4px 0;">Project Submissions & Demo Prep</td>
-                </tr>
-                <tr><td colspan="2" style="padding: 2px;"></td></tr>
-                <tr>
-                  <td class="sch-time" style="padding: 7px 10px; color: #00CCFF; font-size: 12px; font-weight: bold; background: rgba(0,204,255,0.06); border-radius: 4px 0 0 4px;">11:30 AM</td>
-                  <td class="sch-desc" style="padding: 7px 10px; color: #ededed; font-size: 12px; background: rgba(0,204,255,0.03); border-radius: 0 4px 4px 0;">Judging Round — Team Presentations</td>
-                </tr>
-                <tr><td colspan="2" style="padding: 2px;"></td></tr>
-                <tr>
-                  <td class="sch-time" style="padding: 7px 10px; color: #00CCFF; font-size: 12px; font-weight: bold; background: rgba(0,204,255,0.06); border-radius: 4px 0 0 4px;">02:00 PM</td>
-                  <td class="sch-desc" style="padding: 7px 10px; color: #ededed; font-size: 12px; background: rgba(0,204,255,0.03); border-radius: 0 4px 4px 0;">Lunch Break</td>
-                </tr>
-                <tr><td colspan="2" style="padding: 2px;"></td></tr>
-                <tr>
-                  <td class="sch-time" style="padding: 7px 10px; color: #00CCFF; font-size: 12px; font-weight: bold; background: rgba(0,204,255,0.06); border-radius: 4px 0 0 4px;">03:00 PM</td>
-                  <td class="sch-desc" style="padding: 7px 10px; color: #f59e0b; font-size: 12px; font-weight: bold; background: rgba(245,158,11,0.06); border-radius: 0 4px 4px 0;">[RESULTS] Results & Prize Ceremony</td>
-                </tr>
-                <tr><td colspan="2" style="padding: 2px;"></td></tr>
-                <tr>
-                  <td class="sch-time" style="padding: 7px 10px; color: #00CCFF; font-size: 12px; font-weight: bold; background: rgba(0,204,255,0.06); border-radius: 4px 0 0 4px;">04:00 PM</td>
-                  <td class="sch-desc" style="padding: 7px 10px; color: #ededed; font-size: 12px; background: rgba(0,204,255,0.03); border-radius: 0 4px 4px 0;">Closing Ceremony & Group Photo</td>
+                  <td class="sch-time" style="padding: 7px 10px; color: #00CCFF; font-size: 12px; font-weight: bold; background: rgba(0,204,255,0.06); border-radius: 4px 0 0 4px;">01:00 PM</td>
+                  <td class="sch-desc" style="padding: 7px 10px; color: #f59e0b; font-size: 12px; font-weight: bold; background: rgba(245,158,11,0.06); border-radius: 0 4px 4px 0;">[RESULTS] Prize Distribution Function</td>
                 </tr>
               </table>
             </div>
@@ -1021,7 +1001,7 @@ async function sendApprovalEmail(
                 </tr>
                 <tr>
                   <td style="padding: 8px 10px; color: #f59e0b; font-size: 14px; vertical-align: top;">4.</td>
-                  <td class="rule-txt" style="padding: 8px 10px; color: #ccc; font-size: 12px; line-height: 1.5; border-bottom: 1px solid #1a1a1a;">Teams must submit their project by the <strong style="color: #ededed;">code freeze deadline (10:00 AM, Day 2)</strong>. Late submissions will not be entertained.</td>
+                  <td class="rule-txt" style="padding: 8px 10px; color: #ccc; font-size: 12px; line-height: 1.5; border-bottom: 1px solid #1a1a1a;">Teams must submit their project by the <strong style="color: #ededed;">code freeze deadline (11:00 AM, Day 2)</strong>. Late submissions will not be entertained.</td>
                 </tr>
                 <tr>
                   <td style="padding: 8px 10px; color: #f59e0b; font-size: 14px; vertical-align: top;">5.</td>

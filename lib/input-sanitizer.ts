@@ -11,11 +11,12 @@
 export function sanitizeHtml(input: string): string {
   if (!input) return '';
   
+  // Only escape angle brackets (XSS vectors). Quotes don't need escaping
+  // because React's JSX auto-escapes text content, and Prisma parameterizes queries.
+  // Escaping quotes causes &#x27; / &quot; to appear as literal text in the UI.
   return input
     .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#x27;');
+    .replace(/>/g, '&gt;');
 }
 
 /**
