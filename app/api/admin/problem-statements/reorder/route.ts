@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
+import { requirePermission, type AdminRole } from '@/lib/rbac';
+import { checkRateLimit } from '@/lib/rate-limit';
 
 const ReorderSchema = z.object({
   problemIds: z.array(z.string()).min(1),
@@ -33,9 +35,27 @@ async function verifyAdmin(_req: Request) {
  */
 export async function POST(req: Request) {
   try {
+    // ✅ SECURITY FIX: Rate limit admin reorder endpoint
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+    const rl = await checkRateLimit(`admin-reorder:${ip}`, 30, 60); // 30 per minute
+    if (!rl.success) {
+      return NextResponse.json(
+        { success: false, error: 'Too many requests' },
+        { status: 429, headers: { 'Retry-After': String(Math.ceil((rl.reset - Date.now()) / 1000)) } }
+      );
+    }
+
     const admin = await verifyAdmin(req);
     if (!admin) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // ✅ SECURITY FIX: Check RBAC permission for editing problem statements
+    if (!requirePermission(admin.role as AdminRole, 'editProblems')) {
+      return NextResponse.json(
+        { success: false, error: 'Insufficient permissions to reorder problem statements' },
+        { status: 403 }
+      );
     }
 
     const body = await req.json();

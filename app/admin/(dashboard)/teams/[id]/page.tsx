@@ -293,14 +293,16 @@ export default function TeamDetailPage({
             </div>
           </div>
         </div>
-        <button
-          onClick={handleDelete}
-          disabled={deleteTeam.isPending}
-          className="ml-auto sm:ml-0 px-3 py-1.5 text-[10px] font-mono font-bold tracking-wider text-red-400 hover:bg-red-500/10 border border-red-500/20 rounded-md transition-all flex items-center gap-1.5 disabled:opacity-50 shrink-0"
-        >
-          <Trash2 className="h-3.5 w-3.5" />
-          DELETE
-        </button>
+        {userRole !== "LOGISTICS" && (
+          <button
+            onClick={handleDelete}
+            disabled={deleteTeam.isPending}
+            className="ml-auto sm:ml-0 px-3 py-1.5 text-[10px] font-mono font-bold tracking-wider text-red-400 hover:bg-red-500/10 border border-red-500/20 rounded-md transition-all flex items-center gap-1.5 disabled:opacity-50 shrink-0"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+            DELETE
+          </button>
+        )}
       </div>
 
       {/* ── Tags ───────────────────────────────────────── */}
@@ -318,40 +320,44 @@ export default function TeamDetailPage({
             >
               <Tag className="h-2.5 w-2.5" />
               {tag.tag}
-              <button
-                onClick={() => handleRemoveTag(tag.id)}
-                className="ml-0.5 hover:opacity-60"
-                aria-label={`Remove tag ${tag.tag}`}
-              >
-                <X className="h-2.5 w-2.5" />
-              </button>
+              {userRole !== "LOGISTICS" && (
+                <button
+                  onClick={() => handleRemoveTag(tag.id)}
+                  className="ml-0.5 hover:opacity-60"
+                  aria-label={`Remove tag ${tag.tag}`}
+                >
+                  <X className="h-2.5 w-2.5" />
+                </button>
+              )}
             </span>
           )
         )}
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleAddTag();
-          }}
-          className="inline-flex items-center gap-1"
-        >
-          <input
-            type="text"
-            value={newTag}
-            onChange={(e) => setNewTag(e.target.value)}
-            placeholder="Add tag..."
-            className="w-24 text-[10px] font-mono px-2 py-1 bg-transparent border border-dashed border-white/[0.1] rounded focus:outline-none focus:border-orange-500/50 text-gray-400 placeholder:text-gray-600"
-          />
-          {newTag && (
-            <button
-              type="submit"
-              className="p-0.5 text-orange-400 hover:text-orange-300"
-              aria-label="Add tag"
-            >
-              <Plus className="h-3.5 w-3.5" />
-            </button>
-          )}
-        </form>
+        {userRole !== "LOGISTICS" && (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleAddTag();
+            }}
+            className="inline-flex items-center gap-1"
+          >
+            <input
+              type="text"
+              value={newTag}
+              onChange={(e) => setNewTag(e.target.value)}
+              placeholder="Add tag..."
+              className="w-24 text-[10px] font-mono px-2 py-1 bg-transparent border border-dashed border-white/[0.1] rounded focus:outline-none focus:border-orange-500/50 text-gray-400 placeholder:text-gray-600"
+            />
+            {newTag && (
+              <button
+                type="submit"
+                className="p-0.5 text-orange-400 hover:text-orange-300"
+                aria-label="Add tag"
+              >
+                <Plus className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </form>
+        )}
       </div>
 
       {/* ── Status Management or Scoring ──────────────────────────── */}
@@ -435,6 +441,7 @@ export default function TeamDetailPage({
           onCommentChange={setCommentText}
           onSubmit={handleAddComment}
           isSubmitting={addComment.isPending}
+          readOnly={userRole === "LOGISTICS"}
         />
       )}
     </div>
@@ -819,38 +826,42 @@ function CommentsTab({
   onCommentChange,
   onSubmit,
   isSubmitting,
+  readOnly = false,
 }: {
   comments: CommentData[];
   commentText: string;
   onCommentChange: (text: string) => void;
   onSubmit: () => void;
   isSubmitting: boolean;
+  readOnly?: boolean;
 }) {
   return (
     <div className="space-y-4">
-      {/* Add Comment */}
-      <div className="bg-[#0A0A0A] rounded-lg border border-white/[0.06] p-5">
-        <h4 className="text-[9px] font-mono font-bold text-gray-500 uppercase tracking-[0.3em] mb-3">
-          ADD_INTERNAL_NOTE
-        </h4>
-        <div className="flex flex-col sm:flex-row gap-3">
-          <textarea
-            value={commentText}
-            onChange={(e) => onCommentChange(e.target.value)}
-            placeholder="Write a note about this team..."
-            rows={3}
-            className="flex-1 px-3 py-2 text-xs font-mono bg-white/[0.02] border border-white/[0.06] rounded-md text-gray-300 placeholder:text-gray-600 focus:outline-none focus:ring-1 focus:ring-orange-500/50 focus:border-orange-500/30 resize-none"
-          />
-          <button
-            onClick={onSubmit}
-            disabled={isSubmitting || !commentText.trim()}
-            className="self-end px-4 py-2 bg-orange-500/15 text-orange-400 border border-orange-500/20 text-[10px] font-mono font-bold tracking-wider rounded-md hover:bg-orange-500/25 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5"
-          >
-            <Send className="h-3.5 w-3.5" />
-            SEND
-          </button>
+      {/* Add Comment — hidden for read-only roles */}
+      {!readOnly && (
+        <div className="bg-[#0A0A0A] rounded-lg border border-white/[0.06] p-5">
+          <h4 className="text-[9px] font-mono font-bold text-gray-500 uppercase tracking-[0.3em] mb-3">
+            ADD_INTERNAL_NOTE
+          </h4>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <textarea
+              value={commentText}
+              onChange={(e) => onCommentChange(e.target.value)}
+              placeholder="Write a note about this team..."
+              rows={3}
+              className="flex-1 px-3 py-2 text-xs font-mono bg-white/[0.02] border border-white/[0.06] rounded-md text-gray-300 placeholder:text-gray-600 focus:outline-none focus:ring-1 focus:ring-orange-500/50 focus:border-orange-500/30 resize-none"
+            />
+            <button
+              onClick={onSubmit}
+              disabled={isSubmitting || !commentText.trim()}
+              className="self-end px-4 py-2 bg-orange-500/15 text-orange-400 border border-orange-500/20 text-[10px] font-mono font-bold tracking-wider rounded-md hover:bg-orange-500/25 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5"
+            >
+              <Send className="h-3.5 w-3.5" />
+              SEND
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Comments List */}
       {comments.length === 0 ? (

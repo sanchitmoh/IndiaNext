@@ -77,8 +77,12 @@ export default function AdminLoginPage() {
           return;
         }
 
-        // Success — redirect to admin dashboard
-        window.location.href = "/admin";
+        // Success — redirect based on role
+        if (data.user?.role === "LOGISTICS") {
+          window.location.href = "/admin/logistics";
+        } else {
+          window.location.href = "/admin";
+        }
       } catch {
         setError("Connection failed. Please try again.");
       } finally {

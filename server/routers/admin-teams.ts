@@ -357,7 +357,8 @@ export const adminTeamsRouter = router({
             leader.email,
             team.name,
             'APPROVED',
-            input.notes
+            input.notes,
+            team.shortCode ?? undefined
           );
         } catch (error) {
           console.error('[Admin] Failed to send approval email:', error);
@@ -438,7 +439,8 @@ export const adminTeamsRouter = router({
             leader.email,
             team.name,
             'REJECTED',
-            input.reason
+            input.reason,
+            team.shortCode ?? undefined
           );
         } catch (error) {
           console.error('[Admin] Failed to send rejection email:', error);
@@ -519,7 +521,8 @@ export const adminTeamsRouter = router({
             leader.email,
             team.name,
             'APPROVED',
-            input.notes
+            input.notes,
+            team.shortCode ?? undefined
           ).catch((error) => {
             console.error(`[Admin] Failed to send approval email to ${leader.email}:`, error);
           });
@@ -605,7 +608,8 @@ export const adminTeamsRouter = router({
             leader.email,
             team.name,
             'REJECTED',
-            input.reason
+            input.reason,
+            team.shortCode ?? undefined
           ).catch((error) => {
             console.error(`[Admin] Failed to send rejection email to ${leader.email}:`, error);
           });

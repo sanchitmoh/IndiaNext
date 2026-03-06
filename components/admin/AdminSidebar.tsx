@@ -12,6 +12,7 @@ import {
   Terminal,
   X,
   FileQuestion,
+  ClipboardCheck,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { getAllowedNavItems, type AdminRole } from "@/lib/rbac";
@@ -69,6 +70,7 @@ export function AdminSidebar({
     ADMIN: "bg-orange-500/15 text-orange-400 border-orange-500/20",
     ORGANIZER: "bg-cyan-500/15 text-cyan-400 border-cyan-500/20",
     JUDGE: "bg-amber-500/15 text-amber-400 border-amber-500/20",
+    LOGISTICS: "bg-emerald-500/15 text-emerald-400 border-emerald-500/20",
   };
 
   // Get navigation items based on role
@@ -80,6 +82,7 @@ export function AdminSidebar({
     TEAMS: Users,
     PROBLEMS: FileQuestion,
     ANALYTICS: BarChart3,
+    LOGISTICS: ClipboardCheck,
   };
 
   const navItems = allowedNavItems.map(item => ({

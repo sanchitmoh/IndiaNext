@@ -26,7 +26,8 @@
     "test:email": "node scripts/test-email.js",
     "test:email:template": "node scripts/test-email-template.js",
     "test:redis": "tsx scripts/test-redis.ts",
-    "create:admin": "tsx scripts/create-admin.ts"
+    "create:admin": "tsx scripts/create-admin.ts",
+    "seed:logistics": "tsx prisma/seed-logistics.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",

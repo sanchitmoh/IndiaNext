@@ -5,9 +5,14 @@ import bcrypt from "bcryptjs";
 import { z } from "zod";
 import crypto from "crypto";
 
+import { SESSION_CONFIGS } from "@/lib/session-security";
+
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
-  password: z.string().min(1, "Password is required"),
+  // ✅ SECURITY FIX: Enforce password complexity
+  password: z.string()
+    .min(8, "Password must be at least 8 characters")
+    .max(128, "Password too long"),
 });
 
 function getClientIP(req: Request): string {
@@ -86,7 +91,8 @@ export async function POST(req: Request) {
 
     // 5. Create admin session
     const token = crypto.randomBytes(32).toString("hex");
-    const expiresAt = new Date(Date.now() + 8 * 60 * 60 * 1000); // 8 hours
+    // ✅ SECURITY FIX: Use centralized SESSION_CONFIGS instead of hardcoded 8h
+    const expiresAt = new Date(Date.now() + SESSION_CONFIGS.admin.maxAge * 1000);
 
     await prisma.adminSession.create({
       data: {
@@ -125,9 +131,10 @@ export async function POST(req: Request) {
     response.cookies.set("admin_token", token, {
       httpOnly: true,
       secure: isProduction,
-      sameSite: "lax",
+      // ✅ SECURITY FIX: Use strict sameSite for admin cookie + centralized maxAge
+      sameSite: "strict",
       path: "/",
-      maxAge: 8 * 60 * 60, // 8 hours in seconds
+      maxAge: SESSION_CONFIGS.admin.maxAge,
     });
 
     return response;

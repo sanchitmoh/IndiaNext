@@ -62,6 +62,7 @@ interface TeamsTableProps {
   onPageChange: (page: number) => void;
   onSort: (field: string, order: string) => void;
   judgeMode?: boolean;
+  readOnly?: boolean;
 }
 
 const statusStyles: Record<string, string> = {
@@ -92,6 +93,7 @@ export function TeamsTable({
   selectedTeams,
   onSelectionChange,
   onPageChange,
+  readOnly = false,
 }: TeamsTableProps) {
   const router = useRouter();
   const totalPages = Math.ceil(totalCount / pageSize);
@@ -135,19 +137,21 @@ export function TeamsTable({
       {/* ── Mobile Card Layout ── */}
       <div className="md:hidden">
         {/* Mobile select all */}
-        <div className="flex items-center gap-3 px-4 py-3 border-b border-white/[0.06] bg-white/[0.02]">
-          <input
-            type="checkbox"
-            title="Select all teams"
-            aria-label="Select all teams"
-            checked={teams.length > 0 && selectedTeams.length === teams.length}
-            onChange={toggleAll}
-            className="rounded border-gray-600 bg-transparent text-orange-500 focus:ring-orange-500/50"
-          />
-          <span className="text-[9px] font-mono font-bold text-gray-500 tracking-[0.2em] uppercase">
-            SELECT ALL ({teams.length})
-          </span>
-        </div>
+        {!readOnly && (
+          <div className="flex items-center gap-3 px-4 py-3 border-b border-white/[0.06] bg-white/[0.02]">
+            <input
+              type="checkbox"
+              title="Select all teams"
+              aria-label="Select all teams"
+              checked={teams.length > 0 && selectedTeams.length === teams.length}
+              onChange={toggleAll}
+              className="rounded border-gray-600 bg-transparent text-orange-500 focus:ring-orange-500/50"
+            />
+            <span className="text-[9px] font-mono font-bold text-gray-500 tracking-[0.2em] uppercase">
+              SELECT ALL ({teams.length})
+            </span>
+          </div>
+        )}
 
         {teams.length === 0 ? (
           <div className="px-4 py-12 text-center text-gray-600 text-xs font-mono tracking-widest">
@@ -165,16 +169,18 @@ export function TeamsTable({
                   }`}
                 >
                   <div className="flex items-start gap-3">
-                    <div className="pt-0.5" onClick={(e) => e.stopPropagation()}>
-                      <input
-                        type="checkbox"
-                        title={`Select team ${team.name}`}
-                        aria-label={`Select team ${team.name}`}
-                        checked={selectedTeams.includes(team.id)}
-                        onChange={() => toggleOne(team.id)}
-                        className="rounded border-gray-600 bg-transparent text-orange-500 focus:ring-orange-500/50"
-                      />
-                    </div>
+                    {!readOnly && (
+                      <div className="pt-0.5" onClick={(e) => e.stopPropagation()}>
+                        <input
+                          type="checkbox"
+                          title={`Select team ${team.name}`}
+                          aria-label={`Select team ${team.name}`}
+                          checked={selectedTeams.includes(team.id)}
+                          onChange={() => toggleOne(team.id)}
+                          className="rounded border-gray-600 bg-transparent text-orange-500 focus:ring-orange-500/50"
+                        />
+                      </div>
+                    )}
                     <div
                       className="flex-1 min-w-0 cursor-pointer"
                       onClick={() => router.push(`/admin/teams/${team.id}`)}
@@ -272,19 +278,21 @@ export function TeamsTable({
         <table className="w-full">
           <thead>
             <tr className="bg-white/[0.02] border-b border-white/[0.06]">
-              <th className="px-4 py-3 text-left w-10">
-                <input
-                  type="checkbox"
-                  title="Select all teams"
-                  aria-label="Select all teams"
-                  checked={
-                    teams.length > 0 &&
-                    selectedTeams.length === teams.length
-                  }
-                  onChange={toggleAll}
-                  className="rounded border-gray-600 bg-transparent text-orange-500 focus:ring-orange-500/50"
-                />
-              </th>
+              {!readOnly && (
+                <th className="px-4 py-3 text-left w-10">
+                  <input
+                    type="checkbox"
+                    title="Select all teams"
+                    aria-label="Select all teams"
+                    checked={
+                      teams.length > 0 &&
+                      selectedTeams.length === teams.length
+                    }
+                    onChange={toggleAll}
+                    className="rounded border-gray-600 bg-transparent text-orange-500 focus:ring-orange-500/50"
+                  />
+                </th>
+              )}
               <th className="px-4 py-3 text-left text-[9px] font-mono font-bold text-gray-500 uppercase tracking-[0.2em]">
                 Team
               </th>
@@ -312,7 +320,7 @@ export function TeamsTable({
             {teams.length === 0 ? (
               <tr>
                 <td
-                  colSpan={8}
+                  colSpan={readOnly ? 7 : 8}
                   className="px-4 py-12 text-center text-gray-600 text-xs font-mono tracking-widest"
                 >
                   NO TEAMS FOUND
@@ -335,19 +343,21 @@ export function TeamsTable({
                       router.push(`/admin/teams/${team.id}`)
                     }
                   >
-                    <td
-                      className="px-4 py-3"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <input
-                        type="checkbox"
-                        title={`Select team ${team.name}`}
-                        aria-label={`Select team ${team.name}`}
-                        checked={selectedTeams.includes(team.id)}
-                        onChange={() => toggleOne(team.id)}
-                        className="rounded border-gray-600 bg-transparent text-orange-500 focus:ring-orange-500/50"
-                      />
-                    </td>
+                    {!readOnly && (
+                      <td
+                        className="px-4 py-3"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <input
+                          type="checkbox"
+                          title={`Select team ${team.name}`}
+                          aria-label={`Select team ${team.name}`}
+                          checked={selectedTeams.includes(team.id)}
+                          onChange={() => toggleOne(team.id)}
+                          className="rounded border-gray-600 bg-transparent text-orange-500 focus:ring-orange-500/50"
+                        />
+                      </td>
+                    )}
                     <td className="px-4 py-3">
                       <div>
                         <div className="text-sm font-medium text-gray-200">

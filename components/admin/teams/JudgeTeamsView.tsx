@@ -75,6 +75,7 @@ export function JudgeTeamsView() {
               Track
             </label>
             <select
+              title="Filter teams by track"
               value={filters.track}
               onChange={(e) => setFilters({ ...filters, track: e.target.value, page: 1 })}
               className="w-full px-3 py-2 bg-black/40 border border-white/[0.1] rounded-md text-sm text-white focus:outline-none focus:border-amber-500/50"
@@ -105,6 +106,7 @@ export function JudgeTeamsView() {
               Sort By
             </label>
             <select
+              title="Sort teams by"
               value={`${filters.sortBy}-${filters.sortOrder}`}
               onChange={(e) => {
                 const [sortBy, sortOrder] = e.target.value.split("-");

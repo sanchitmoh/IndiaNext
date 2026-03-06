@@ -206,7 +206,9 @@ export async function POST(req: Request) {
 
     // Create session token
     const token = crypto.randomBytes(32).toString('hex');
-    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
+    // ✅ SECURITY FIX: Use centralized SESSION_CONFIGS instead of hardcoded 30-day lifetime
+    const { SESSION_CONFIGS } = await import('@/lib/session-security');
+    const expiresAt = new Date(Date.now() + SESSION_CONFIGS.user.maxAge * 1000); // 7 days
 
     const session = await prisma.session.create({
       data: {

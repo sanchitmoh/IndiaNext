@@ -108,7 +108,10 @@ function getResponsiveEmailStyles(): string {
       .rule-txt { font-size: 12px !important; padding: 8px 10px !important; }
       .body-text { font-size: 14px !important; }
             .mob-member-card { display: block !important; }
-            
+      .qr-section { padding: 16px !important; }
+      .qr-img { width: 160px !important; height: 160px !important; }
+      .qr-code-txt { font-size: 22px !important; letter-spacing: 3px !important; }
+      .qr-note { font-size: 11px !important; }
       .sm-text { font-size: 12px !important; }
     }
   </style>`;
@@ -752,7 +755,8 @@ export async function sendStatusUpdateEmail(
   to: string,
   teamName: string,
   status: string,
-  notes?: string
+  notes?: string,
+  shortCode?: string
 ): Promise<EmailResult> {
   const statusColors: Record<string, string> = {
     APPROVED: "#10b981",
@@ -770,7 +774,7 @@ export async function sendStatusUpdateEmail(
 
   // For APPROVED status, send a detailed hackathon info email
   if (status === "APPROVED") {
-    return sendApprovalEmail(to, teamName, notes);
+    return sendApprovalEmail(to, teamName, notes, shortCode);
   }
 
   const subject = `Team Status Update — ${escapeHtml(teamName)} | IndiaNext Hackathon`;
@@ -842,7 +846,8 @@ export async function sendStatusUpdateEmail(
 async function sendApprovalEmail(
   to: string,
   teamName: string,
-  notes?: string
+  notes?: string,
+  shortCode?: string
 ): Promise<EmailResult> {
   const subject = ` You're IN! Team "${escapeHtml(teamName)}" Approved — IndiaNext Hackathon 2026`;
 
@@ -1063,6 +1068,60 @@ async function sendApprovalEmail(
                 </tr>
               </table>
             </div>
+
+            ${shortCode ? `
+            <!-- QR Code Check-in Pass -->
+            <div class="qr-section sec-card" style="background: linear-gradient(135deg, #0a0a0a 0%, #111 100%); border: 2px solid #FF6600; border-radius: 12px; padding: 24px; margin-bottom: 20px; text-align: center;">
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="width: 100%; border-collapse: collapse;">
+                <tr>
+                  <td style="text-align: center; padding-bottom: 12px;">
+                    <p style="color: #FF6600; margin: 0; font-size: 11px; text-transform: uppercase; letter-spacing: 3px; font-weight: bold;">EVENT CHECK-IN PASS</p>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="text-align: center; padding-bottom: 14px;">
+                    <p style="color: #ededed; margin: 0; font-size: 12px; line-height: 1.5;">
+                      Show this QR code at the registration desk for<br>instant check-in on event day.
+                    </p>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="text-align: center; padding-bottom: 14px;">
+                    <!--[if mso]>
+                    <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" style="width:200px;height:200px;" arcsize="5%" fillcolor="#FFFFFF" stroke="f">
+                    <v:textbox inset="0,0,0,0">
+                    <![endif]-->
+                    <div style="display: inline-block; background: #FFFFFF; border-radius: 10px; padding: 12px;">
+                      <img class="qr-img" src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent('https://www.indianexthackthon.online/admin/logistics/checkin?code=' + shortCode)}&bgcolor=FFFFFF&color=000000&margin=0" alt="Check-in QR Code for ${escapeHtml(shortCode)}" width="200" height="200" style="display: block; width: 200px; height: 200px; border: 0;" />
+                    </div>
+                    <!--[if mso]>
+                    </v:textbox>
+                    </v:roundrect>
+                    <![endif]-->
+                  </td>
+                </tr>
+                <tr>
+                  <td style="text-align: center; padding-bottom: 10px;">
+                    <p style="color: #666; margin: 0; font-size: 10px; text-transform: uppercase; letter-spacing: 1px;">Team ID</p>
+                    <p class="qr-code-txt" style="color: #FF6600; margin: 4px 0 0 0; font-size: 28px; font-weight: bold; font-family: 'Courier New', monospace; letter-spacing: 5px;">${escapeHtml(shortCode)}</p>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="text-align: center;">
+                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 0 auto; border-collapse: collapse;">
+                      <tr>
+                        <td style="background: rgba(255, 102, 0, 0.08); border: 1px solid rgba(255, 102, 0, 0.2); border-radius: 6px; padding: 10px 16px;">
+                          <p class="qr-note" style="color: #999; margin: 0; font-size: 11px; line-height: 1.5;">
+                            <strong style="color: #f59e0b;">Note:</strong> All team members must be present<br>at the venue with a valid college ID for check-in.
+                          </p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </div>
+            ` : ''}
 
             <!-- CTA -->
             <div class="cta-wrap" style="background: rgba(255, 102, 0, 0.06); border: 2px solid #FF6600; border-radius: 10px; padding: 20px; text-align: center; margin-bottom: 20px;">

@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
 
+const RESERVATION_DURATION_AUTH = 24 * 60 * 60 * 1000; // 24 hours for authenticated users
+
 /**
  * POST /api/transfer-reservation
  * 
@@ -92,10 +94,14 @@ export async function POST(req: Request) {
       });
     }
 
-    // Transfer the reservation by updating the sessionId
+    // Transfer the reservation by updating the sessionId and extending TTL to 24h
     await prisma.problemReservation.update({
       where: { sessionId: anonymousId },
-      data: { sessionId },
+      data: {
+        sessionId,
+        expiresAt: new Date(Date.now() + RESERVATION_DURATION_AUTH),
+        extensionCount: 0, // Reset extension count for authenticated user
+      },
     });
 
     console.log(`[TransferReservation] Transferred reservation from ${anonymousId} to ${sessionId}`);

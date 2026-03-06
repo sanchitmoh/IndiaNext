@@ -343,7 +343,8 @@ export const adminRouterCached = router({
           leader.user.email,
           team.name,
           input.status,
-          input.reviewNotes || input.rejectionReason
+          input.reviewNotes || input.rejectionReason,
+          team.shortCode ?? undefined
         ).catch((err) => {
           console.error(`[EMAIL] Failed to send status update email to ${leader.user.email}:`, err);
         });

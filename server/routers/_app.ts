@@ -1,18 +1,21 @@
 // Main tRPC App Router
 //
-// admin → Dashboard stats, team management, export (used by /admin/* pages)
-// auth   → Profile, notifications, session management (post-registration)
-// team   → Submission updates, submit for review, withdraw (post-registration)
+// admin      → Dashboard stats, team management, export (used by /admin/* pages)
+// auth       → Profile, notifications, session management (post-registration)
+// team       → Submission updates, submit for review, withdraw (post-registration)
+// logistics  → Event-day operations: attendance, member edits, QR check-in
 //
 import { router } from "../trpc";
 import { adminRouter } from "./admin";
 import { teamRouter } from "./team";
 import { authRouter } from "./auth";
+import { logisticsRouter } from "./logistics";
 
 export const appRouter = router({
   admin: adminRouter,
   team: teamRouter,
   auth: authRouter,
+  logistics: logisticsRouter,
 });
 
 export type AppRouter = typeof appRouter;

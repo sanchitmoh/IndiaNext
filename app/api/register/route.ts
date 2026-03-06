@@ -224,16 +224,30 @@ export async function POST(req: Request) {
       }
     }
 
-    // ✅ CHECK FOR SQL INJECTION patterns
-    if (containsSqlInjection(sanitizedData.teamName)) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'VALIDATION_ERROR',
-          message: 'Invalid team name format.',
-        },
-        { status: 400, headers: createRateLimitHeaders(rateLimit) }
-      );
+    // ✅ SECURITY FIX: Check ALL user inputs for SQL injection patterns (not just teamName)
+    const sqlCheckFields = [
+      sanitizedData.teamName,
+      sanitizedData.leaderName,
+      sanitizedData.leaderEmail,
+      sanitizedData.ideaTitle,
+      sanitizedData.proposedSolution,
+      sanitizedData.techStack,
+      sanitizedData.member2Name, sanitizedData.member2Email,
+      sanitizedData.member3Name, sanitizedData.member3Email,
+      sanitizedData.member4Name, sanitizedData.member4Email,
+    ].filter(Boolean);
+
+    for (const field of sqlCheckFields) {
+      if (typeof field === 'string' && containsSqlInjection(field)) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'VALIDATION_ERROR',
+            message: 'Invalid input format detected.',
+          },
+          { status: 400, headers: createRateLimitHeaders(rateLimit) }
+        );
+      }
     }
 
     // Check idempotency

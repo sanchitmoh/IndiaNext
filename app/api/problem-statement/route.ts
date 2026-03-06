@@ -63,19 +63,20 @@ export async function GET() {
           title: problem.title,
           objective: problem.objective,
           description: problem.description,
-          submissionCount: problem.submissionCount,
-          activeReservations,
-          totalCommitted,
-          maxSubmissions: problem.maxSubmissions,
-          slotsRemaining,
-          utilizationRate,
+          // Internal fields (kept for server-side logic, stripped from response below)
+          _slotsRemaining: slotsRemaining,
+          _totalCommitted: totalCommitted,
+          _maxSubmissions: problem.maxSubmissions,
+          _utilizationRate: utilizationRate,
+          // ✅ SECURITY FIX: Only expose whether slots are available, not exact capacity
+          hasAvailableSlots: slotsRemaining > 0,
           isCurrent: problem.isCurrent,
         };
       })
     );
 
     // Check if all problems are full
-    const allFull = problemsWithLoad.every(p => p.slotsRemaining <= 0);
+    const allFull = problemsWithLoad.every(p => p._slotsRemaining <= 0);
 
     if (allFull) {
       const response = {
@@ -93,23 +94,22 @@ export async function GET() {
 
     // Find the problem with least load (for display purposes)
     const leastLoadedProblem = problemsWithLoad
-      .filter(p => p.slotsRemaining > 0)
+      .filter(p => p._slotsRemaining > 0)
       .reduce((min, current) => 
-        current.totalCommitted < min.totalCommitted ? current : min
+        current._totalCommitted < min._totalCommitted ? current : min
       );
 
     const response = {
       success: true,
       data: {
         distributionStrategy: 'round-robin',
+        // ✅ SECURITY FIX: Strip internal capacity data from public response
         problems: problemsWithLoad.map(p => ({
           id: p.id,
           order: p.order,
           title: p.title,
           objective: p.objective,
-          slotsRemaining: p.slotsRemaining,
-          totalSlots: p.maxSubmissions,
-          utilizationRate: p.utilizationRate,
+          hasAvailableSlots: p.hasAvailableSlots,
           isCurrent: p.isCurrent,
         })),
         nextAssignment: {
@@ -118,8 +118,6 @@ export async function GET() {
           title: leastLoadedProblem.title,
           objective: leastLoadedProblem.objective,
         },
-        totalCapacity: problemsWithLoad.reduce((sum, p) => sum + p.maxSubmissions, 0),
-        totalUsed: problemsWithLoad.reduce((sum, p) => sum + p.totalCommitted, 0),
       },
       allFilled: false,
     };
@@ -129,9 +127,15 @@ export async function GET() {
 
     // Check if any problem is almost full and notify admins
     for (const problem of problemsWithLoad) {
-      const utilization = parseFloat(problem.utilizationRate);
-      if (utilization >= 90 && problem.slotsRemaining > 0) {
-        await notifyAdminsAlmostFull(problem, utilization);
+      const utilization = parseFloat(problem._utilizationRate);
+      if (utilization >= 90 && problem._slotsRemaining > 0) {
+        await notifyAdminsAlmostFull({
+          id: problem.id,
+          title: problem.title,
+          submissionCount: problem._totalCommitted,
+          maxSubmissions: problem._maxSubmissions,
+          order: problem.order,
+        }, utilization);
       }
     }
 

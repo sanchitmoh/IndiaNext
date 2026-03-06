@@ -174,7 +174,16 @@ export function verifySessionFingerprint(
   ipAddress: string
 ): boolean {
   const current = generateSessionFingerprint(userAgent, ipAddress);
-  return stored === current;
+  // ✅ SECURITY FIX: Use timing-safe comparison to prevent timing attacks
+  try {
+    return crypto.timingSafeEqual(
+      Buffer.from(stored, 'hex'),
+      Buffer.from(current, 'hex')
+    );
+  } catch {
+    // If buffers have different lengths, they're not equal
+    return false;
+  }
 }
 
 /**
