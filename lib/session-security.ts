@@ -33,7 +33,7 @@ export const SESSION_CONFIGS = {
     secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
     sameSite: 'strict' as const, // Stricter for admin
-    path: '/admin',
+    path: '/',
   },
 } as const;
 
@@ -133,11 +133,13 @@ export function generateCsrfToken(): string {
 export function verifyCsrfToken(token: string, expected: string): boolean {
   if (!token || !expected) return false;
   
-  // Use timing-safe comparison to prevent timing attacks
-  return crypto.timingSafeEqual(
-    Buffer.from(token),
-    Buffer.from(expected)
-  );
+  const tokenBuf = Buffer.from(token);
+  const expectedBuf = Buffer.from(expected);
+  
+  // timingSafeEqual throws RangeError on different-length buffers
+  if (tokenBuf.length !== expectedBuf.length) return false;
+  
+  return crypto.timingSafeEqual(tokenBuf, expectedBuf);
 }
 
 /**

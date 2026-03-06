@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 import { requirePermission, type AdminRole } from '@/lib/rbac';
 import { checkRateLimit } from '@/lib/rate-limit';
+import { hashSessionToken } from '@/lib/session-security';
 
 const ReorderSchema = z.object({
   problemIds: z.array(z.string()).min(1),
@@ -18,7 +19,7 @@ async function verifyAdmin(_req: Request) {
   }
 
   const session = await prisma.adminSession.findUnique({
-    where: { token },
+    where: { token: hashSessionToken(token) },
     include: { admin: true },
   });
 

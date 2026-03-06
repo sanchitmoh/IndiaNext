@@ -73,7 +73,7 @@ export const authRouter = router({
     .input(
       z.object({
         unreadOnly: z.boolean().default(false),
-        limit: z.number().default(20),
+        limit: z.number().max(100).default(20),
       })
     )
     .query(async ({ ctx, input }) => {
@@ -163,7 +163,7 @@ export const authRouter = router({
   getActivityLogs: protectedProcedure
     .input(
       z.object({
-        limit: z.number().default(50),
+        limit: z.number().max(100).default(50),
       })
     )
     .query(async ({ ctx, input }) => {

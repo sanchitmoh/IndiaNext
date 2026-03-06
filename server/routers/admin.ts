@@ -1,6 +1,6 @@
 // Admin tRPC Router - Complete Implementation
 import { z } from "zod";
-import { router, adminProcedure } from "../trpc";
+import { router, adminProcedure, rateLimitedAdminProcedure } from "../trpc";
 import { TRPCError } from "@trpc/server";
 import { sendStatusUpdateEmail } from "@/lib/email";
 import {
@@ -274,7 +274,7 @@ export const adminRouter = router({
       return team;
     }),
 
-  updateTeamStatus: adminProcedure
+  updateTeamStatus: rateLimitedAdminProcedure
     .input(
       z.object({
         teamId: z.string(),
@@ -359,7 +359,7 @@ export const adminRouter = router({
       return team;
     }),
 
-  bulkUpdateStatus: adminProcedure
+  bulkUpdateStatus: rateLimitedAdminProcedure
     .input(
       z.object({
         teamIds: z.array(z.string()).max(100),
@@ -436,7 +436,7 @@ export const adminRouter = router({
       return { count: result.count };
     }),
 
-  deleteTeam: adminProcedure
+  deleteTeam: rateLimitedAdminProcedure
     .input(z.object({ teamId: z.string() }))
     .mutation(async ({ ctx, input }) => {
       // ⭐ PERMISSION CHECK: Judges cannot delete teams
@@ -478,7 +478,7 @@ export const adminRouter = router({
   // COMMENTS & TAGS
   // ═══════════════════════════════════════════════════════════
 
-  addComment: adminProcedure
+  addComment: rateLimitedAdminProcedure
     .input(
       z.object({
         teamId: z.string(),
@@ -511,7 +511,7 @@ export const adminRouter = router({
       return comment;
     }),
 
-  addTag: adminProcedure
+  addTag: rateLimitedAdminProcedure
     .input(
       z.object({
         teamId: z.string(),
@@ -532,7 +532,7 @@ export const adminRouter = router({
       return teamTag;
     }),
 
-  removeTag: adminProcedure
+  removeTag: rateLimitedAdminProcedure
     .input(z.object({ tagId: z.string() }))
     .mutation(async ({ ctx, input }) => {
       await ctx.prisma.teamTag.delete({
@@ -685,7 +685,7 @@ export const adminRouter = router({
       };
     }),
 
-  updateUserRole: adminProcedure
+  updateUserRole: rateLimitedAdminProcedure
     .input(
       z.object({
         userId: z.string(),
@@ -800,7 +800,7 @@ export const adminRouter = router({
   // EXPORT
   // ═══════════════════════════════════════════════════════════
 
-  exportTeams: adminProcedure
+  exportTeams: rateLimitedAdminProcedure
     .input(
       z.object({
         status: z.string().optional(),

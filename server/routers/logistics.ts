@@ -18,7 +18,7 @@
 // ═══════════════════════════════════════════════════════════
 
 import { z } from "zod";
-import { router, adminProcedure } from "../trpc";
+import { router, adminProcedure, rateLimitedAdminProcedure } from "../trpc";
 import { TRPCError } from "@trpc/server";
 
 // ── Permission guard ────────────────────────────────────────
@@ -299,7 +299,7 @@ export const logisticsRouter = router({
   // Last-write-wins with full audit trail
   // ═══════════════════════════════════════════════════════════
 
-  markTeamAttendance: adminProcedure
+  markTeamAttendance: rateLimitedAdminProcedure
     .input(
       z.object({
         teamId: z.string(),
@@ -408,7 +408,7 @@ export const logisticsRouter = router({
   // MARK MEMBER ATTENDANCE (per-member check-in)
   // ═══════════════════════════════════════════════════════════
 
-  markMemberAttendance: adminProcedure
+  markMemberAttendance: rateLimitedAdminProcedure
     .input(
       z.object({
         memberId: z.string(),
@@ -513,7 +513,7 @@ export const logisticsRouter = router({
   // EDIT MEMBER INFO (non-leader only)
   // ═══════════════════════════════════════════════════════════
 
-  editMemberInfo: adminProcedure
+  editMemberInfo: rateLimitedAdminProcedure
     .input(
       z.object({
         memberId: z.string(),
@@ -628,7 +628,7 @@ export const logisticsRouter = router({
   // - Team size limit must not be exceeded
   // ═══════════════════════════════════════════════════════════
 
-  swapMember: adminProcedure
+  swapMember: rateLimitedAdminProcedure
     .input(
       z.object({
         memberId: z.string(), // TeamMember ID to remove

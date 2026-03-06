@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
+import { hashSessionToken } from '@/lib/session-security';
+import { rateLimitByIP, createRateLimitHeaders } from '@/lib/rate-limit';
 
 const RESERVATION_DURATION_AUTH = 24 * 60 * 60 * 1000; // 24 hours for authenticated users
 
@@ -13,6 +15,15 @@ const RESERVATION_DURATION_AUTH = 24 * 60 * 60 * 1000; // 24 hours for authentic
  */
 export async function POST(req: Request) {
   try {
+    // Rate limit: 10 requests/min per IP
+    const rl = await rateLimitByIP(req, 10, 60);
+    if (!rl.success) {
+      return NextResponse.json(
+        { success: false, message: 'Too many requests. Please try again later.' },
+        { status: 429, headers: createRateLimitHeaders(rl) },
+      );
+    }
+
     // ✅ SECURITY FIX (H-2): Authenticate via HttpOnly cookie, not body
     const cookieStore = await cookies();
     const sessionToken = cookieStore.get('session_token')?.value;
@@ -26,7 +37,7 @@ export async function POST(req: Request) {
 
     // Verify the session is valid
     const session = await prisma.session.findUnique({
-      where: { token: sessionToken },
+      where: { token: hashSessionToken(sessionToken) },
     });
 
     if (!session || session.expiresAt < new Date()) {
@@ -39,7 +50,8 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { anonymousId } = body;
     // Use the authenticated sessionId from cookie, ignore any body.sessionId
-    const sessionId = sessionToken;
+    // ✅ SECURITY FIX: Hash session token before storing in ProblemReservation
+    const sessionId = hashSessionToken(sessionToken);
 
     if (!anonymousId) {
       return NextResponse.json(

@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { requirePermission, type AdminRole } from '@/lib/rbac';
 import { sanitizeHtml } from '@/lib/input-sanitizer';
 import { handleGenericError } from '@/lib/error-handler';
+import { hashSessionToken } from '@/lib/session-security';
 
 // Validation schema
 const CreateProblemSchema = z.object({
@@ -30,7 +31,7 @@ async function verifyAdmin(_req: Request) {
   }
 
   const session = await prisma.adminSession.findUnique({
-    where: { token },
+    where: { token: hashSessionToken(token) },
     include: { admin: true },
   });
 

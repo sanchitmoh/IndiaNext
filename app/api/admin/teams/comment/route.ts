@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { requirePermission, type AdminRole } from '@/lib/rbac';
 import { sanitizeText } from '@/lib/input-sanitizer';
 import { checkRateLimit } from '@/lib/rate-limit';
+import { hashSessionToken } from '@/lib/session-security';
 
 const CommentSchema = z.object({
   teamId: z.string(),
@@ -21,7 +22,7 @@ async function verifyAdmin(_req: Request) {
   }
 
   const session = await prisma.adminSession.findUnique({
-    where: { token },
+    where: { token: hashSessionToken(token) },
     include: { admin: true },
   });
 

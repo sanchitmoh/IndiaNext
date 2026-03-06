@@ -78,7 +78,7 @@ export async function POST(req: Request) {
           {
             success: false,
             error: 'ALREADY_REGISTERED',
-            message: `This email is already registered in team "${existingMembership.team.name}" (${existingMembership.team.track}). Each person can only be in one team.`,
+            message: 'This email is already associated with a team. Each person can only be in one team.',
           },
           { status: 409, headers: createRateLimitHeaders(rateLimit) }
         );
@@ -128,13 +128,13 @@ export async function POST(req: Request) {
     } catch (emailError) {
       console.error('[OTP] Failed to send email:', emailError);
 
-      // In development, return OTP for testing
-      if (process.env.NODE_ENV === 'development') {
+      // In development with explicit opt-in, return OTP for testing
+      if (process.env.NODE_ENV === 'development' && process.env.EXPOSE_DEBUG_OTP === 'true') {
         return NextResponse.json(
           {
             success: true,
             message: 'OTP generated (email service unavailable)',
-            debugOtp: otp, // Only in development
+            debugOtp: otp,
             expiresIn: 600,
           },
           {

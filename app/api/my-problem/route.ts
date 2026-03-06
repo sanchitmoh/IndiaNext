@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
+import { hashSessionToken } from '@/lib/session-security';
 
 /**
  * GET /api/my-problem
@@ -34,8 +35,9 @@ export async function GET(req: Request) {
 
     // 1. Check by session_token (authenticated user)
     if (sessionToken) {
+      // ✅ SECURITY FIX: Hash session token for ProblemReservation lookup
       const reservation = await prisma.problemReservation.findUnique({
-        where: { sessionId: sessionToken },
+        where: { sessionId: hashSessionToken(sessionToken) },
         include: { problemStatement: true },
       });
 
@@ -56,7 +58,7 @@ export async function GET(req: Request) {
 
       // 2. Check if user already has a completed registration with a problem
       const session = await prisma.session.findUnique({
-        where: { token: sessionToken },
+        where: { token: hashSessionToken(sessionToken) },
       });
 
       if (session) {

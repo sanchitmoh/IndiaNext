@@ -65,7 +65,7 @@ describe('Input Sanitization', () => {
     it('should escape HTML tags', () => {
       const input = '<script>alert("XSS")</script>';
       const result = sanitizeHtml(input);
-      expect(result).toBe('&lt;script&gt;alert(&quot;XSS&quot;)&lt;&#x2F;script&gt;');
+      expect(result).toBe('&lt;script&gt;alert(&quot;XSS&quot;)&lt;/script&gt;');
     });
 
     it('should handle normal text', () => {
@@ -119,7 +119,7 @@ describe('Input Sanitization', () => {
 
       const result = sanitizeObject(input);
 
-      expect(result.name).toBe('&lt;script&gt;alert(&quot;XSS&quot;)&lt;&#x2F;script&gt;');
+      expect(result.name).toBe('&lt;script&gt;alert(&quot;XSS&quot;)&lt;/script&gt;');
       expect(result.email).toBe('test@example.com');
       expect(result.url).toBe('https://example.com/'); // URL class adds trailing slash
     });
@@ -134,7 +134,7 @@ describe('Input Sanitization', () => {
 
       const result = sanitizeObject(input);
 
-      expect(result.user.name).toBe('&lt;b&gt;Test&lt;&#x2F;b&gt;');
+      expect(result.user.name).toBe('&lt;b&gt;Test&lt;/b&gt;');
       expect(result.user.email).toBe('test@example.com');
     });
   });

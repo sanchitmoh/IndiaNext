@@ -18,7 +18,7 @@ import { Redis } from '@upstash/redis';
 
 let _redis: Redis | null = null;
 
-function getRedis(): Redis | null {
+export function getRedis(): Redis | null {
   if (_redis) return _redis;
   const { UPSTASH_REDIS_URL, UPSTASH_REDIS_TOKEN } = process.env;
   if (UPSTASH_REDIS_URL && UPSTASH_REDIS_TOKEN) {

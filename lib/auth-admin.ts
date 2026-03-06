@@ -93,7 +93,7 @@ export function isAdmin(userRole: UserRole): boolean {
 // SESSION MANAGEMENT
 // ═══════════════════════════════════════════════════════════
 
-export async function getAdminSession(): Promise<AdminSession | null> {
+export async function getAdminSessionFull(): Promise<AdminSession | null> {
   try {
     const cookieStore = await cookies();
     // ✅ SECURITY FIX (C-2): Read 'admin_token' cookie (matches what admin login sets)
@@ -104,8 +104,10 @@ export async function getAdminSession(): Promise<AdminSession | null> {
     }
 
     // ✅ SECURITY FIX (C-2): Query AdminSession table (not Session)
+    // Hash the raw cookie token to match the stored hash
+    const { hashSessionToken } = await import('@/lib/session-security');
     const session = await prisma.adminSession.findUnique({
-      where: { token: sessionToken },
+      where: { token: hashSessionToken(sessionToken) },
       include: {
         admin: {
           select: {
@@ -148,7 +150,7 @@ export async function getAdminSession(): Promise<AdminSession | null> {
 }
 
 export async function requireAdminSession(): Promise<AdminSession> {
-  const session = await getAdminSession();
+  const session = await getAdminSessionFull();
   
   if (!session) {
     throw new Error('Unauthorized: Admin session required');

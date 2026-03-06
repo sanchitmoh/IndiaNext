@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
 import { requirePermission, type AdminRole } from '@/lib/rbac';
+import { hashSessionToken } from '@/lib/session-security';
 
 async function verifyAdmin() {
   const cookieStore = await cookies();
@@ -10,7 +11,7 @@ async function verifyAdmin() {
   if (!token) return null;
 
   const session = await prisma.adminSession.findUnique({
-    where: { token },
+    where: { token: hashSessionToken(token) },
     include: { admin: true },
   });
 

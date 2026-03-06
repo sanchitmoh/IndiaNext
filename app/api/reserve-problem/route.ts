@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
 import { cacheGet, cacheSet } from '@/lib/redis-cache';
 import { rateLimitByIP, createRateLimitHeaders } from '@/lib/rate-limit';
+import { hashSessionToken } from '@/lib/session-security';
 
 const MAX_EXTENSIONS_ANON = 3; // Maximum extensions for anonymous users
 const MAX_EXTENSIONS_AUTH = 50; // Effectively unlimited for authenticated users
@@ -58,7 +59,9 @@ export async function POST(req: Request) {
       }
     }
 
-    const reservationId = sessionId || anonymousId; // Use anonymous ID if no session
+    // ✅ SECURITY FIX: Hash session tokens before storing in ProblemReservation
+    // Anonymous IDs aren't secrets so they stay as-is; session tokens are sensitive
+    const reservationId = sessionId ? hashSessionToken(sessionId) : anonymousId;
     const isAnonymous = !sessionId && !!anonymousId;
 
     // Enhanced logging for debugging
@@ -80,6 +83,15 @@ export async function POST(req: Request) {
     // Tighter rate limiting for anonymous (unauthenticated) reservations
     if (isAnonymous) {
       const rl = await rateLimitByIP(req, ANON_RATE_LIMIT.limit, ANON_RATE_LIMIT.window);
+      if (!rl.success) {
+        return NextResponse.json(
+          { success: false, message: 'Too many reservation attempts. Please try again later.' },
+          { status: 429, headers: createRateLimitHeaders(rl) },
+        );
+      }
+    } else {
+      // Rate limit authenticated users too (prevent DB write amplification)
+      const rl = await rateLimitByIP(req, 10, 60); // 10/min
       if (!rl.success) {
         return NextResponse.json(
           { success: false, message: 'Too many reservation attempts. Please try again later.' },

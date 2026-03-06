@@ -4,8 +4,9 @@ import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
 import { rateLimitRegister, createRateLimitHeaders } from '@/lib/rate-limit';
 import { sendRegistrationBatchEmails } from '@/lib/email';
-import { sanitizeObject, containsXss, containsSqlInjection } from '@/lib/input-sanitizer';
+import { sanitizeObject, containsXss } from '@/lib/input-sanitizer';
 import { generateShortCodeTx } from '@/lib/short-code';
+import { hashSessionToken } from '@/lib/session-security';
 import { z } from 'zod';
 import type { Prisma } from '@prisma/client/edge';
 
@@ -224,31 +225,8 @@ export async function POST(req: Request) {
       }
     }
 
-    // ✅ SECURITY FIX: Check ALL user inputs for SQL injection patterns (not just teamName)
-    const sqlCheckFields = [
-      sanitizedData.teamName,
-      sanitizedData.leaderName,
-      sanitizedData.leaderEmail,
-      sanitizedData.ideaTitle,
-      sanitizedData.proposedSolution,
-      sanitizedData.techStack,
-      sanitizedData.member2Name, sanitizedData.member2Email,
-      sanitizedData.member3Name, sanitizedData.member3Email,
-      sanitizedData.member4Name, sanitizedData.member4Email,
-    ].filter(Boolean);
-
-    for (const field of sqlCheckFields) {
-      if (typeof field === 'string' && containsSqlInjection(field)) {
-        return NextResponse.json(
-          {
-            success: false,
-            error: 'VALIDATION_ERROR',
-            message: 'Invalid input format detected.',
-          },
-          { status: 400, headers: createRateLimitHeaders(rateLimit) }
-        );
-      }
-    }
+    // NOTE: SQL injection check removed — Prisma uses parameterized queries,
+    // and the regex pattern rejected legitimate inputs like "Creative Select" or "Update Systems"
 
     // Check idempotency
     if (sanitizedData.idempotencyKey) {
@@ -277,7 +255,7 @@ export async function POST(req: Request) {
 
     // Validate session token
     const session = await prisma.session.findUnique({
-      where: { token: sessionToken },
+      where: { token: hashSessionToken(sessionToken) },
       include: { user: true },
     });
 
@@ -422,16 +400,11 @@ export async function POST(req: Request) {
     });
 
     if (existingMembers.length > 0) {
-      const dupes = [...new Set(existingMembers.map((m: typeof existingMembers[number]) => m.user.email))];
-      const details = existingMembers.map((m: typeof existingMembers[number]) =>
-        `${m.user.email} is already in team "${m.team.name}" (${m.team.track})`
-      );
       return NextResponse.json(
         {
           success: false,
           error: 'DUPLICATE_EMAIL',
-          message: `The following email(s) are already registered in another team: ${dupes.join(', ')}`,
-          details,
+          message: 'One or more email addresses are already registered in another team.',
         },
         { status: 409, headers: createRateLimitHeaders(rateLimit) }
       );
@@ -553,13 +526,13 @@ export async function POST(req: Request) {
           data: { submissionCount: { increment: 1 } },
         });
 
-        // Clean up the reservation for this session (if any)
-        const sessionToken = (await cookies()).get('session_token')?.value;
+        // ✅ SECURITY FIX: Use outer sessionToken (avoid re-reading cookies inside tx)
+        // Hash session token to match ProblemReservation storage
         if (sessionToken) {
           await tx.problemReservation.deleteMany({
             where: {
               problemStatementId: sanitizedData.assignedProblemStatementId,
-              sessionId: sessionToken,
+              sessionId: hashSessionToken(sessionToken),
             },
           });
         }
@@ -601,7 +574,6 @@ export async function POST(req: Request) {
             value: 1,
             metadata: {
               problemStatementId: sanitizedData.assignedProblemStatementId,
-              sessionId: sessionToken,
             },
             timestamp: new Date(),
           },

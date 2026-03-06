@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
+import { hashSessionToken } from '@/lib/session-security';
 
 export async function POST(_req: Request) {
   try {
@@ -10,7 +11,7 @@ export async function POST(_req: Request) {
     if (sessionToken) {
       // Delete session from database
       await prisma.session.delete({
-        where: { token: sessionToken },
+        where: { token: hashSessionToken(sessionToken) },
       }).catch(() => {
         // Ignore if session doesn't exist
       });

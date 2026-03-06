@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 import { requirePermission, type AdminRole } from '@/lib/rbac';
 import { checkRateLimit } from '@/lib/rate-limit';
+import { hashSessionToken } from '@/lib/session-security';
 
 const ToggleSchema = z.object({
   id: z.string(),
@@ -19,7 +20,7 @@ async function verifyAdmin(_req: Request) {
   }
 
   const session = await prisma.adminSession.findUnique({
-    where: { token },
+    where: { token: hashSessionToken(token) },
     include: { admin: true },
   });
 

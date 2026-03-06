@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
+import { hashSessionToken } from "@/lib/session-security";
 
 export async function POST() {
   try {
@@ -9,7 +10,7 @@ export async function POST() {
 
     if (token) {
       await prisma.adminSession.deleteMany({
-        where: { token },
+        where: { token: hashSessionToken(token) },
       });
     }
 
@@ -17,7 +18,7 @@ export async function POST() {
     response.cookies.set("admin_token", "", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      sameSite: "strict",
       path: "/",
       maxAge: 0,
     });

@@ -6,7 +6,8 @@
 
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { Redis } from '@upstash/redis';
+import { getRedis } from '@/lib/rate-limit';
+import { rateLimitByIP, createRateLimitHeaders } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
@@ -29,7 +30,16 @@ interface HealthStatus {
   };
 }
 
-export async function GET() {
+export async function GET(req: Request) {
+  // Rate limit: 10 requests/min per IP to prevent DoS via health endpoint
+  const rl = await rateLimitByIP(req, 10, 60);
+  if (!rl.success) {
+    return NextResponse.json(
+      { status: 'rate_limited', message: 'Too many requests' },
+      { status: 429, headers: createRateLimitHeaders(rl) },
+    );
+  }
+
   const startTime = Date.now();
   const health: HealthStatus = {
     status: 'healthy',
@@ -58,16 +68,11 @@ export async function GET() {
     health.status = 'degraded';
   }
 
-  // Check Redis
+  // Check Redis (using singleton)
   try {
-    const { UPSTASH_REDIS_URL, UPSTASH_REDIS_TOKEN } = process.env;
+    const redis = getRedis();
     
-    if (UPSTASH_REDIS_URL && UPSTASH_REDIS_TOKEN) {
-      const redis = new Redis({
-        url: UPSTASH_REDIS_URL,
-        token: UPSTASH_REDIS_TOKEN,
-      });
-
+    if (redis) {
       const redisStart = Date.now();
       await redis.ping();
       health.checks.redis = {
