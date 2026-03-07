@@ -12,9 +12,11 @@ export default function DashboardPage() {
   const [errorMsg, setErrorMsg] = useState("");
   const [multipleTeams, setMultipleTeams] = useState<any[] | null>(null);
 
-  const fetchData = (track?: string) => {
-    setLoading(true);
+  const fetchData = React.useCallback((track?: string) => {
     const url = track ? `/api/user/me?track=${track}` : '/api/user/me';
+    // Only show loader for subsequent explicit track switches
+    if (track) setLoading(true);
+    
     fetch(url)
       .then(res => res.json())
       .then(resData => {
@@ -25,7 +27,6 @@ export default function DashboardPage() {
         if (resData.multipleTeams) {
           setMultipleTeams(resData.teams);
         } else {
-          // Add isLocked property to data or handle it separately
           setData({ ...resData.data, isLocked: resData.isLocked });
           if (resData.initialAssignedProblem) {
             setAssignedProblem(resData.initialAssignedProblem);
@@ -38,11 +39,12 @@ export default function DashboardPage() {
         router.push('/login');
       })
       .finally(() => setLoading(false));
-  };
+  }, [router]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchData();
-  }, [router]);
+  }, [fetchData]);
 
   if (loading) {
     return (

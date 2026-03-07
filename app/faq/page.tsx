@@ -21,7 +21,6 @@ import {
   FileText,
   Video,
   Layout,
-  Presentation,
   Menu,
   X,
   ChevronRight,
@@ -400,7 +399,7 @@ const FAQContent = () => {
           <li className="flex items-center gap-2"><Code size={14} className="text-orange-400" /> Functional MVP (Built from scratch)</li>
           <li className="flex items-center gap-2"><Video size={14} className="text-orange-400" /> 3-minute Tech Walkthrough Video</li>
           <li className="flex items-center gap-2"><Code size={14} className="text-orange-400" /> GitHub Repository (Public)</li>
-          <li className="flex items-center gap-2"><CheckCircle2 size={14} className="text-orange-400" /> Fully 'Run-Ready' Project for Jury</li>
+          <li className="flex items-center gap-2"><CheckCircle2 size={14} className="text-orange-400" /> Fully &apos;Run-Ready&apos; Project for Jury</li>
         </ul>
       ),
     },

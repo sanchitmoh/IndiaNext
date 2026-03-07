@@ -1072,7 +1072,7 @@ export default function HackathonForm({
   const [started, setStarted] = useState(isEditMode);
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState<Answers>(initialData);
-  const [isLockedFlag, setIsLockedFlag] = useState(isLocked || !!initialData.isLocked);
+  const [isLockedFlag] = useState(isLocked || !!initialData.isLocked);
   const [isCompleted, setIsCompleted] = useState(false);
   const [direction, setDirection] = useState(0);
 
@@ -1120,7 +1120,7 @@ export default function HackathonForm({
     return idx;
   }, [currentStep]);
 
-  const handleStart = () => setStarted(true);
+
 
   // Fetch assigned problem statement from round-robin API
   const fetchAssignedProblem = React.useCallback(async () => {
@@ -1330,7 +1330,6 @@ export default function HackathonForm({
           }
 
           const res = await fetch('/api/register', {
-              // eslint-disable-next-line no-undef
               method: isEditMode ? 'PUT' : 'POST',
               headers: {
                 'Content-Type': 'application/json',
@@ -1623,13 +1622,7 @@ export default function HackathonForm({
     if (prevStep >= 0) { setDirection(-1); setCurrentStep(prevStep); setErrorMsg(""); }
   };
   const handleAnswer = (value: string | string[]) => { setAnswers((prev: Answers) => ({ ...prev, [QUESTIONS[currentStep].id]: value })); setErrorMsg(""); };
-  const handleCheckbox = (option: string) => {
-     const currentVals = (answers[currentQuestion.id] as string[]) || [];
-     let newVals: string[];
-     if (currentVals.includes(option)) newVals = currentVals.filter((v: string) => v !== option);
-     else newVals = [...currentVals, option];
-     handleAnswer(newVals);
-  };
+
 
   // Keys
   useEffect(() => {
