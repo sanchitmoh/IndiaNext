@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check } from 'lucide-react';
 import Link from 'next/link';
@@ -37,8 +37,8 @@ const QUESTIONS: Question[] = [
     question: "Choose Competition Track",
     subtext: "Select the track you wish to compete in.",
     options: [
-      "IdeaSprint: Build MVP in 24 Hours",
-      "BuildStorm: Solve Problem Statement in 24 Hours"
+      "Track 1: BuildStorm - Solve Problem Statement in 24 Hours",
+      "Track 2: IdeaSprint - Build MVP in 24 Hours"
     ],
     required: true,
   },
@@ -49,7 +49,7 @@ const QUESTIONS: Question[] = [
       type: 'dynamic-problem',
       question: "MISSION BRIEFING",
       subtext: "Your assigned problem statement (round-robin distribution).",
-      condition: (answers: Answers) => answers.track === "BuildStorm: Solve Problem Statement in 24 Hours",
+      condition: (answers: Answers) => answers.track === "Track 1: BuildStorm - Solve Problem Statement in 24 Hours",
   },
 
   // --- SECTION 3: TEAM DETAILS ---
@@ -258,7 +258,7 @@ const QUESTIONS: Question[] = [
     question: "Idea Title",
     placeholder: "Title of your idea",
     required: true,
-    condition: (answers: Answers) => answers.track === "IdeaSprint: Build MVP in 24 Hours",
+    condition: (answers: Answers) => answers.track === "Track 2: IdeaSprint - Build MVP in 24 Hours",
   },
   {
     id: 'problemStatement',
@@ -267,7 +267,7 @@ const QUESTIONS: Question[] = [
     subtext: "Describe the problem clearly in 4–6 lines.",
     placeholder: "The problem we are solving is...",
     required: true,
-    condition: (answers: Answers) => answers.track === "IdeaSprint: Build MVP in 24 Hours",
+    condition: (answers: Answers) => answers.track === "Track 2: IdeaSprint - Build MVP in 24 Hours",
   },
   {
     id: 'proposedSolution',
@@ -276,7 +276,7 @@ const QUESTIONS: Question[] = [
     subtext: "Explain your idea and approach.",
     placeholder: "Our solution is...",
     required: true,
-    condition: (answers: Answers) => answers.track === "IdeaSprint: Build MVP in 24 Hours",
+    condition: (answers: Answers) => answers.track === "Track 2: IdeaSprint - Build MVP in 24 Hours",
     noPaste: true,
     guidance: "Suggested Format:\n\n1. The Gap: What is missing today?\n2. The Solution: Your core value proposition.\n3. Implementation: How will you build it?\n4. Feasibility: Why is this possible now?",
   },
@@ -286,7 +286,7 @@ const QUESTIONS: Question[] = [
     question: "Target Users / Beneficiaries",
     placeholder: "e.g. Students, Hospitals, Small Businesses",
     required: true,
-    condition: (answers: Answers) => answers.track === "IdeaSprint: Build MVP in 24 Hours",
+    condition: (answers: Answers) => answers.track === "Track 2: IdeaSprint - Build MVP in 24 Hours",
   },
   {
     id: 'expectedImpact',
@@ -294,7 +294,7 @@ const QUESTIONS: Question[] = [
     question: "Expected Impact",
     placeholder: "Social or economic impact...",
     required: true,
-    condition: (answers: Answers) => answers.track === "IdeaSprint: Build MVP in 24 Hours",
+    condition: (answers: Answers) => answers.track === "Track 2: IdeaSprint - Build MVP in 24 Hours",
   },
   {
     id: 'techStack',
@@ -302,25 +302,16 @@ const QUESTIONS: Question[] = [
     question: "Technology Stack (Recommended)",
     placeholder: "e.g. React, Python, AI/ML, Blockchain",
     required: false,
-    condition: (answers: Answers) => answers.track === "IdeaSprint: Build MVP in 24 Hours",
+    condition: (answers: Answers) => answers.track === "Track 2: IdeaSprint - Build MVP in 24 Hours",
   },
   {
     id: 'docLink',
     type: 'url',
     question: "Supporting Documents (Link)",
-    subtext: "Upload Idea Deck (PDF), Research, or MVP Architecture to Drive/Dropbox and paste public link here. (Max 10 slides)",
+    subtext: "Upload Idea Deck (PDF), Prototype, or Research to Drive/Dropbox and paste public link here. (Max 10 slides)",
     placeholder: "https://drive.google.com/...",
     required: true,
-    condition: (answers: Answers) => answers.track === "IdeaSprint: Build MVP in 24 Hours",
-  },
-  {
-    id: 'githubLinkIdea',
-    type: 'url',
-    question: "GitHub Profile Link (Leader)",
-    subtext: "Kindly provide the GitHub profile link of the Team Leader for verification.",
-    placeholder: "https://github.com/username",
-    required: true,
-    condition: (answers: Answers) => answers.track === "IdeaSprint: Build MVP in 24 Hours",
+    condition: (answers: Answers) => answers.track === "Track 2: IdeaSprint - Build MVP in 24 Hours",
   },
   {
     id: 'ideaRules',
@@ -335,7 +326,7 @@ const QUESTIONS: Question[] = [
       "I agree to maintain respectful communication."
     ],
     required: true,
-    condition: (answers: Answers) => answers.track === "IdeaSprint: Build MVP in 24 Hours",
+    condition: (answers: Answers) => answers.track === "Track 2: IdeaSprint - Build MVP in 24 Hours",
   },
   {
       id: 'ideaAdditionalNotes',
@@ -343,7 +334,7 @@ const QUESTIONS: Question[] = [
       question: "Additional Notes / Message",
       placeholder: "Any special requirements...",
       required: false,
-      condition: (answers: Answers) => answers.track === "IdeaSprint: Build MVP in 24 Hours",
+      condition: (answers: Answers) => answers.track === "Track 2: IdeaSprint - Build MVP in 24 Hours",
   },
 
 
@@ -355,18 +346,17 @@ const QUESTIONS: Question[] = [
     subtext: "Describe how you plan to solve the given problem (without copy-paste).",
     placeholder: "Our approach...",
     required: true,
-    condition: (answers: Answers) => answers.track === "BuildStorm: Solve Problem Statement in 24 Hours",
+    condition: (answers: Answers) => answers.track === "Track 1: BuildStorm - Solve Problem Statement in 24 Hours",
     noPaste: true,
     guidance: "PROBLEM STATEMENT:\nDisaster Response Coordination - Build a real-time, offline-first system to connect flood victims with local rescue teams.\n\nSuggested Response Pattern:\n\n1. Analysis: Breakdown of the specific problem statement.\n2. Technical Approach: Architecture & Stack choice.\n3. Innovation: What makes your fix unique?\n4. Execution Plan: 24-hour timeline strategy.",
   },
   {
     id: 'githubLink',
     type: 'url',
-    question: "GitHub Profile Link (Leader)",
-    subtext: "Kindly provide the GitHub profile link of the Team Leader for verification.",
-    placeholder: "https://github.com/username",
-    required: true,
-    condition: (answers: Answers) => answers.track === "BuildStorm: Solve Problem Statement in 24 Hours",
+    question: "GitHub Team Repo Link",
+    placeholder: "https://github.com/...",
+    required: false,
+    condition: (answers: Answers) => answers.track === "Track 1: BuildStorm - Solve Problem Statement in 24 Hours",
   },
   {
     id: 'buildRules',
@@ -383,7 +373,7 @@ const QUESTIONS: Question[] = [
       "I agree organizers decision is final."
     ],
     required: true,
-    condition: (answers: Answers) => answers.track === "BuildStorm: Solve Problem Statement in 24 Hours",
+    condition: (answers: Answers) => answers.track === "Track 1: BuildStorm - Solve Problem Statement in 24 Hours",
   },
     {
       id: 'buildAdditionalNotes',
@@ -391,7 +381,7 @@ const QUESTIONS: Question[] = [
       question: "Additional Notes / Special Requirements",
       placeholder: "Any special requirements...",
       required: false,
-      condition: (answers: Answers) => answers.track === "BuildStorm: Solve Problem Statement in 24 Hours",
+      condition: (answers: Answers) => answers.track === "Track 1: BuildStorm - Solve Problem Statement in 24 Hours",
   },
 
   // --- COMMON FINAL SECTION ---
@@ -418,7 +408,7 @@ const QUESTIONS: Question[] = [
 
 // Subcomponents
 
-const WelcomeScreen = ({ onStart, isLocked }: { onStart: () => void; isLocked: boolean }) => (
+const WelcomeScreen = ({ onStart }: { onStart: () => void }) => (
   <div className="min-h-screen w-full flex flex-col justify-center items-center bg-slate-950 text-white relative overflow-hidden font-mono">
      {/* Grid Background */}
      <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
@@ -441,13 +431,8 @@ const WelcomeScreen = ({ onStart, isLocked }: { onStart: () => void; isLocked: b
           onClick={onStart}
           className="group relative inline-flex items-center justify-center px-10 py-3 font-bold text-white transition-all duration-200 bg-orange-600 font-mono tracking-widest border border-orange-500 hover:bg-orange-500 focus:outline-none ring-offset-2 focus:ring-2"
         >
-           {isLocked ? '[ VIEW_DOSSIER_LOCKED ]' : '[ OPEN_DOSSIER ]'}
+           [ OPEN_DOSSIER ]
         </button>
-        {isLocked && (
-          <p className="mt-4 text-[10px] text-red-500 font-bold uppercase tracking-widest animate-pulse">
-             Access Restricted: Single-Edit Protocol Already Exhausted
-          </p>
-        )}
      </div>
   </div>
 );
@@ -498,12 +483,11 @@ const ThankYouScreen = ({ track }: { track: string }) => (
 );
 
 // ── Combobox (searchable dropdown + free text) ──
-const ComboboxInput = ({ value, onChange, suggestions, placeholder, disabled }: {
+const ComboboxInput = ({ value, onChange, suggestions, placeholder }: {
   value: string;
   onChange: (val: string) => void;
   suggestions: string[];
   placeholder: string;
-  disabled?: boolean;
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [highlightIndex, setHighlightIndex] = useState(-1);
@@ -581,8 +565,7 @@ const ComboboxInput = ({ value, onChange, suggestions, placeholder, disabled }: 
         onKeyDown={handleKeyDown}
         placeholder={placeholder.toUpperCase()}
         autoComplete="off"
-        disabled={disabled}
-        className={`w-full bg-transparent border-b-2 border-slate-700 text-xl md:text-2xl py-2 focus:outline-none focus:border-orange-500 transition-colors placeholder-slate-800 font-mono text-orange-400 tracking-wide ${disabled ? 'opacity-50 cursor-not-allowed border-slate-800' : ''}`}
+        className="w-full bg-transparent border-b-2 border-slate-700 text-xl md:text-2xl py-2 focus:outline-none focus:border-orange-500 transition-colors placeholder-slate-800 font-mono text-orange-400 tracking-wide"
       />
 
       {/* Dropdown */}
@@ -622,7 +605,7 @@ const ComboboxInput = ({ value, onChange, suggestions, placeholder, disabled }: 
   );
 };
 
-const InputRenderer = ({ question, value, onChange, onCheckbox, answers, emailVerified, verifiedEmail, onResetVerification, showChangeEmailWarning, onChangeEmailClick, onCancelChangeEmail, assignedProblem, problemLoading, problemError, fetchAssignedProblem, isEditMode }: { 
+const InputRenderer = ({ question, value, onChange, onCheckbox, answers, emailVerified, verifiedEmail, onResetVerification, showChangeEmailWarning, onChangeEmailClick, onCancelChangeEmail, assignedProblem, problemLoading, problemError, fetchAssignedProblem }: { 
   question: Question; 
   value: string | string[] | undefined; 
   onChange: (val: string | string[]) => void; 
@@ -638,9 +621,7 @@ const InputRenderer = ({ question, value, onChange, onCheckbox, answers, emailVe
   problemLoading?: boolean;
   problemError?: string;
   fetchAssignedProblem?: () => void;
-  isEditMode?: boolean;
 }) => {
-  const isInputDisabled = isEditMode && ['track', 'leaderName', 'leaderGender', 'leaderEmail', 'leaderMobile', 'leaderCollege', 'leaderDegree'].includes(question.id);
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -717,22 +698,18 @@ const InputRenderer = ({ question, value, onChange, onCheckbox, answers, emailVe
         ) : (
           <>
             {/* Change Email Button */}
-            {!isEditMode && (
-              <button
-                onClick={onChangeEmailClick}
-                className="text-sm text-orange-500 hover:text-orange-400 font-mono uppercase tracking-wider border border-orange-500/30 hover:border-orange-500/50 px-4 py-2 transition-all flex items-center gap-2 group"
-              >
-                <span>⚠</span>
-                <span>Change Email</span>
-              </button>
-            )}
+            <button
+              onClick={onChangeEmailClick}
+              className="text-sm text-orange-500 hover:text-orange-400 font-mono uppercase tracking-wider border border-orange-500/30 hover:border-orange-500/50 px-4 py-2 transition-all flex items-center gap-2 group"
+            >
+              <span>⚠</span>
+              <span>Change Email</span>
+            </button>
 
             {/* Info Box */}
             <div className="bg-slate-800/50 border border-slate-700 p-3 text-xs text-slate-400 font-mono">
               <div className="text-orange-400 font-bold mb-1">🔒 SECURITY NOTICE</div>
-              {isEditMode 
-                ? "Your email is tied to your team registration and cannot be changed."
-                : "Your email has been verified and secured. Changing it will require re-verification."}
+              Your email has been verified and secured. Changing it will require re-verification.
             </div>
           </>
         )}
@@ -749,7 +726,6 @@ const InputRenderer = ({ question, value, onChange, onCheckbox, answers, emailVe
             opt={opt} 
             selected={value === opt} 
             onSelect={() => onChange(opt)} 
-            disabled={isInputDisabled}
           />
         ))}
       </div>
@@ -783,12 +759,10 @@ const InputRenderer = ({ question, value, onChange, onCheckbox, answers, emailVe
         {allOptions.map((opt: string, idx: number) => (
            <button
              key={idx}
-             onClick={() => !isInputDisabled && onCheckbox(opt)}
-             disabled={isInputDisabled}
+             onClick={() => onCheckbox(opt)}
              className={`text-left px-4 py-3 border text-sm md:text-base font-mono transition-all flex items-start gap-4 w-full
-                ${isInputDisabled ? 'opacity-50 cursor-not-allowed' : ''}
-                ${selected.includes(opt)
-                    ? 'bg-orange-500/10 border-orange-500 text-white'
+                ${selected.includes(opt) 
+                    ? 'bg-orange-500/10 border-orange-500 text-white' 
                     : 'bg-transparent border-slate-700 text-slate-400 hover:border-slate-500'}
              `}
            >
@@ -831,7 +805,6 @@ const InputRenderer = ({ question, value, onChange, onCheckbox, answers, emailVe
            <textarea
               ref={inputRef as React.RefObject<HTMLTextAreaElement & HTMLInputElement>}
               value={value || ''}
-              disabled={isInputDisabled}
               onChange={(e) => onChange(e.target.value)}
               onPaste={(e) => {
                   if (question.noPaste) {
@@ -840,9 +813,9 @@ const InputRenderer = ({ question, value, onChange, onCheckbox, answers, emailVe
                   }
               }}
               placeholder={question.placeholder ? question.placeholder.toUpperCase() : ''}
-              className={`flex-1 bg-slate-900/50 border border-slate-700 p-4 text-xl font-mono text-white placeholder-slate-700 focus:outline-none focus:border-orange-500 transition-all resize-none h-48 md:h-64 tracking-tight leading-relaxed ${isInputDisabled ? 'opacity-50 cursor-not-allowed border-slate-800' : ''}`}
+              className="flex-1 bg-slate-900/50 border border-slate-700 p-4 text-xl font-mono text-white placeholder-slate-700 focus:outline-none focus:border-orange-500 transition-all resize-none h-48 md:h-64 tracking-tight leading-relaxed"
            />
-
+           
            {/* Guidance Panel */}
            {(question.guidance || (question.id === 'problemDesc' && assignedProblem)) && (
                <div className="md:w-64 shrink-0 bg-slate-900 border border-slate-800 p-4 rounded text-sm text-slate-400 font-mono hidden md:block">
@@ -874,19 +847,18 @@ const InputRenderer = ({ question, value, onChange, onCheckbox, answers, emailVe
             <span className="text-xl">🇮🇳</span>
             <span className="text-xl md:text-2xl text-slate-400 font-mono">+91</span>
          </div>
-          <input
-             ref={inputRef as React.RefObject<HTMLTextAreaElement & HTMLInputElement>}
-             type="tel"
-             value={value || ''}
-             disabled={isInputDisabled}
-             maxLength={10}
-             onChange={(e) => {
-                 const val = e.target.value.replace(/[^0-9]/g, '');
-                 onChange(val);
-             }}
-             placeholder="9876543210"
-             className={`w-full bg-transparent focus:outline-none text-xl md:text-3xl text-orange-400 font-mono tracking-[0.2em] placeholder-slate-800 ${isInputDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-          />
+         <input
+            ref={inputRef as React.RefObject<HTMLTextAreaElement & HTMLInputElement>}
+            type="tel"
+            value={value || ''}
+            maxLength={10}
+            onChange={(e) => {
+                const val = e.target.value.replace(/[^0-9]/g, '');
+                onChange(val);
+            }}
+            placeholder="9876543210"
+            className="w-full bg-transparent focus:outline-none text-xl md:text-3xl text-orange-400 font-mono tracking-[0.2em] placeholder-slate-800"
+         />
       </div>
     );
   }
@@ -1009,7 +981,6 @@ const InputRenderer = ({ question, value, onChange, onCheckbox, answers, emailVe
           <ComboboxInput
             value={(value as string) || ''}
             onChange={onChange}
-            disabled={isInputDisabled}
             suggestions={question.suggestions}
             placeholder={question.placeholder || ''}
           />
@@ -1028,21 +999,19 @@ const InputRenderer = ({ question, value, onChange, onCheckbox, answers, emailVe
       ref={inputRef as React.RefObject<HTMLTextAreaElement & HTMLInputElement>}
       type={question.type}
       value={value || ''}
-      disabled={isInputDisabled}
       onChange={(e) => onChange(e.target.value)}
       placeholder={question.placeholder ? question.placeholder.toUpperCase() : ''}
-      className={`w-full bg-transparent border-b-2 border-slate-700 text-xl md:text-2xl py-2 focus:outline-none focus:border-orange-500 transition-colors placeholder-slate-800 font-mono text-orange-400 tracking-wide ${isInputDisabled ? 'opacity-50 cursor-not-allowed border-slate-800' : ''}`}
+      className={`w-full bg-transparent border-b-2 border-slate-700 text-xl md:text-2xl py-2 focus:outline-none focus:border-orange-500 transition-colors placeholder-slate-800 font-mono text-orange-400 tracking-wide
+      `}
     />
   );
 };
 
-const OptionButton = ({ opt, selected, onSelect, disabled }: { opt: string; selected: boolean; onSelect: () => void; disabled?: boolean }) => {
+const OptionButton = ({ opt, selected, onSelect }: { opt: string; selected: boolean; onSelect: () => void }) => {
    return (
       <button
-        onClick={() => !disabled && onSelect()}
-        disabled={disabled}
+        onClick={onSelect}
         className={`text-left px-4 py-3 border flex items-center gap-4 w-full transition-all
-           ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
            ${selected 
              ? 'bg-orange-500 border-orange-500 text-black' 
              : 'bg-transparent border-slate-700 text-slate-400 hover:border-slate-500 hover:text-white'}
@@ -1058,38 +1027,18 @@ const OptionButton = ({ opt, selected, onSelect, disabled }: { opt: string; sele
    );
 };
 
-export default function HackathonForm({
-  initialData = {},
-  isEditMode = false,
-  isLocked = false,
-  initialAssignedProblem = null
-}: {
-  initialData?: Answers;
-  isEditMode?: boolean;
-  isLocked?: boolean;
-  initialAssignedProblem?: any;
-}) {
-  const [started, setStarted] = useState(isEditMode);
+export default function HackathonForm() {
+  const [started, setStarted] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
-  const [answers, setAnswers] = useState<Answers>(initialData);
-  const [isLockedFlag] = useState(isLocked || !!initialData.isLocked);
+  const [answers, setAnswers] = useState<Answers>({});
   const [isCompleted, setIsCompleted] = useState(false);
   const [direction, setDirection] = useState(0);
-
-  // Derivations
-  const visibleQuestions = useMemo(() => {
-    return QUESTIONS.filter(q => !q.condition || q.condition(answers));
-  }, [answers]);
-
-  const totalSteps = visibleQuestions.length;
-  const isLastStep = currentStep === totalSteps - 1;
-  const currentQuestion = visibleQuestions[currentStep];
 
   // OTP State
   const [showOtpInput, setShowOtpInput] = useState(false);
   const [otpValue, setOtpValue] = useState("");
-  const [emailVerified, setEmailVerified] = useState(isEditMode);
-  const [verifiedEmail, setVerifiedEmail] = useState<string | null>(isEditMode ? String(initialData.leaderEmail || "") : null);
+  const [emailVerified, setEmailVerified] = useState(false);
+  const [verifiedEmail, setVerifiedEmail] = useState<string | null>(null);
   const [showChangeEmailWarning, setShowChangeEmailWarning] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -1101,27 +1050,40 @@ export default function HackathonForm({
     objective: string;
     description?: string | null;
     extensionsRemaining: number;
-  } | null>(initialAssignedProblem);
+  } | null>(null);
   const [problemLoading, setProblemLoading] = useState(false);
   const [problemError, setProblemError] = useState("");
 
   // ✅ NEW: Generate idempotency key once per form session
   const [idempotencyKey] = useState(() => {
-    return `reg_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+    // Use crypto.randomUUID() if available
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+      return crypto.randomUUID();
+    }
+    // Fallback for older browsers
+    return `${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
   });
 
+  const totalSteps = QUESTIONS.length;
+
+  // Compute visible step count (questions whose conditions are met)
+  const visibleSteps = React.useMemo(() => {
+    return QUESTIONS.filter(q => !q.condition || q.condition(answers)).length;
+  }, [answers]);
+
   // Compute visible step index (1-based) for current position
-  const visibleStepIndex = useMemo(() => {
-    let idx = 1;
-    for (let i = 0; i < currentStep; i++) {
-        // This is a bit complex since step numbers should only count non-hidden steps
-        // Simplified for this form:
-        idx++;
+  const visibleStepIndex = React.useMemo(() => {
+    let idx = 0;
+    for (let i = 0; i <= currentStep; i++) {
+      const q = QUESTIONS[i];
+      if (!q.condition || q.condition(answers)) idx++;
     }
     return idx;
-  }, [currentStep]);
+  }, [currentStep, answers]);
 
+  const currentQuestion = QUESTIONS[currentStep];
 
+  const handleStart = () => setStarted(true);
 
   // Fetch assigned problem statement from round-robin API
   const fetchAssignedProblem = React.useCallback(async () => {
@@ -1242,9 +1204,18 @@ export default function HackathonForm({
   }, [assignedProblem]);
 
   // Logic Helpers
-  const getNextValidStep = React.useCallback((current: number, dir: number) => {
-    return current + dir;
-  }, []);
+  const getNextValidStep = React.useCallback((current: number, dir: number, currentAnswers: Answers) => {
+    let nextStep = current + dir;
+    while (nextStep >= 0 && nextStep < totalSteps) {
+       const q = QUESTIONS[nextStep];
+       if (q.condition && !q.condition(currentAnswers)) {
+         nextStep += dir;
+       } else {
+         return nextStep;
+       }
+    }
+    return nextStep;
+  }, [totalSteps]);
 
   const sendOtp = React.useCallback(async () => {
       setLoading(true);
@@ -1308,21 +1279,16 @@ export default function HackathonForm({
           const finalAnswers = { ...answers };
           // "Same as Leader" college values are already set inline by the combobox checkbox
 
-          if (finalAnswers.track === "IdeaSprint: Build MVP in 24 Hours") finalAnswers.additionalNotes = finalAnswers.ideaAdditionalNotes;
-          if (finalAnswers.track === "BuildStorm: Solve Problem Statement in 24 Hours") finalAnswers.additionalNotes = finalAnswers.buildAdditionalNotes;
-
-          // Normalise IdeaSprint github link field (uses different id to avoid duplicate-key collision)
-          if (finalAnswers.track === "IdeaSprint: Build MVP in 24 Hours" && finalAnswers.githubLinkIdea) {
-            finalAnswers.githubLink = finalAnswers.githubLinkIdea;
-          }
+          if (finalAnswers.track === "Track 2: IdeaSprint - Build MVP in 24 Hours") finalAnswers.additionalNotes = finalAnswers.ideaAdditionalNotes;
+          if (finalAnswers.track === "Track 1: BuildStorm - Solve Problem Statement in 24 Hours") finalAnswers.additionalNotes = finalAnswers.buildAdditionalNotes;
 
           // Include assigned problem statement ID for BuildStorm track
-          if (assignedProblem?.id && finalAnswers.track === "BuildStorm: Solve Problem Statement in 24 Hours") {
+          if (assignedProblem?.id && finalAnswers.track === "Track 1: BuildStorm - Solve Problem Statement in 24 Hours") {
             finalAnswers.assignedProblemStatementId = assignedProblem.id;
           }
 
           const res = await fetch('/api/register', {
-              method: isEditMode ? 'PUT' : 'POST',
+              method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
               },
@@ -1349,7 +1315,7 @@ export default function HackathonForm({
       } finally {
           setLoading(false);
       }
-  }, [answers, idempotencyKey, assignedProblem, setIsCompleted, isEditMode]);
+  }, [answers, idempotencyKey, assignedProblem, setIsCompleted]);
 
   const handleNext = React.useCallback(async () => {
     // --- VALIDATIONS ---
@@ -1367,7 +1333,7 @@ export default function HackathonForm({
         return;
       }
       // Problem assigned — proceed
-      const nextStep = getNextValidStep(currentStep, 1);
+      const nextStep = getNextValidStep(currentStep, 1, answers);
       if (nextStep < totalSteps) {
         setDirection(1);
         setCurrentStep(nextStep);
@@ -1486,7 +1452,7 @@ export default function HackathonForm({
         return;
     }
 
-    const nextStep = getNextValidStep(currentStep, 1);
+    const nextStep = getNextValidStep(currentStep, 1, answers);
     
     if (nextStep < totalSteps) {
       setDirection(1);
@@ -1566,7 +1532,7 @@ export default function HackathonForm({
           setVerifiedEmail(answers.leaderEmail as string); // Store verified email
           setShowOtpInput(false);
           setTimeout(() => {
-             const nextStep = getNextValidStep(currentStep, 1);
+             const nextStep = getNextValidStep(currentStep, 1, answers);
              setDirection(1);
              setCurrentStep(nextStep);
           }, 500);
@@ -1610,7 +1576,7 @@ export default function HackathonForm({
 
   const handlePrev = () => {
     if (showOtpInput) { setShowOtpInput(false); return; }
-    const prevStep = getNextValidStep(currentStep, -1);
+    const prevStep = getNextValidStep(currentStep, -1, answers);
     if (prevStep >= 0) { setDirection(-1); setCurrentStep(prevStep); setErrorMsg(""); }
   };
   const handleAnswer = (value: string | string[]) => { setAnswers((prev: Answers) => ({ ...prev, [currentQuestion.id]: value })); setErrorMsg(""); };
@@ -1633,7 +1599,7 @@ export default function HackathonForm({
   }, [started, isCompleted, currentStep, answers, currentQuestion, showOtpInput, otpValue, loading, handleNext, verifyOtp]);
 
 
-  if (!started) return <WelcomeScreen onStart={() => setStarted(true)} isLocked={isLockedFlag} />;
+  if (!started) return <WelcomeScreen onStart={handleStart} />;
   if (isCompleted) return <ThankYouScreen track={typeof answers.track === 'string' ? answers.track : ''} />;
 
   // FOLDER THEME UI
@@ -1682,7 +1648,7 @@ export default function HackathonForm({
                        >
                            <div className="flex items-center gap-2 mb-6">
                                <span className="text-orange-500 font-bold text-sm bg-orange-500/10 px-2 py-0.5 rounded border border-orange-500/20">
-                                   STEP {visibleStepIndex} / {totalSteps}
+                                   STEP {visibleStepIndex} / {visibleSteps}
                                </span>
                                {currentQuestion.required && <span className="text-red-500 text-xs uppercase tracking-wider">* Mandatory</span>}
                            </div>
@@ -1690,31 +1656,19 @@ export default function HackathonForm({
                            <h2 className="text-2xl md:text-4xl font-bold mb-2 uppercase tracking-tight text-slate-100">
                                {currentQuestion.question}
                            </h2>
-                            
-                            {currentQuestion.subtext && (
+                           
+                           {currentQuestion.subtext && (
                                <p className="text-slate-400 text-sm md:text-base mb-8 border-l-2 border-slate-700 pl-4 py-1 italic">
                                    {currentQuestion.subtext}
                                </p>
-                            )}
+                           )}
 
-                            {isLockedFlag && (
-                               <div className="mb-6 p-3 border border-red-500/30 bg-red-500/5">
-                                  <span className="text-[10px] text-red-500 font-bold uppercase tracking-tighter">🔒 Registration locked — no further edits permitted.</span>
-                               </div>
-                            )}
-
-                            <div className="mt-4 mb-8">
-                               <InputRenderer
-                                    question={currentQuestion}
-                                    value={answers[currentQuestion.id]}
-                                    onChange={handleAnswer}
-                                    onCheckbox={(opt) => {
-                                        const current = (answers[currentQuestion.id] as string[]) || [];
-                                        const updated = current.includes(opt)
-                                          ? current.filter((o) => o !== opt)
-                                          : [...current, opt];
-                                        setAnswers((prev) => ({ ...prev, [currentQuestion.id]: updated }));
-                                    }}
+                           <div className="mt-4 mb-8">
+                               <InputRenderer 
+                                    question={currentQuestion} 
+                                    value={answers[currentQuestion.id]} 
+                                    onChange={handleAnswer} 
+                                    onCheckbox={handleCheckbox}
                                     answers={answers}
                                     emailVerified={emailVerified}
                                     verifiedEmail={verifiedEmail}
@@ -1726,10 +1680,8 @@ export default function HackathonForm({
                                     problemLoading={problemLoading}
                                     problemError={problemError}
                                     fetchAssignedProblem={fetchAssignedProblem}
-                                    isEditMode={isEditMode || isLockedFlag}
                                />
                            </div>
-
                            
                            {errorMsg && (
                                <div className="bg-red-900/20 border-l-2 border-red-500 text-red-400 p-3 mb-6 text-sm font-bold flex items-center gap-2">
@@ -1741,9 +1693,9 @@ export default function HackathonForm({
                                <button 
                                   onClick={handleNext}
                                   className="bg-orange-600 hover:bg-orange-500 text-white text-sm font-bold uppercase tracking-widest px-8 py-3 clip-path-polygon disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                                  disabled={loading || isLockedFlag}
+                                  disabled={loading}
                                >
-                                   {loading ? "PROCESSING..." : isLockedFlag ? "LOCKED" : (isLastStep ? "CONFIRM DATA >>" : "NEXT >>")}
+                                  {loading ? "PROCESSING..." : "CONFIRM DATA >>"}
                                </button>
                                {currentStep > 0 && (
                                    <button onClick={handlePrev} className="text-slate-500 hover:text-slate-300 text-sm uppercase tracking-wider">

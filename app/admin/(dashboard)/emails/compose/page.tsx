@@ -1,7 +1,9 @@
 // Email Campaign — Compose / Edit
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { EditorContent, useEditor } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
 import { trpc } from "@/lib/trpc-client";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -22,12 +24,13 @@ import { toast } from "sonner";
 type AudienceType = "ALL" | "LEADERS_ONLY" | "CUSTOM";
 
 const TEAM_STATUSES = [
-  "REGISTERED",
-  "SUBMITTED",
+  "DRAFT",
+  "PENDING",
   "UNDER_REVIEW",
   "APPROVED",
   "REJECTED",
   "WAITLISTED",
+  "WITHDRAWN",
 ];
 
 const TRACKS = [
@@ -47,13 +50,13 @@ const TEMPLATE_VARIABLES = [
 
 // Sample data for live preview
 const SAMPLE_RECIPIENT = {
-  name: "Aarav Sharma",
-  email: "aarav@example.com",
-  team: "Team Phoenix",
+  name: "Rajesh Kumar",
+  email: "rajesh.kumar@college.edu",
+  team: "Team Innovators",
   track: "BuildStorm",
-  college: "IIT Delhi",
+  college: "Indian Institute of Technology, Delhi",
   role: "LEADER",
-  shortCode: "PHX-42",
+  shortCode: "BS-A7K3",
 };
 
 function renderPreview(template: string): string {
@@ -64,11 +67,35 @@ function renderPreview(template: string): string {
   return result;
 }
 
+function renderPreviewWithRecipient(template: string, recipient: any): string {
+  let result = template;
+  const recipientData = {
+    name: recipient.name || "Participant",
+    email: recipient.email || "",
+    team: recipient.teamName || "",
+    track: recipient.track || "",
+    college: recipient.college || "",
+    role: recipient.memberRole || "",
+    shortCode: recipient.shortCode || "",
+  };
+  
+  for (const [key, value] of Object.entries(recipientData)) {
+    result = result.replace(new RegExp(`\\{\\{${key}\\}\\}`, "g"), value);
+  }
+  return result;
+}
+
 export default function ComposeEmailPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const editId = searchParams.get("edit");
-  const bodyRef = useRef<HTMLTextAreaElement>(null);
+  // TipTap editor
+  const editor = useEditor({
+    extensions: [StarterKit],
+    content: "",
+    onUpdate: ({ editor }) => setBody(editor.getHTML()),
+    immediatelyRender: false,
+  });
 
   // Form state
   const [name, setName] = useState("");
@@ -86,6 +113,15 @@ export default function ComposeEmailPage() {
   const [showSchedule, setShowSchedule] = useState(false);
   const [testEmail, setTestEmail] = useState("");
   const [sendingTest, setSendingTest] = useState(false);
+
+  // Team leader email logic
+  const [teams, setTeams] = useState<any[]>([]);
+  const [selectedTeamId, setSelectedTeamId] = useState<string>("");
+  const [leaderEmail, setLeaderEmail] = useState<string>("");
+  const [leaderName, setLeaderName] = useState<string>("");
+  
+  // Manual team selection for bulk emails
+  const [selectedTeamIds, setSelectedTeamIds] = useState<string[]>([]);
 
   // Load existing campaign for editing
   const { data: existing } = trpc.email.getCampaign.useQuery(
@@ -106,8 +142,12 @@ export default function ComposeEmailPage() {
         setTrack(filters.track || "");
         setCollege(filters.college || "");
       }
+      // Set editor content if present
+      if (editor && existing.body) {
+        editor.commands.setContent(existing.body);
+      }
     }
-  }, [existing]);
+  }, [existing, editor]);
 
   // Derive filters for preview
   const filters = audienceType === "CUSTOM"
@@ -115,6 +155,11 @@ export default function ComposeEmailPage() {
         ...(selectedStatuses.length > 0 && { statuses: selectedStatuses }),
         ...(track && { track }),
         ...(college && { college }),
+        ...(selectedTeamIds.length > 0 && { teamIds: selectedTeamIds }),
+      }
+    : audienceType === "LEADERS_ONLY" && selectedTeamId
+    ? {
+        teamIds: [selectedTeamId], // For quick send to specific leader
       }
     : undefined;
 
@@ -133,6 +178,7 @@ export default function ComposeEmailPage() {
   const updateMutation = trpc.email.updateCampaign.useMutation();
   const sendMutation = trpc.email.sendCampaign.useMutation();
   const testEmailMutation = trpc.email.sendTestEmail.useMutation();
+  const batchTestEmailMutation = trpc.email.sendBatchTestEmail.useMutation();
 
   const isSaving = createMutation.isPending || updateMutation.isPending;
   const isSending = sendMutation.isPending;
@@ -141,22 +187,10 @@ export default function ComposeEmailPage() {
 
   // Insert template variable at cursor position in body textarea
   const insertVariable = useCallback((varKey: string) => {
-    const textarea = bodyRef.current;
-    if (!textarea) return;
+    if (!editor) return;
     const tag = `{{${varKey}}}`;
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const before = body.slice(0, start);
-    const after = body.slice(end);
-    const newBody = before + tag + after;
-    setBody(newBody);
-    // Restore cursor after the inserted variable
-    requestAnimationFrame(() => {
-      textarea.focus();
-      const newPos = start + tag.length;
-      textarea.setSelectionRange(newPos, newPos);
-    });
-  }, [body]);
+    editor.chain().focus().insertContent(tag).run();
+  }, [editor]);
 
   // Count template variables used in body
   const usedVarCount = TEMPLATE_VARIABLES.filter(v =>
@@ -270,6 +304,143 @@ export default function ComposeEmailPage() {
       prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s]
     );
   };
+
+  // Fetch teams for team selection (for CUSTOM and LEADERS_ONLY audience types)
+  const { data: teamsData, isLoading: teamsLoading } = trpc.adminTeams.list.useQuery(
+    {
+      filters: { 
+        track: track ? [track as "IDEA_SPRINT" | "BUILD_STORM"] : undefined,
+        status: selectedStatuses.length > 0 ? (selectedStatuses as ("DRAFT" | "PENDING" | "UNDER_REVIEW" | "APPROVED" | "REJECTED" | "WAITLISTED" | "WITHDRAWN")[]) : ["PENDING"],
+      },
+      pagination: { page: 1, pageSize: 100 },
+    },
+    { enabled: (audienceType === "CUSTOM" || audienceType === "LEADERS_ONLY") && !!track }
+  );
+
+  // Update teams state when data changes
+  useEffect(() => {
+    if (teamsData?.teams) {
+      setTeams(teamsData.teams);
+      console.log('Teams loaded:', teamsData.teams.length);
+    }
+  }, [teamsData]);
+
+  // Resolve leader email when team changes
+  useEffect(() => {
+    const team = teams.find((t: any) => t.id === selectedTeamId);
+    if (team) {
+      const leader = team.members?.find((m: any) => m.role === "LEADER");
+      setLeaderEmail(leader?.user?.email || "");
+      setLeaderName(leader?.user?.name || "");
+      
+      // Auto-refresh preview when team is selected in LEADERS_ONLY mode
+      if (audienceType === "LEADERS_ONLY" && showRecipientPreview) {
+        refetchPreview();
+      }
+    } else {
+      setLeaderEmail("");
+      setLeaderName("");
+    }
+  }, [selectedTeamId, teams, audienceType, showRecipientPreview, refetchPreview]);
+
+  const handleSendToLeader = async () => {
+    if (selectedTeamId === "ALL") {
+      // Send to all leaders in the selected track
+      if (!track) return;
+      
+      try {
+        type LeaderInfo = { email: string; name?: string };
+        const leadersWithNull = filteredTeams
+          .map((t: any) => {
+            const leader = t.members?.find((m: any) => m.role === "LEADER");
+            if (leader && leader.user?.email) {
+              return {
+                email: leader.user.email,
+                name: leader.user?.name,
+              } as LeaderInfo;
+            }
+            return null;
+          });
+        
+        const allLeaders = leadersWithNull.filter((leader): leader is LeaderInfo => leader !== null);
+
+        if (allLeaders.length === 0) {
+          toast.error("No leaders found in selected teams");
+          return;
+        }
+
+        // Use batch API for 2+ recipients (Resend batch API)
+        if (allLeaders.length >= 2) {
+          const batchSize = 100; // Resend batch API limit
+          let totalSent = 0;
+
+          for (let i = 0; i < allLeaders.length; i += batchSize) {
+            const batch = allLeaders.slice(i, i + batchSize);
+            
+            // Use the new batch send mutation
+            const result = await batchTestEmailMutation.mutateAsync({
+              recipients: batch,
+              subject,
+              body,
+              previewText: previewText || undefined,
+            });
+            
+            totalSent += result.sent;
+          }
+
+          toast.success(`Email sent to ${totalSent} team leaders using batch API`);
+        } else if (allLeaders[0]) {
+          // Single recipient - use regular send
+          await testEmailMutation.mutateAsync({
+            toEmail: allLeaders[0].email,
+            subject,
+            body,
+            previewText: previewText || undefined,
+          });
+          toast.success(`Email sent to ${allLeaders[0].name || allLeaders[0].email}`);
+        }
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : "Failed to send emails");
+      }
+    } else {
+      // Send to single leader
+      if (!leaderEmail) return;
+      try {
+        await testEmailMutation.mutateAsync({
+          toEmail: leaderEmail,
+          subject,
+          body,
+          previewText: previewText || undefined,
+        });
+        toast.success(`Email sent to ${leaderName}`);
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : "Failed to send");
+      }
+    }
+  };
+
+  // Toggle individual team selection
+  const toggleTeamSelection = (teamId: string) => {
+    setSelectedTeamIds(prev => 
+      prev.includes(teamId) 
+        ? prev.filter(id => id !== teamId)
+        : [...prev, teamId]
+    );
+  };
+
+  // Select all teams in current track
+  const selectAllTeams = () => {
+    const filteredTeams = teams.filter((t: any) => !track || t.track === track);
+    setSelectedTeamIds(filteredTeams.map((t: any) => t.id));
+  };
+
+  // Deselect all teams
+  const deselectAllTeams = () => {
+    setSelectedTeamIds([]);
+  };
+
+  // Get filtered teams based on track
+  const filteredTeams = teams.filter((t: any) => !track || t.track === track);
 
   return (
     <div className="space-y-4 md:space-y-6 max-w-4xl">
@@ -386,15 +557,9 @@ export default function ComposeEmailPage() {
               })}
             </div>
 
-            <textarea
-              ref={bodyRef}
-              value={body}
-              onChange={(e) => setBody(e.target.value)}
-              placeholder={"Hi {{name}},\n\nWelcome to IndiaNext! Your team {{team}} has been registered for the {{track}} track.\n\nBest regards,\nThe IndiaNext Team"}
-              rows={14}
-              className="w-full px-3 py-2 text-sm font-mono bg-[#050505] border border-white/[0.06] rounded-md text-white placeholder:text-gray-600 focus:outline-none focus:border-orange-500/30 transition-colors resize-y"
-              maxLength={50000}
-            />
+            <div className="bg-[#050505] border border-white/[0.04] rounded-md">
+              <EditorContent editor={editor} className="min-h-[200px] max-h-[400px] overflow-y-auto px-3 py-2 text-sm font-sans bg-[#050505] text-white focus:outline-none" />
+            </div>
             <p className="text-[9px] font-mono text-gray-600 mt-1">
               {body.length.toLocaleString()} / 50,000 characters
             </p>
@@ -457,6 +622,85 @@ export default function ComposeEmailPage() {
               {audienceType === "CUSTOM" && "Filter by team status, track, or college"}
             </p>
 
+            {/* Send to Team Leader - Quick Send for LEADERS_ONLY */}
+            {audienceType === "LEADERS_ONLY" && (
+              <div className="space-y-3 pt-3 border-t border-white/[0.04]">
+                <div className="flex items-center justify-between">
+                  <label className="block text-[9px] font-mono font-bold text-gray-500 tracking-wider">
+                    QUICK SEND TO LEADERS
+                  </label>
+                  {track && filteredTeams.length > 0 && (
+                    <button
+                      onClick={() => {
+                        if (selectedTeamId === "ALL") {
+                          setSelectedTeamId("");
+                        } else {
+                          setSelectedTeamId("ALL");
+                        }
+                      }}
+                      className={`px-2 py-0.5 text-[8px] font-mono font-bold tracking-wider rounded border transition-all ${
+                        selectedTeamId === "ALL"
+                          ? "bg-cyan-500/15 text-cyan-400 border-cyan-500/20"
+                          : "bg-white/[0.02] text-gray-600 border-white/[0.06] hover:text-gray-400"
+                      }`}
+                    >
+                      {selectedTeamId === "ALL" ? "SELECTED ALL" : "SELECT ALL"}
+                    </button>
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  <select
+                    value={track}
+                    onChange={e => {
+                      setTrack(e.target.value);
+                      setSelectedTeamId(""); // Reset selection when track changes
+                    }}
+                    className="px-2 py-1.5 text-[10px] font-mono rounded border border-white/[0.06] bg-[#050505] text-white"
+                  >
+                    <option value="">Select Track</option>
+                    <option value="IDEA_SPRINT">IdeaSprint</option>
+                    <option value="BUILD_STORM">BuildStorm</option>
+                  </select>
+                  <select
+                    value={selectedTeamId || ""}
+                    onChange={e => setSelectedTeamId(e.target.value)}
+                    className="flex-1 px-2 py-1.5 text-[10px] font-mono rounded border border-white/[0.06] bg-[#050505] text-white"
+                    disabled={!track}
+                  >
+                    <option value="">Select Team</option>
+                    {track && filteredTeams.length > 0 && (
+                      <option value="ALL">📧 All Leaders in {track === "IDEA_SPRINT" ? "IdeaSprint" : "BuildStorm"} ({filteredTeams.length} teams)</option>
+                    )}
+                    {teams
+                      .filter(t => !track || t.track === track)
+                      .map(t => (
+                        <option key={t.id} value={t.id}>{t.name} ({t.shortCode})</option>
+                      ))}
+                  </select>
+                </div>
+                {selectedTeamId === "ALL" && track && (
+                  <div className="text-[10px] font-mono text-cyan-400">
+                    📧 Will send to all {filteredTeams.length} team leaders in {track === "IDEA_SPRINT" ? "IdeaSprint" : "BuildStorm"} using batch API
+                  </div>
+                )}
+                {selectedTeamId && selectedTeamId !== "ALL" && leaderEmail && (
+                  <div className="text-[10px] font-mono text-gray-400">
+                    Leader: <span className="text-orange-400">{leaderName}</span> — <span className="text-cyan-400">{leaderEmail}</span>
+                  </div>
+                )}
+                <button
+                  onClick={handleSendToLeader}
+                  disabled={!selectedTeamId || (selectedTeamId !== "ALL" && !leaderEmail) || isSending || !subject || !body}
+                  className="inline-flex items-center gap-2 px-3 py-1.5 text-[9px] font-mono font-bold tracking-wider text-white bg-orange-500 rounded-md hover:bg-orange-600 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  <Send className="h-3 w-3" />
+                  {selectedTeamId === "ALL" 
+                    ? `SEND TO ALL ${filteredTeams.length} LEADERS` 
+                    : "SEND TO THIS LEADER"}
+                </button>
+              </div>
+            )}
+
             {/* Custom Filters */}
             {audienceType === "CUSTOM" && (
               <div className="space-y-3 pt-2 border-t border-white/[0.04]">
@@ -512,6 +756,73 @@ export default function ComposeEmailPage() {
                     ))}
                   </div>
                 </div>
+
+                {/* Manual Team Selection */}
+                {track && (
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="block text-[9px] font-mono font-bold text-gray-500 tracking-wider">
+                        SELECT TEAMS ({selectedTeamIds.length}/{filteredTeams.length} selected)
+                      </label>
+                      <div className="flex gap-1">
+                        <button
+                          onClick={selectAllTeams}
+                          disabled={filteredTeams.length === 0}
+                          className="px-2 py-0.5 text-[8px] font-mono font-bold tracking-wider text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 rounded hover:bg-cyan-500/20 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                        >
+                          SELECT ALL
+                        </button>
+                        <button
+                          onClick={deselectAllTeams}
+                          disabled={selectedTeamIds.length === 0}
+                          className="px-2 py-0.5 text-[8px] font-mono font-bold tracking-wider text-gray-500 bg-white/[0.02] border border-white/[0.06] rounded hover:text-gray-400 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                        >
+                          CLEAR
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <div className="max-h-48 overflow-y-auto border border-white/[0.06] rounded-md bg-[#050505] p-2 space-y-1">
+                      {teamsLoading ? (
+                        <div className="flex items-center justify-center py-8">
+                          <Loader2 className="h-5 w-5 animate-spin text-orange-400" />
+                          <span className="ml-2 text-[10px] font-mono text-gray-500">Loading teams...</span>
+                        </div>
+                      ) : filteredTeams.length === 0 ? (
+                        <p className="text-[10px] font-mono text-gray-600 text-center py-4">
+                          No teams found for {track === "IDEA_SPRINT" ? "IdeaSprint" : "BuildStorm"}
+                        </p>
+                      ) : (
+                        filteredTeams.map((team: any) => (
+                          <label
+                            key={team.id}
+                            className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-white/[0.03] cursor-pointer transition-colors"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={selectedTeamIds.includes(team.id)}
+                              onChange={() => toggleTeamSelection(team.id)}
+                              className="w-3.5 h-3.5 rounded border-white/[0.12] bg-[#0A0A0A] text-orange-500 focus:ring-orange-500/20 focus:ring-offset-0"
+                            />
+                            <span className="text-[10px] font-mono text-gray-300">
+                              {team.name}
+                              {team.shortCode && (
+                                <span className="text-gray-600 ml-1">({team.shortCode})</span>
+                              )}
+                            </span>
+                          </label>
+                        ))
+                      )}
+                    </div>
+                    
+                    {selectedTeamIds.length > 0 && (
+                      <p className="text-[9px] font-mono text-cyan-400 mt-1.5">
+                        Email will be sent to {selectedTeamIds.length} team{selectedTeamIds.length !== 1 ? 's' : ''}
+                      </p>
+                    )}
+                  </div>
+                )}
+
                 {/* College */}
                 <div>
                   <label className="block text-[9px] font-mono font-bold text-gray-500 tracking-wider mb-1.5">
@@ -594,7 +905,9 @@ export default function ComposeEmailPage() {
                   <span className="text-[10px] font-mono font-bold text-cyan-400 tracking-wider">LIVE_PREVIEW</span>
                 </div>
                 <p className="text-[8px] font-mono text-gray-600">
-                  Rendered with sample data — variables highlighted in preview
+                  {preview && preview.sample.length > 0 
+                    ? `Showing preview with actual recipient: ${preview.sample[0].name}`
+                    : "Rendered with sample data — variables highlighted in preview"}
                 </p>
               </div>
 
@@ -606,18 +919,27 @@ export default function ComposeEmailPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-[9px] font-mono text-gray-600 w-12 shrink-0">TO:</span>
-                  <span className="text-[11px] font-mono text-orange-400">{SAMPLE_RECIPIENT.email}</span>
+                  <span className="text-[11px] font-mono text-orange-400">
+                    {preview && preview.sample.length > 0 ? preview.sample[0].email : SAMPLE_RECIPIENT.email}
+                  </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-[9px] font-mono text-gray-600 w-12 shrink-0">SUBJ:</span>
                   <span className="text-[11px] font-mono text-white font-bold">
-                    {subject ? renderPreview(subject) : <span className="text-gray-600 italic">No subject</span>}
+                    {subject ? (preview && preview.sample.length > 0 
+                      ? renderPreviewWithRecipient(subject, preview.sample[0])
+                      : renderPreview(subject)
+                    ) : <span className="text-gray-600 italic">No subject</span>}
                   </span>
                 </div>
                 {previewText && (
                   <div className="flex items-center gap-2">
                     <span className="text-[9px] font-mono text-gray-600 w-12 shrink-0">PREV:</span>
-                    <span className="text-[11px] font-mono text-gray-500 italic">{renderPreview(previewText)}</span>
+                    <span className="text-[11px] font-mono text-gray-500 italic">
+                      {preview && preview.sample.length > 0 
+                        ? renderPreviewWithRecipient(previewText, preview.sample[0])
+                        : renderPreview(previewText)}
+                    </span>
                   </div>
                 )}
               </div>
@@ -626,9 +948,11 @@ export default function ComposeEmailPage() {
               <div className="p-4">
                 <div className="bg-white rounded-md p-4 min-h-[300px] max-h-[500px] overflow-y-auto">
                   {body ? (
-                    <pre className="text-sm font-sans text-gray-800 whitespace-pre-wrap break-words leading-relaxed">
-                      {renderPreview(body)}
-                    </pre>
+                    <div className="text-sm font-sans text-gray-800 whitespace-pre-wrap break-words leading-relaxed" dangerouslySetInnerHTML={{ 
+                      __html: preview && preview.sample.length > 0 
+                        ? renderPreviewWithRecipient(body, preview.sample[0])
+                        : renderPreview(body)
+                    }} />
                   ) : (
                     <p className="text-sm text-gray-400 italic">Start typing to see preview...</p>
                   )}

@@ -105,14 +105,14 @@ export function getPermissions(role: AdminRole): Permission {
     ORGANIZER: {
       viewDashboard: true,
       viewTeams: true,
-      editTeams: true,
+      editTeams: false,        // Organizers cannot update team status
       deleteTeams: false,
       exportTeams: true,
-      bulkActions: true,
+      bulkActions: false,      // Organizers cannot perform bulk actions
       viewSubmissions: true,
       scoreSubmissions: false,
-      commentOnSubmissions: true,
-      viewProblems: true,
+      commentOnSubmissions: false,  // Organizers cannot add comments
+      viewProblems: false,     // Organizers cannot view problems page
       createProblems: false,
       editProblems: false,
       deleteProblems: false,
@@ -263,7 +263,7 @@ export function getRoleDescription(role: AdminRole): string {
   const descriptions: Record<AdminRole, string> = {
     SUPER_ADMIN: 'Full system access including user management',
     ADMIN: 'Full access to teams, problems, and analytics',
-    ORGANIZER: 'Can manage teams and view analytics',
+    ORGANIZER: 'Can view teams, dashboard, and analytics (read-only)',
     JUDGE: 'Can view teams and score submissions',
     LOGISTICS: 'Event-day: view approved teams, edit members, mark attendance',
   };

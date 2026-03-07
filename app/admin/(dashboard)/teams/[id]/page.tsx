@@ -293,7 +293,7 @@ export default function TeamDetailPage({
             </div>
           </div>
         </div>
-        {userRole !== "LOGISTICS" && (
+        {userRole !== "LOGISTICS" && userRole !== "ORGANIZER" && (
           <button
             onClick={handleDelete}
             disabled={deleteTeam.isPending}
@@ -320,7 +320,7 @@ export default function TeamDetailPage({
             >
               <Tag className="h-2.5 w-2.5" />
               {tag.tag}
-              {userRole !== "LOGISTICS" && (
+              {userRole !== "LOGISTICS" && userRole !== "ORGANIZER" && (
                 <button
                   onClick={() => handleRemoveTag(tag.id)}
                   className="ml-0.5 hover:opacity-60"
@@ -332,7 +332,7 @@ export default function TeamDetailPage({
             </span>
           )
         )}
-        {userRole !== "LOGISTICS" && (
+        {userRole !== "LOGISTICS" && userRole !== "ORGANIZER" && (
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -441,7 +441,7 @@ export default function TeamDetailPage({
           onCommentChange={setCommentText}
           onSubmit={handleAddComment}
           isSubmitting={addComment.isPending}
-          readOnly={userRole === "LOGISTICS"}
+          readOnly={userRole === "LOGISTICS" || userRole === "ORGANIZER"}
         />
       )}
     </div>

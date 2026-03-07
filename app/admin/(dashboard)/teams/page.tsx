@@ -28,7 +28,7 @@ export default function TeamsManagementPage() {
     const roleElement = document.querySelector('[data-admin-role]');
     return roleElement?.getAttribute('data-admin-role') || "ADMIN";
   });
-  const isReadOnly = userRole === "LOGISTICS";
+  const isReadOnly = userRole === "LOGISTICS" || userRole === "ORGANIZER";
 
   const { data, isLoading, refetch } = trpc.admin.getTeams.useQuery(filters);
   const exportMutation = trpc.admin.exportTeams.useMutation();

@@ -171,8 +171,8 @@ export function StatusOrScoring({
     );
   }
 
-  // LOGISTICS role: read-only status view (no update buttons)
-  if (userRole === "LOGISTICS") {
+  // LOGISTICS and ORGANIZER roles: read-only status view (no update buttons)
+  if (userRole === "LOGISTICS" || userRole === "ORGANIZER") {
     return (
       <div className="space-y-4">
         <div className="bg-[#0A0A0A] rounded-lg border border-white/[0.06] p-5">
@@ -200,7 +200,7 @@ export function StatusOrScoring({
           )}
         </div>
 
-        {/* Judge Scores Panel (visible to logistics when scores exist) */}
+        {/* Judge Scores Panel (visible to logistics/organizers when scores exist) */}
         {teamStatus === "APPROVED" && (
           <AdminJudgeScoresPanel
             criteria={criteria}

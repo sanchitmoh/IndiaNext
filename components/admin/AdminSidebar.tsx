@@ -143,7 +143,7 @@ export function AdminSidebar({
         {/* System Status */}
         <div className="px-5 py-3 border-b border-white/[0.04]">
           <div className="flex items-center gap-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" suppressHydrationWarning />
             <span className="text-[9px] font-mono text-gray-500 tracking-[0.3em] font-bold uppercase">
               SYSTEM ONLINE
             </span>

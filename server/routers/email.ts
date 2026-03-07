@@ -35,6 +35,7 @@ const filtersSchema = z.object({
   statuses: z.array(z.string()).optional(),
   track: z.string().optional(),
   college: z.string().optional(),
+  teamIds: z.array(z.string()).optional(),
 }).optional();
 
 const audienceTypeSchema = z.enum(["ALL", "LEADERS_ONLY", "CUSTOM"]);
@@ -334,6 +335,7 @@ export const emailRouter = router({
           memberRole: r.memberRole,
           track: r.track,
           college: r.college,
+          shortCode: r.shortCode,
         })),
       };
     }),
@@ -539,5 +541,93 @@ export const emailRouter = router({
       }
 
       return { success: true };
+    }),
+
+  // ─────────────────────────────────────────────────────────
+  // SEND BATCH TEST EMAILS (uses Resend batch API for 2+ recipients)
+  // ─────────────────────────────────────────────────────────
+  sendBatchTestEmail: rateLimitedAdminProcedure
+    .input(
+      z.object({
+        recipients: z.array(z.object({
+          email: z.string().email(),
+          name: z.string().optional(),
+        })).min(1).max(100),
+        subject: z.string().min(1).max(500),
+        body: z.string().min(1).max(50000),
+        previewText: z.string().max(200).optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      requireBulkActions(ctx.admin.role);
+
+      const { Resend } = await import("resend");
+      const resend = new Resend(process.env.RESEND_API_KEY);
+      const from = process.env.EMAIL_FROM || "onboarding@resend.dev";
+
+      // Use single send for 1 recipient, batch for 2+
+      if (input.recipients.length === 1) {
+        const recipient = input.recipients[0];
+        const sampleRecipient = {
+          name: recipient.name || "Participant",
+          email: recipient.email,
+          teamName: "Sample Team",
+          memberRole: "LEADER",
+          college: "Sample College",
+          track: "BuildStorm",
+          shortCode: "SAMPLE",
+        };
+
+        const rendered = renderCampaignEmail(input.body, input.subject, sampleRecipient);
+
+        const result = await resend.emails.send({
+          from,
+          to: recipient.email,
+          subject: rendered.subject,
+          html: rendered.html,
+        });
+
+        if (result.error) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: result.error.message || "Failed to send email",
+          });
+        }
+
+        return { success: true, sent: 1 };
+      }
+
+      // Use batch API for 2+ recipients
+      const batchEmails = input.recipients.map((recipient) => {
+        const sampleRecipient = {
+          name: recipient.name || "Participant",
+          email: recipient.email,
+          teamName: "Sample Team",
+          memberRole: "LEADER",
+          college: "Sample College",
+          track: "BuildStorm",
+          shortCode: "SAMPLE",
+        };
+
+        const rendered = renderCampaignEmail(input.body, input.subject, sampleRecipient);
+
+        return {
+          from,
+          to: recipient.email,
+          subject: rendered.subject,
+          html: rendered.html,
+        };
+      });
+
+      const result = await resend.batch.send(batchEmails);
+
+      if (result.error) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: result.error.message || "Failed to send batch emails",
+        });
+      }
+
+      return { success: true, sent: input.recipients.length };
     }),
 });
