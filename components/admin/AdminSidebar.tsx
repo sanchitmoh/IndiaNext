@@ -13,6 +13,7 @@ import {
   X,
   FileQuestion,
   ClipboardCheck,
+  Mail,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { getAllowedNavItems, type AdminRole } from "@/lib/rbac";
@@ -83,6 +84,7 @@ export function AdminSidebar({
     PROBLEMS: FileQuestion,
     ANALYTICS: BarChart3,
     LOGISTICS: ClipboardCheck,
+    EMAILS: Mail,
   };
 
   const navItems = allowedNavItems.map(item => ({

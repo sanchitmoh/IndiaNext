@@ -14,6 +14,7 @@ const pageTitles: Record<string, { title: string; code: string }> = {
   "/admin/teams": { title: "TEAMS", code: "SYS://TEAM_MGMT" },
   "/admin/analytics": { title: "ANALYTICS", code: "SYS://DATA_VIZ" },
   "/admin/logistics": { title: "LOGISTICS", code: "SYS://EVENT_DAY" },
+  "/admin/emails": { title: "EMAIL_CAMPAIGNS", code: "SYS://EMAIL_SEND" },
 };
 
 export function AdminHeader({

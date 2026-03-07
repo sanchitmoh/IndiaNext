@@ -224,6 +224,12 @@ export function getAllowedNavItems(role: AdminRole) {
       code: "05",
       permission: 'markAttendance' as keyof Permission,
     },
+    {
+      href: "/admin/emails",
+      label: "EMAILS",
+      code: "06",
+      permission: 'bulkActions' as keyof Permission,
+    },
   ];
 
   return allNavItems.filter(item => permissions[item.permission]);
