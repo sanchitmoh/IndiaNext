@@ -195,6 +195,7 @@ export default function AuditTrailPage({
   // Fetch on mount and when filters/pagination change
   useEffect(() => {
     fetchAuditLogs();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters, pagination]);
 
   // ── Render ──────────────────────────────────────────────

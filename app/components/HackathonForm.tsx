@@ -1635,6 +1635,7 @@ export default function HackathonForm({
       } finally {
           setLoading(false);
       }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [answers, idempotencyKey, assignedProblem, setIsCompleted]);
 
   const handleNext = React.useCallback(async () => {
