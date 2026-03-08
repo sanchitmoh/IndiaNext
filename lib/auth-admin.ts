@@ -281,7 +281,7 @@ export function canPerformAction(
  * Verify admin authentication for API routes
  * Returns authentication status and admin user if authenticated
  */
-export async function verifyAdminAuth(request: Request): Promise<{
+export async function verifyAdminAuth(_request: Request): Promise<{
   authenticated: boolean;
   admin: AdminUser | null;
   error?: string;
