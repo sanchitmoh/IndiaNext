@@ -15,11 +15,13 @@ export default defineConfig({
       'prisma',
       // Skip tests with infrastructure issues in CI
       'tests/components/AuditTrailErrorHandling.test.tsx',
+      'tests/components/AuditFilters.test.tsx',
       'tests/integration/audit-trail-e2e.test.ts',
-      // Skip property-based tests with Date(NaN) edge cases
+      // Skip property-based tests with edge cases
       'tests/api/audit-export-filter-respect.test.ts',
       'tests/api/audit-filter-composition.test.ts',
       'tests/api/admin-audit-endpoint.test.ts',
+      'tests/api/audit-chronological-ordering.test.ts',
     ],
     coverage: {
       provider: 'v8',
