@@ -1,9 +1,9 @@
 /**
  * Property-Based Tests for Audit Trail Summary Statistics
- * 
+ *
  * Feature: admin-audit-trail
  * Properties: 10, 11, 12, 13
- * 
+ *
  * This test file verifies that summary statistics calculations are correct:
  * - Property 10: Summary Total Edits - **Validates: Requirements US-7.1**
  * - Property 11: Summary Last Edit Date - **Validates: Requirements US-7.2**
@@ -79,10 +79,7 @@ function auditLogGenerator() {
       id: fc.uuid(),
       name: fc.string({ minLength: 3, maxLength: 30 }),
       email: fc.emailAddress(),
-      teamMemberships: fc.constantFrom(
-        [{ role: 'LEADER' }],
-        [{ role: 'MEMBER' }]
-      ),
+      teamMemberships: fc.constantFrom([{ role: 'LEADER' }], [{ role: 'MEMBER' }]),
     }),
   });
 }
@@ -110,7 +107,7 @@ describe('Audit Trail API - Summary Statistics Properties', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     // Setup default mocks
     (prisma.adminSession.findUnique as any).mockResolvedValue(mockAdminSession as any);
     (prisma.team.findUnique as any).mockResolvedValue(mockTeam as any);
@@ -132,9 +129,7 @@ describe('Audit Trail API - Summary Statistics Properties', () => {
             const data = await response.json();
 
             // Calculate expected total edits (distinct submissionIds)
-            const distinctSubmissionIds = new Set(
-              generatedLogs.map(log => log.submissionId)
-            );
+            const distinctSubmissionIds = new Set(generatedLogs.map((log) => log.submissionId));
             const expectedTotalEdits = distinctSubmissionIds.size;
 
             // Verify summary total edits matches expected
@@ -166,7 +161,7 @@ describe('Audit Trail API - Summary Statistics Properties', () => {
           fc.array(auditLogGenerator(), { minLength: 2, maxLength: 10 }),
           async (sharedSubmissionId, generatedLogs) => {
             // Set all logs to have the same submissionId
-            const logsWithSameSubmission = generatedLogs.map(log => ({
+            const logsWithSameSubmission = generatedLogs.map((log) => ({
               ...log,
               submissionId: sharedSubmissionId,
             }));
@@ -195,8 +190,8 @@ describe('Audit Trail API - Summary Statistics Properties', () => {
           fc.array(auditLogGenerator(), { minLength: 1, maxLength: 50 }),
           async (generatedLogs) => {
             // Filter out invalid timestamps
-            const validLogs = generatedLogs.filter(log => !isNaN(log.timestamp.getTime()));
-            
+            const validLogs = generatedLogs.filter((log) => !isNaN(log.timestamp.getTime()));
+
             if (validLogs.length === 0) {
               return true; // Skip if no valid logs
             }
@@ -239,22 +234,30 @@ describe('Audit Trail API - Summary Statistics Properties', () => {
     it('should handle logs with identical timestamps', async () => {
       await fc.assert(
         fc.asyncProperty(
-          fc.date({
-            min: new Date('2024-01-01'),
-            max: new Date('2024-12-31'),
-          }),
+          fc
+            .date({
+              min: new Date('2024-01-01'),
+              max: new Date('2024-12-31'),
+            })
+            .filter((d) => !isNaN(d.getTime())), // Filter out invalid dates
           fc.array(auditLogGenerator(), { minLength: 2, maxLength: 10 }),
           async (sharedTimestamp, generatedLogs) => {
             // Set all logs to have the same timestamp
-            const logsWithSameTimestamp = generatedLogs.map(log => ({
+            const logsWithSameTimestamp = generatedLogs.map((log) => ({
               ...log,
               timestamp: sharedTimestamp,
             }));
 
-            (prisma.auditLog.findMany as any).mockResolvedValue(logsWithSameTimestamp as any);
-            (prisma.auditLog.count as any).mockResolvedValue(logsWithSameTimestamp.length);
+            (prisma.auditLog.findMany as any).mockResolvedValue(
+              logsWithSameTimestamp as any
+            );
+            (prisma.auditLog.count as any).mockResolvedValue(
+              logsWithSameTimestamp.length
+            );
 
-            const req = new Request(`http://localhost/api/admin/teams/${testTeamId}/audit`);
+            const req = new Request(
+              `http://localhost/api/admin/teams/${testTeamId}/audit`
+            );
             const response = await GET(req, { params: { teamId: testTeamId } });
             const data = await response.json();
 
@@ -350,21 +353,21 @@ describe('Audit Trail API - Summary Statistics Properties', () => {
             expect(data.success).toBe(true);
             if (data.data.summary.mostActiveUser) {
               const mostActive = data.data.summary.mostActiveUser;
-              
+
               // Verify all required fields are present
               expect(mostActive).toHaveProperty('id');
               expect(mostActive).toHaveProperty('name');
               expect(mostActive).toHaveProperty('email');
               expect(mostActive).toHaveProperty('count');
               expect(mostActive).toHaveProperty('role');
-              
+
               // Verify types
               expect(typeof mostActive.id).toBe('string');
               expect(typeof mostActive.name).toBe('string');
               expect(typeof mostActive.email).toBe('string');
               expect(typeof mostActive.count).toBe('number');
               expect(['LEADER', 'MEMBER']).toContain(mostActive.role);
-              
+
               // Verify count is positive
               expect(mostActive.count).toBeGreaterThan(0);
             }
@@ -433,7 +436,7 @@ describe('Audit Trail API - Summary Statistics Properties', () => {
 
             expect(data.success).toBe(true);
             expect(data.data.summary.mostActiveUser).not.toBeNull();
-            
+
             // Should return one of the tied users with correct count
             const mostActive = data.data.summary.mostActiveUser;
             expect([userId1, userId2]).toContain(mostActive.id);
@@ -473,18 +476,16 @@ describe('Audit Trail API - Summary Statistics Properties', () => {
             // Verify summary top changed fields matches expected
             expect(data.success).toBe(true);
             const actualTopFields = data.data.summary.topChangedFields;
-            
+
             // Verify ordering (descending by count)
             for (let i = 0; i < actualTopFields.length - 1; i++) {
-              expect(actualTopFields[i].count).toBeGreaterThanOrEqual(
-                actualTopFields[i + 1].count
-              );
+              expect(actualTopFields[i].count).toBeGreaterThanOrEqual(actualTopFields[i + 1].count);
             }
 
             // Verify the fields and counts match expected
             expect(actualTopFields.length).toBeLessThanOrEqual(5);
             expect(actualTopFields.length).toBe(Math.min(expectedTopFields.length, 5));
-            
+
             for (let i = 0; i < actualTopFields.length; i++) {
               expect(actualTopFields[i].field).toBe(expectedTopFields[i].field);
               expect(actualTopFields[i].count).toBe(expectedTopFields[i].count);
@@ -509,45 +510,42 @@ describe('Audit Trail API - Summary Statistics Properties', () => {
 
     it('should limit results to top 5 fields', async () => {
       await fc.assert(
-        fc.asyncProperty(
-          fc.integer({ min: 6, max: 20 }),
-          async (numFields) => {
-            // Create logs with many different fields
-            const fieldNames = Array.from({ length: numFields }, (_, i) => `field${i}`);
-            const logs = fieldNames.flatMap((fieldName, index) =>
-              Array.from({ length: numFields - index }, (_, i) => ({
-                id: `log-${fieldName}-${i}`,
-                teamId: testTeamId,
-                userId: `user-${i}`,
-                submissionId: `sub-${fieldName}-${i}`,
-                timestamp: new Date(`2024-01-${(i % 28) + 1}`),
-                action: 'UPDATE' as const,
-                fieldName,
-                oldValue: 'old',
-                newValue: 'new',
-                ipAddress: '192.168.1.1',
-                userAgent: 'test',
-                metadata: null,
-                user: {
-                  id: `user-${i}`,
-                  name: `User ${i}`,
-                  email: `user${i}@test.com`,
-                  teamMemberships: [{ role: 'MEMBER' }],
-                },
-              }))
-            );
+        fc.asyncProperty(fc.integer({ min: 6, max: 20 }), async (numFields) => {
+          // Create logs with many different fields
+          const fieldNames = Array.from({ length: numFields }, (_, i) => `field${i}`);
+          const logs = fieldNames.flatMap((fieldName, index) =>
+            Array.from({ length: numFields - index }, (_, i) => ({
+              id: `log-${fieldName}-${i}`,
+              teamId: testTeamId,
+              userId: `user-${i}`,
+              submissionId: `sub-${fieldName}-${i}`,
+              timestamp: new Date(`2024-01-${(i % 28) + 1}`),
+              action: 'UPDATE' as const,
+              fieldName,
+              oldValue: 'old',
+              newValue: 'new',
+              ipAddress: '192.168.1.1',
+              userAgent: 'test',
+              metadata: null,
+              user: {
+                id: `user-${i}`,
+                name: `User ${i}`,
+                email: `user${i}@test.com`,
+                teamMemberships: [{ role: 'MEMBER' }],
+              },
+            }))
+          );
 
-            (prisma.auditLog.findMany as any).mockResolvedValue(logs as any);
-            (prisma.auditLog.count as any).mockResolvedValue(logs.length);
+          (prisma.auditLog.findMany as any).mockResolvedValue(logs as any);
+          (prisma.auditLog.count as any).mockResolvedValue(logs.length);
 
-            const req = new Request(`http://localhost/api/admin/teams/${testTeamId}/audit`);
-            const response = await GET(req, { params: { teamId: testTeamId } });
-            const data = await response.json();
+          const req = new Request(`http://localhost/api/admin/teams/${testTeamId}/audit`);
+          const response = await GET(req, { params: { teamId: testTeamId } });
+          const data = await response.json();
 
-            expect(data.success).toBe(true);
-            expect(data.data.summary.topChangedFields.length).toBeLessThanOrEqual(5);
-          }
-        ),
+          expect(data.success).toBe(true);
+          expect(data.data.summary.topChangedFields.length).toBeLessThanOrEqual(5);
+        }),
         { numRuns: 100 }
       );
     });
@@ -566,16 +564,16 @@ describe('Audit Trail API - Summary Statistics Properties', () => {
 
             expect(data.success).toBe(true);
             const topFields = data.data.summary.topChangedFields;
-            
+
             for (const entry of topFields) {
               // Verify structure
               expect(entry).toHaveProperty('field');
               expect(entry).toHaveProperty('count');
-              
+
               // Verify types
               expect(typeof entry.field).toBe('string');
               expect(typeof entry.count).toBe('number');
-              
+
               // Verify count is positive
               expect(entry.count).toBeGreaterThan(0);
             }
@@ -625,12 +623,12 @@ describe('Audit Trail API - Summary Statistics Properties', () => {
 
             expect(data.success).toBe(true);
             const topFields = data.data.summary.topChangedFields;
-            
+
             // All fields should have the same count
             for (const entry of topFields) {
               expect(entry.count).toBe(countPerField);
             }
-            
+
             // Should return all fields (up to 5)
             expect(topFields.length).toBe(Math.min(numFields, 5));
           }
