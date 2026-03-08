@@ -1,9 +1,9 @@
 /**
  * Property-Based Test for Audit Trail Change Grouping
- * 
+ *
  * Feature: admin-audit-trail, Property 2: Change Grouping
  * **Validates: Requirements US-1.4**
- * 
+ *
  * This test verifies that audit log entries with the same submissionId
  * are grouped together when retrieved from the API. This ensures that
  * all changes from a single edit session are displayed as a cohesive unit.
@@ -85,15 +85,17 @@ function auditLogGenerator(submissionId?: string) {
  * Generator for a group of audit logs sharing the same submissionId
  */
 function auditLogGroupGenerator() {
-  return fc.tuple(
-    fc.uuid(), // submissionId
-    fc.integer({ min: 1, max: 10 }) // number of logs in group
-  ).chain(([submissionId, count]) =>
-    fc.tuple(
-      fc.constant(submissionId),
-      fc.array(auditLogGenerator(submissionId), { minLength: count, maxLength: count })
+  return fc
+    .tuple(
+      fc.uuid(), // submissionId
+      fc.integer({ min: 1, max: 10 }) // number of logs in group
     )
-  );
+    .chain(([submissionId, count]) =>
+      fc.tuple(
+        fc.constant(submissionId),
+        fc.array(auditLogGenerator(submissionId), { minLength: count, maxLength: count })
+      )
+    );
 }
 
 describe('Audit Trail API - Property 2: Change Grouping', () => {
@@ -119,7 +121,7 @@ describe('Audit Trail API - Property 2: Change Grouping', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     // Setup default mocks
     (prisma.adminSession.findUnique as any).mockResolvedValue(mockAdminSession as any);
     (prisma.team.findUnique as any).mockResolvedValue(mockTeam as any);
@@ -132,15 +134,15 @@ describe('Audit Trail API - Property 2: Change Grouping', () => {
         async (groups) => {
           // Flatten all logs from all groups
           const allLogs = groups.flatMap(([_submissionId, logs]) => logs);
-          
+
           // Skip if we don't have enough logs
           if (allLogs.length < 2) {
             return true;
           }
 
           // Sort by timestamp descending (as the API does)
-          const sortedLogs = [...allLogs].sort((a, b) => 
-            b.timestamp.getTime() - a.timestamp.getTime()
+          const sortedLogs = [...allLogs].sort(
+            (a, b) => b.timestamp.getTime() - a.timestamp.getTime()
           );
 
           // Mock Prisma to return sorted logs
@@ -172,11 +174,11 @@ describe('Audit Trail API - Property 2: Change Grouping', () => {
           // Verify that each submissionId group has the correct number of entries
           for (const [submissionId, originalLogs] of groups) {
             const fetchedGroup = groupedBySubmission.get(submissionId);
-            
+
             if (fetchedGroup) {
               // All entries with this submissionId should be present
               expect(fetchedGroup.length).toBe(originalLogs.length);
-              
+
               // All entries in the group should have the same submissionId
               for (const log of fetchedGroup) {
                 expect(log.submissionId).toBe(submissionId);
@@ -194,44 +196,35 @@ describe('Audit Trail API - Property 2: Change Grouping', () => {
 
   it('should maintain grouping integrity with single submission', async () => {
     await fc.assert(
-      fc.asyncProperty(
-        fc.uuid(),
-        fc.integer({ min: 2, max: 15 }),
-        async (submissionId, count) => {
-          // Create multiple logs with the same submissionId
-          const logs = fc.sample(
-            auditLogGenerator(submissionId),
-            count
-          );
+      fc.asyncProperty(fc.uuid(), fc.integer({ min: 2, max: 15 }), async (submissionId, count) => {
+        // Create multiple logs with the same submissionId
+        const logs = fc.sample(auditLogGenerator(submissionId), count);
 
-          // Sort by timestamp descending
-          const sortedLogs = [...logs].sort((a, b) => 
-            b.timestamp.getTime() - a.timestamp.getTime()
-          );
+        // Sort by timestamp descending
+        const sortedLogs = [...logs].sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
 
-          // Mock Prisma
-          (prisma.auditLog.findMany as any).mockResolvedValue(sortedLogs as any);
-          (prisma.auditLog.count as any).mockResolvedValue(sortedLogs.length);
+        // Mock Prisma
+        (prisma.auditLog.findMany as any).mockResolvedValue(sortedLogs as any);
+        (prisma.auditLog.count as any).mockResolvedValue(sortedLogs.length);
 
-          // Fetch logs via API
-          const req = new Request(`http://localhost/api/admin/teams/${testTeamId}/audit`);
-          const response = await GET(req, { params: { teamId: testTeamId } });
-          const data = await response.json();
+        // Fetch logs via API
+        const req = new Request(`http://localhost/api/admin/teams/${testTeamId}/audit`);
+        const response = await GET(req, { params: { teamId: testTeamId } });
+        const data = await response.json();
 
-          expect(response.status).toBe(200);
-          expect(data.success).toBe(true);
+        expect(response.status).toBe(200);
+        expect(data.success).toBe(true);
 
-          const fetchedLogs = data.data.logs;
+        const fetchedLogs = data.data.logs;
 
-          // All logs should have the same submissionId
-          const submissionIds = new Set(fetchedLogs.map((log: any) => log.submissionId));
-          expect(submissionIds.size).toBe(1);
-          expect(submissionIds.has(submissionId)).toBe(true);
+        // All logs should have the same submissionId
+        const submissionIds = new Set(fetchedLogs.map((log: any) => log.submissionId));
+        expect(submissionIds.size).toBe(1);
+        expect(submissionIds.has(submissionId)).toBe(true);
 
-          // All logs should be returned
-          expect(fetchedLogs.length).toBe(count);
-        }
-      ),
+        // All logs should be returned
+        expect(fetchedLogs.length).toBe(count);
+      }),
       { numRuns: 100 }
     );
   });
@@ -243,7 +236,7 @@ describe('Audit Trail API - Property 2: Change Grouping', () => {
           fc.uuid(), // submissionId1
           fc.uuid(), // submissionId2
           fc.date({ min: new Date('2024-01-01'), max: new Date('2024-06-30') }), // baseTime1
-          fc.date({ min: new Date('2024-07-01'), max: new Date('2024-12-31') })  // baseTime2
+          fc.date({ min: new Date('2024-07-01'), max: new Date('2024-12-31') }) // baseTime2
         ),
         async ([submissionId1, submissionId2, baseTime1, baseTime2]) => {
           // Ensure different submissionIds
@@ -252,10 +245,7 @@ describe('Audit Trail API - Property 2: Change Grouping', () => {
           }
 
           // Create logs for submission 1 with timestamps around baseTime1
-          const samples1 = fc.sample(
-            auditLogGenerator(submissionId1),
-            3
-          );
+          const samples1 = fc.sample(auditLogGenerator(submissionId1), 3);
           const logs1 = samples1.map((log, i) => ({
             ...log,
             timestamp: new Date(baseTime1.getTime() + i * 1000),
@@ -263,10 +253,7 @@ describe('Audit Trail API - Property 2: Change Grouping', () => {
           }));
 
           // Create logs for submission 2 with timestamps around baseTime2
-          const samples2 = fc.sample(
-            auditLogGenerator(submissionId2),
-            3
-          );
+          const samples2 = fc.sample(auditLogGenerator(submissionId2), 3);
           const logs2 = samples2.map((log, i) => ({
             ...log,
             timestamp: new Date(baseTime2.getTime() + i * 1000),
@@ -274,8 +261,8 @@ describe('Audit Trail API - Property 2: Change Grouping', () => {
           }));
 
           // Combine and sort by timestamp descending
-          const allLogs = [...logs1, ...logs2].sort((a, b) => 
-            b.timestamp.getTime() - a.timestamp.getTime()
+          const allLogs = [...logs1, ...logs2].sort(
+            (a, b) => b.timestamp.getTime() - a.timestamp.getTime()
           );
 
           // Mock Prisma
@@ -321,15 +308,15 @@ describe('Audit Trail API - Property 2: Change Grouping', () => {
         async (groups, pageSize) => {
           // Flatten all logs from all groups
           const allLogs = groups.flatMap(([_submissionId, logs]) => logs);
-          
+
           // Skip if we don't have enough logs for pagination
           if (allLogs.length < pageSize + 1) {
             return true;
           }
 
           // Sort by timestamp descending
-          const sortedLogs = [...allLogs].sort((a, b) => 
-            b.timestamp.getTime() - a.timestamp.getTime()
+          const sortedLogs = [...allLogs].sort(
+            (a, b) => b.timestamp.getTime() - a.timestamp.getTime()
           );
 
           // Mock first page
@@ -431,18 +418,18 @@ describe('Audit Trail API - Property 2: Change Grouping', () => {
         async (groups, fieldNameFilter) => {
           // Flatten all logs from all groups
           const allLogs = groups.flatMap(([_submissionId, logs]) => logs);
-          
+
           // Filter logs by fieldName
-          const filteredLogs = allLogs.filter(log => log.fieldName === fieldNameFilter);
-          
+          const filteredLogs = allLogs.filter((log) => log.fieldName === fieldNameFilter);
+
           // Skip if no logs match the filter
           if (filteredLogs.length === 0) {
             return true;
           }
 
           // Sort by timestamp descending
-          const sortedLogs = [...filteredLogs].sort((a, b) => 
-            b.timestamp.getTime() - a.timestamp.getTime()
+          const sortedLogs = [...filteredLogs].sort(
+            (a, b) => b.timestamp.getTime() - a.timestamp.getTime()
           );
 
           // Mock Prisma

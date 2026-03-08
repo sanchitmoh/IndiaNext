@@ -1,26 +1,26 @@
 /**
  * Example: Admin Router with Caching
- * 
+ *
  * This shows how to add caching to the existing admin router.
  * Copy the relevant parts to your actual admin.ts file.
  */
 
-import { z } from "zod";
-import { router, adminProcedure } from "../trpc";
-import { TRPCError } from "@trpc/server";
-import { sendStatusUpdateEmail } from "@/lib/email";
+import { z } from 'zod';
+import { router, adminProcedure } from '../trpc';
+import { TRPCError } from '@trpc/server';
+import { sendStatusUpdateEmail } from '@/lib/email';
 import {
   cacheGetOrSet,
   CacheKeys,
   invalidateDashboardCache,
   invalidateTeamCache,
-} from "@/lib/redis-cache";
+} from '@/lib/redis-cache';
 
 export const adminRouterCached = router({
   // ═══════════════════════════════════════════════════════════
   // DASHBOARD STATS (WITH CACHING)
   // ═══════════════════════════════════════════════════════════
-  
+
   getStats: adminProcedure.query(async ({ ctx }) => {
     // Cache dashboard stats for 5 minutes
     return cacheGetOrSet(
@@ -39,11 +39,11 @@ export const adminRouterCached = router({
           newTeamsThisWeek,
         ] = await Promise.all([
           ctx.prisma.team.count({ where: { deletedAt: null } }),
-          ctx.prisma.team.count({ where: { status: "PENDING", deletedAt: null } }),
-          ctx.prisma.team.count({ where: { status: "APPROVED", deletedAt: null } }),
-          ctx.prisma.team.count({ where: { status: "REJECTED", deletedAt: null } }),
-          ctx.prisma.team.count({ where: { status: "WAITLISTED", deletedAt: null } }),
-          ctx.prisma.team.count({ where: { status: "UNDER_REVIEW", deletedAt: null } }),
+          ctx.prisma.team.count({ where: { status: 'PENDING', deletedAt: null } }),
+          ctx.prisma.team.count({ where: { status: 'APPROVED', deletedAt: null } }),
+          ctx.prisma.team.count({ where: { status: 'REJECTED', deletedAt: null } }),
+          ctx.prisma.team.count({ where: { status: 'WAITLISTED', deletedAt: null } }),
+          ctx.prisma.team.count({ where: { status: 'UNDER_REVIEW', deletedAt: null } }),
           ctx.prisma.user.count({ where: { deletedAt: null } }),
           ctx.prisma.submission.count(),
           ctx.prisma.team.count({
@@ -73,12 +73,16 @@ export const adminRouterCached = router({
           take: 100,
         });
 
-        const avgReviewTime = reviewedTeams.length > 0
-          ? reviewedTeams.reduce((acc: number, team: { createdAt: Date; reviewedAt: Date | null }) => {
-              const diff = team.reviewedAt!.getTime() - team.createdAt.getTime();
-              return acc + diff / (1000 * 60 * 60); // Convert to hours
-            }, 0) / reviewedTeams.length
-          : 0;
+        const avgReviewTime =
+          reviewedTeams.length > 0
+            ? reviewedTeams.reduce(
+                (acc: number, team: { createdAt: Date; reviewedAt: Date | null }) => {
+                  const diff = team.reviewedAt!.getTime() - team.createdAt.getTime();
+                  return acc + diff / (1000 * 60 * 60); // Convert to hours
+                },
+                0
+              ) / reviewedTeams.length
+            : 0;
 
         return {
           totalTeams,
@@ -117,8 +121,8 @@ export const adminRouterCached = router({
             to: z.date().optional(),
           })
           .optional(),
-        sortBy: z.enum(["createdAt", "name", "status", "college"]).default("createdAt"),
-        sortOrder: z.enum(["asc", "desc"]).default("desc"),
+        sortBy: z.enum(['createdAt', 'name', 'status', 'college']).default('createdAt'),
+        sortOrder: z.enum(['asc', 'desc']).default('desc'),
         page: z.number().default(1),
         pageSize: z.number().default(50),
       })
@@ -145,32 +149,32 @@ export const adminRouterCached = router({
           };
 
           // Status filter
-          if (input.status && input.status !== "all") {
+          if (input.status && input.status !== 'all') {
             where.status = input.status;
           }
 
           // Track filter
-          if (input.track && input.track !== "all") {
+          if (input.track && input.track !== 'all') {
             where.track = input.track;
           }
 
           // College filter
           if (input.college) {
-            where.college = { contains: input.college, mode: "insensitive" };
+            where.college = { contains: input.college, mode: 'insensitive' };
           }
 
           // Search filter
           if (input.search) {
             where.OR = [
-              { name: { contains: input.search, mode: "insensitive" } },
-              { college: { contains: input.search, mode: "insensitive" } },
+              { name: { contains: input.search, mode: 'insensitive' } },
+              { college: { contains: input.search, mode: 'insensitive' } },
               {
                 members: {
                   some: {
                     user: {
                       OR: [
-                        { name: { contains: input.search, mode: "insensitive" } },
-                        { email: { contains: input.search, mode: "insensitive" } },
+                        { name: { contains: input.search, mode: 'insensitive' } },
+                        { email: { contains: input.search, mode: 'insensitive' } },
                       ],
                     },
                   },
@@ -240,54 +244,52 @@ export const adminRouterCached = router({
       );
     }),
 
-  getTeamById: adminProcedure
-    .input(z.object({ id: z.string() }))
-    .query(async ({ ctx, input }) => {
-      return cacheGetOrSet(
-        CacheKeys.teamDetail(input.id),
-        async () => {
-          const team = await ctx.prisma.team.findUnique({
-            where: { id: input.id },
-            include: {
-              members: {
-                include: {
-                  user: true,
-                },
+  getTeamById: adminProcedure.input(z.object({ id: z.string() })).query(async ({ ctx, input }) => {
+    return cacheGetOrSet(
+      CacheKeys.teamDetail(input.id),
+      async () => {
+        const team = await ctx.prisma.team.findUnique({
+          where: { id: input.id },
+          include: {
+            members: {
+              include: {
+                user: true,
               },
-              submission: {
-                include: {
-                  files: true,
-                },
-              },
-              comments: {
-                orderBy: { createdAt: "desc" },
-              },
-              tags: true,
             },
-          });
+            submission: {
+              include: {
+                files: true,
+              },
+            },
+            comments: {
+              orderBy: { createdAt: 'desc' },
+            },
+            tags: true,
+          },
+        });
 
-          if (!team) {
-            throw new TRPCError({ code: "NOT_FOUND", message: "Team not found" });
-          }
+        if (!team) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Team not found' });
+        }
 
-          return team;
-        },
-        { ttl: 300 } // Cache for 5 minutes
-      );
-    }),
+        return team;
+      },
+      { ttl: 300 } // Cache for 5 minutes
+    );
+  }),
 
   updateTeamStatus: adminProcedure
     .input(
       z.object({
         teamId: z.string(),
-        status: z.enum(["PENDING", "APPROVED", "REJECTED", "WAITLISTED", "UNDER_REVIEW"]),
+        status: z.enum(['PENDING', 'APPROVED', 'REJECTED', 'WAITLISTED', 'UNDER_REVIEW']),
         reviewNotes: z.string().optional(),
         rejectionReason: z.string().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
       const adminId = ctx.admin.id;
-      
+
       const team = await ctx.prisma.team.update({
         where: { id: input.teamId },
         data: {
@@ -305,26 +307,28 @@ export const adminRouterCached = router({
       });
 
       // ✅ INVALIDATE CACHES after mutation
-      await Promise.all([
-        invalidateDashboardCache(),
-        invalidateTeamCache(input.teamId),
-      ]);
+      await Promise.all([invalidateDashboardCache(), invalidateTeamCache(input.teamId)]);
 
       // Log activity
       await ctx.prisma.activityLog.create({
         data: {
           userId: null,
-          action: "team.status_updated",
-          entity: "Team",
+          action: 'team.status_updated',
+          entity: 'Team',
           entityId: input.teamId,
-          metadata: { status: input.status, previousStatus: team.status, adminId, adminName: ctx.admin.name },
+          metadata: {
+            status: input.status,
+            previousStatus: team.status,
+            adminId,
+            adminName: ctx.admin.name,
+          },
         },
       });
 
       // Send notification to team members
       const notifications = team.members.map((member: { userId: string }) => ({
         userId: member.userId,
-        type: "STATUS_UPDATE" as const,
+        type: 'STATUS_UPDATE' as const,
         title: `Team Status Updated`,
         message: `Your team "${team.name}" status has been changed to ${input.status}`,
         link: `/team/${team.id}`,
@@ -363,10 +367,8 @@ export const adminRouterCached = router({
       async () => {
         // Registration trends (last 30 days)
         const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-        
-        const registrationTrends = await ctx.prisma.$queryRaw<
-          Array<{ date: Date; count: bigint }>
-        >`
+
+        const registrationTrends = await ctx.prisma.$queryRaw<Array<{ date: Date; count: bigint }>>`
           SELECT DATE("createdAt") as date, COUNT(*) as count
           FROM teams
           WHERE "createdAt" >= ${thirtyDaysAgo} AND "deletedAt" IS NULL
@@ -376,26 +378,26 @@ export const adminRouterCached = router({
 
         // Top colleges
         const collegeDistribution = await ctx.prisma.team.groupBy({
-          by: ["college"],
+          by: ['college'],
           where: { deletedAt: null, college: { not: null } },
           _count: true,
-          orderBy: { _count: { college: "desc" } },
+          orderBy: { _count: { college: 'desc' } },
           take: 10,
         });
 
         // Track comparison
         const trackComparison = await ctx.prisma.team.groupBy({
-          by: ["track", "status"],
+          by: ['track', 'status'],
           where: { deletedAt: null },
           _count: true,
         });
 
         // Team size distribution
         const teamSizeDistribution = await ctx.prisma.team.groupBy({
-          by: ["size"],
+          by: ['size'],
           where: { deletedAt: null },
           _count: true,
-          orderBy: { size: "asc" },
+          orderBy: { size: 'asc' },
         });
 
         return {

@@ -45,10 +45,7 @@ const QueryParamsSchema = z.object({
 /**
  * Calculate summary statistics for audit logs
  */
-async function calculateSummary(
-  teamId: string,
-  where: Prisma.AuditLogWhereInput
-) {
+async function calculateSummary(teamId: string, where: Prisma.AuditLogWhereInput) {
   // Get all audit logs for summary calculation
   const logs = await prisma.auditLog.findMany({
     where,
@@ -131,9 +128,9 @@ async function calculateSummary(
 
 /**
  * GET /api/admin/teams/[teamId]/audit
- * 
+ *
  * Fetch paginated audit logs for a team with optional filtering
- * 
+ *
  * Query Parameters:
  * - page: Page number (default: 1)
  * - limit: Records per page (default: 20, max: 100)
@@ -143,7 +140,7 @@ async function calculateSummary(
  * - fieldName: Filter by field
  * - action: Filter by action type (CREATE, UPDATE, DELETE)
  * - search: Keyword search in values
- * 
+ *
  * Response:
  * {
  *   success: true,
@@ -154,10 +151,7 @@ async function calculateSummary(
  *   }
  * }
  */
-export async function GET(
-  req: Request,
-  { params }: { params: Promise<{ teamId: string }> }
-) {
+export async function GET(req: Request, { params }: { params: Promise<{ teamId: string }> }) {
   try {
     // 1. Authenticate admin
     const admin = await verifyAdmin(req);
@@ -221,8 +215,7 @@ export async function GET(
       );
     }
 
-    const { page, limit, fromDate, toDate, userId, fieldName, action, search } =
-      validation.data;
+    const { page, limit, fromDate, toDate, userId, fieldName, action, search } = validation.data;
 
     // 4. Build Prisma where clause from filters
     const where: Prisma.AuditLogWhereInput = {
@@ -331,6 +324,32 @@ export async function GET(
       userAgent: log.userAgent,
     }));
 
+    // If no logs found, return empty logs with success: true
+    if (logs.length === 0) {
+      return NextResponse.json({
+        success: true,
+        data: {
+          team: {
+            id: team.id,
+            name: team.name,
+          },
+          logs: [],
+          pagination: {
+            page,
+            limit,
+            total: 0,
+            totalPages: 1,
+          },
+          summary: {
+            totalEdits: 0,
+            lastEditDate: null,
+            mostActiveUser: null,
+            topChangedFields: [],
+          },
+        },
+      });
+    }
+    // Otherwise, return normal response
     return NextResponse.json({
       success: true,
       data: {
@@ -348,15 +367,48 @@ export async function GET(
         summary,
       },
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching audit logs:', error);
+    // Handle Prisma errors
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'DATABASE_ERROR',
+          message: 'Unable to connect to the database. Please try again in a moment.',
+        },
+        { status: 500 }
+      );
+    }
+    // Handle network errors
+    if (error.name === 'AbortError' || error.name === 'TimeoutError') {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'TIMEOUT',
+          message: 'Request timed out. The server is taking too long to respond.',
+        },
+        { status: 504 }
+      );
+    }
+    if (error.message && (error.message.includes('Failed to fetch') || error.message.includes('NetworkError'))) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'NETWORK_ERROR',
+          message: 'Network error. Please check your internet connection and try again.',
+        },
+        { status: 502 }
+      );
+    }
+    // Fallback for unknown errors
     return NextResponse.json(
       {
         success: false,
         error: 'DATABASE_ERROR',
         message: 'Unable to fetch audit logs. Please try again later.',
       },
-      { status: 503 }
+      { status: 500 }
     );
   }
 }

@@ -1,4 +1,3 @@
-
 import HackathonForm from '@/app/components/HackathonForm';
 
 export default function Register() {

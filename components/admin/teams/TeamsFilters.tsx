@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { Search, X } from "lucide-react";
-import { useState, useEffect } from "react";
+import { Search, X } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 interface FiltersState {
   status: string;
@@ -18,25 +18,25 @@ interface TeamsFiltersProps {
 }
 
 const statusOptions = [
-  { value: "all", label: "All Statuses" },
-  { value: "PENDING", label: "Pending" },
-  { value: "UNDER_REVIEW", label: "Under Review" },
-  { value: "APPROVED", label: "Approved" },
-  { value: "REJECTED", label: "Rejected" },
-  { value: "WAITLISTED", label: "Waitlisted" },
+  { value: 'all', label: 'All Statuses' },
+  { value: 'PENDING', label: 'Pending' },
+  { value: 'UNDER_REVIEW', label: 'Under Review' },
+  { value: 'APPROVED', label: 'Approved' },
+  { value: 'REJECTED', label: 'Rejected' },
+  { value: 'WAITLISTED', label: 'Waitlisted' },
 ];
 
 const trackOptions = [
-  { value: "all", label: "All Tracks" },
-  { value: "IDEA_SPRINT", label: "Idea Sprint" },
-  { value: "BUILD_STORM", label: "Build Storm" },
+  { value: 'all', label: 'All Tracks' },
+  { value: 'IDEA_SPRINT', label: 'Idea Sprint' },
+  { value: 'BUILD_STORM', label: 'Build Storm' },
 ];
 
 const sortOptions = [
-  { value: "createdAt", label: "Date Created" },
-  { value: "name", label: "Team Name" },
-  { value: "status", label: "Status" },
-  { value: "college", label: "College" },
+  { value: 'createdAt', label: 'Date Created' },
+  { value: 'name', label: 'Team Name' },
+  { value: 'status', label: 'Status' },
+  { value: 'college', label: 'College' },
 ];
 
 export function TeamsFilters({ filters, onChange }: TeamsFiltersProps) {
@@ -54,26 +54,23 @@ export function TeamsFilters({ filters, onChange }: TeamsFiltersProps) {
   }, [searchInput]);
 
   const hasActiveFilters =
-    filters.status !== "all" ||
-    filters.track !== "all" ||
-    filters.search ||
-    filters.college;
+    filters.status !== 'all' || filters.track !== 'all' || filters.search || filters.college;
 
   const resetFilters = () => {
-    setSearchInput("");
+    setSearchInput('');
     onChange({
-      status: "all",
-      track: "all",
-      college: "",
-      search: "",
-      sortBy: "createdAt",
-      sortOrder: "desc",
+      status: 'all',
+      track: 'all',
+      college: '',
+      search: '',
+      sortBy: 'createdAt',
+      sortOrder: 'desc',
       page: 1,
     });
   };
 
   const selectClass =
-    "px-3 py-2 text-xs font-mono bg-[#0A0A0A] border border-white/[0.06] rounded-md text-gray-300 focus:outline-none focus:ring-1 focus:ring-orange-500/50 focus:border-orange-500/30 cursor-pointer appearance-none";
+    'px-3 py-2 text-xs font-mono bg-[#0A0A0A] border border-white/[0.06] rounded-md text-gray-300 focus:outline-none focus:ring-1 focus:ring-orange-500/50 focus:border-orange-500/30 cursor-pointer appearance-none';
 
   return (
     <div className="bg-[#0A0A0A] rounded-lg border border-white/[0.06] p-4">
@@ -91,8 +88,8 @@ export function TeamsFilters({ filters, onChange }: TeamsFiltersProps) {
           {searchInput && (
             <button
               onClick={() => {
-                setSearchInput("");
-                onChange({ search: "", page: 1 });
+                setSearchInput('');
+                onChange({ search: '', page: 1 });
               }}
               title="Clear search"
               className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-400"
@@ -149,14 +146,14 @@ export function TeamsFilters({ filters, onChange }: TeamsFiltersProps) {
           type="button"
           onClick={() =>
             onChange({
-              sortOrder: filters.sortOrder === "asc" ? "desc" : "asc",
+              sortOrder: filters.sortOrder === 'asc' ? 'desc' : 'asc',
             })
           }
           className="px-3 py-2 text-xs font-mono border border-white/[0.06] rounded-md text-gray-400 hover:text-orange-400 hover:border-orange-500/20 transition-all"
-          title={filters.sortOrder === "asc" ? "Sort ascending" : "Sort descending"}
-          aria-label={filters.sortOrder === "asc" ? "Sort ascending" : "Sort descending"}
+          title={filters.sortOrder === 'asc' ? 'Sort ascending' : 'Sort descending'}
+          aria-label={filters.sortOrder === 'asc' ? 'Sort ascending' : 'Sort descending'}
         >
-          {filters.sortOrder === "asc" ? "↑ ASC" : "↓ DESC"}
+          {filters.sortOrder === 'asc' ? '↑ ASC' : '↓ DESC'}
         </button>
 
         {/* Reset */}

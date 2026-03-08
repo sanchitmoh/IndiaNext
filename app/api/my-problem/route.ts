@@ -137,7 +137,7 @@ export async function GET(req: Request) {
     console.error('[MyProblem] Error:', error);
     return NextResponse.json(
       { success: false, message: 'Failed to check problem assignment.' },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

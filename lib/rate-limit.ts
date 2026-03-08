@@ -51,35 +51,38 @@ const isDev = () => process.env.NODE_ENV === 'development';
 export const RATE_LIMITS = {
   /** OTP sending — combined IP + email */
   'send-otp': {
-    ip:    (): RateLimitConfig => ({ limit: isDev() ? 50 : 50, window: 60 }),
-    email: (): RateLimitConfig => ({ limit: isDev() ? 20 :  5, window: 60 }),
+    ip: (): RateLimitConfig => ({ limit: isDev() ? 50 : 50, window: 60 }),
+    email: (): RateLimitConfig => ({ limit: isDev() ? 20 : 5, window: 60 }),
   },
   /** OTP verification — combined IP + email (tight to block brute-force) */
   'verify-otp': {
-    ip:    (): RateLimitConfig => ({ limit: isDev() ? 50 : 50, window: 60  }),
-    email: (): RateLimitConfig => ({ limit: isDev() ? 20 :  10, window: 300 }),
+    ip: (): RateLimitConfig => ({ limit: isDev() ? 50 : 50, window: 60 }),
+    email: (): RateLimitConfig => ({ limit: isDev() ? 20 : 10, window: 300 }),
   },
   /** Registration — IP only */
-  'register': {
-    ip:    (): RateLimitConfig => ({ limit: isDev() ? 50 : 50, window: 3600 }),
+  register: {
+    ip: (): RateLimitConfig => ({ limit: isDev() ? 50 : 50, window: 3600 }),
   },
   /** Registration edit — IP only (tighter than POST to prevent abuse) */
   'register-edit': {
-    ip:    (): RateLimitConfig => ({ limit: isDev() ? 20 : 10, window: 3600 }),
+    ip: (): RateLimitConfig => ({ limit: isDev() ? 20 : 10, window: 3600 }),
   },
   /** Problem statement fetch — IP only (generous, read-only) */
   'problem-statement': {
-    ip:    (): RateLimitConfig => ({ limit: isDev() ? 100 : 30, window: 60 }),
+    ip: (): RateLimitConfig => ({ limit: isDev() ? 100 : 30, window: 60 }),
   },
   /** Problem reservation — IP only (tighter, creates resources) */
   'reserve-problem': {
-    ip:    (): RateLimitConfig => ({ limit: isDev() ? 50 : 10, window: 60 }),
+    ip: (): RateLimitConfig => ({ limit: isDev() ? 50 : 10, window: 60 }),
   },
 } as const;
 
 // ─── In-memory store (sliding window) ──────────────────────────────────────────
 
-interface WindowRecord { count: number; windowStart: number }
+interface WindowRecord {
+  count: number;
+  windowStart: number;
+}
 
 const memoryStore = new Map<string, WindowRecord[]>();
 
@@ -88,14 +91,14 @@ const memoryStore = new Map<string, WindowRecord[]>();
 async function slidingWindowRedis(
   identifier: string,
   limit: number,
-  windowSeconds: number,
+  windowSeconds: number
 ): Promise<RateLimitResult> {
   const client = getRedis()!;
   const now = Date.now();
   const windowMs = windowSeconds * 1000;
   const currentStart = Math.floor(now / windowMs) * windowMs;
 
-  const currentKey  = `rl:${identifier}:${currentStart}`;
+  const currentKey = `rl:${identifier}:${currentStart}`;
   const previousKey = `rl:${identifier}:${currentStart - windowMs}`;
 
   // Single round-trip: INCR current, GET previous, EXPIRE current
@@ -106,19 +109,19 @@ async function slidingWindowRedis(
 
   const results = await pipe.exec();
 
-  const currentCount  = (results[0] as number) ?? 0;
+  const currentCount = (results[0] as number) ?? 0;
   const previousCount = Number(results[1]) || 0;
 
   // Weighted estimate
   const elapsed = now - currentStart;
-  const weight  = Math.max(0, 1 - elapsed / windowMs);
+  const weight = Math.max(0, 1 - elapsed / windowMs);
   const estimated = Math.floor(previousCount * weight) + currentCount;
 
   return {
-    success:   estimated <= limit,
+    success: estimated <= limit,
     limit,
     remaining: Math.max(0, limit - estimated),
-    reset:     currentStart + windowMs,
+    reset: currentStart + windowMs,
   };
 }
 
@@ -127,18 +130,18 @@ async function slidingWindowRedis(
 function slidingWindowMemory(
   identifier: string,
   limit: number,
-  windowSeconds: number,
+  windowSeconds: number
 ): RateLimitResult {
   const now = Date.now();
   const windowMs = windowSeconds * 1000;
-  const currentStart  = Math.floor(now / windowMs) * windowMs;
+  const currentStart = Math.floor(now / windowMs) * windowMs;
   const previousStart = currentStart - windowMs;
 
-  const key     = `rl:${identifier}`;
+  const key = `rl:${identifier}`;
   const records = memoryStore.get(key) ?? [];
 
-  let currentRec  = records.find(r => r.windowStart === currentStart);
-  const previousRec = records.find(r => r.windowStart === previousStart);
+  let currentRec = records.find((r) => r.windowStart === currentStart);
+  const previousRec = records.find((r) => r.windowStart === previousStart);
 
   if (!currentRec) {
     currentRec = { count: 1, windowStart: currentStart };
@@ -149,15 +152,15 @@ function slidingWindowMemory(
     currentRec.count++;
   }
 
-  const elapsed  = now - currentStart;
-  const weight   = Math.max(0, 1 - elapsed / windowMs);
+  const elapsed = now - currentStart;
+  const weight = Math.max(0, 1 - elapsed / windowMs);
   const estimated = Math.floor((previousRec?.count ?? 0) * weight) + currentRec.count;
 
   return {
-    success:   estimated <= limit,
+    success: estimated <= limit,
     limit,
     remaining: Math.max(0, limit - estimated),
-    reset:     currentStart + windowMs,
+    reset: currentStart + windowMs,
   };
 }
 
@@ -166,7 +169,7 @@ function slidingWindowMemory(
 export async function checkRateLimit(
   identifier: string,
   limit: number,
-  windowSeconds: number,
+  windowSeconds: number
 ): Promise<RateLimitResult> {
   const client = getRedis();
 
@@ -188,7 +191,7 @@ export async function checkRateLimit(
 export async function rateLimitByIP(
   req: Request,
   limit: number,
-  windowSeconds: number,
+  windowSeconds: number
 ): Promise<RateLimitResult> {
   return checkRateLimit(`ip:${getClientIP(req)}`, limit, windowSeconds);
 }
@@ -196,7 +199,7 @@ export async function rateLimitByIP(
 export async function rateLimitByEmail(
   email: string,
   limit: number,
-  windowSeconds: number,
+  windowSeconds: number
 ): Promise<RateLimitResult> {
   return checkRateLimit(`email:${email.toLowerCase().trim()}`, limit, windowSeconds);
 }
@@ -210,21 +213,21 @@ export async function rateLimitCombined(
   email: string,
   ipLimit: number,
   emailLimit: number,
-  windowSeconds: number,
+  windowSeconds: number
 ): Promise<RateLimitResult> {
   const [ipRes, emailRes] = await Promise.all([
     rateLimitByIP(req, ipLimit, windowSeconds),
     rateLimitByEmail(email, emailLimit, windowSeconds),
   ]);
 
-  if (!ipRes.success)    return ipRes;
+  if (!ipRes.success) return ipRes;
   if (!emailRes.success) return emailRes;
 
   return {
-    success:   true,
-    limit:     Math.min(ipRes.limit,     emailRes.limit),
+    success: true,
+    limit: Math.min(ipRes.limit, emailRes.limit),
     remaining: Math.min(ipRes.remaining, emailRes.remaining),
-    reset:     Math.max(ipRes.reset,     emailRes.reset),
+    reset: Math.max(ipRes.reset, emailRes.reset),
   };
 }
 
@@ -237,10 +240,10 @@ export async function rateLimitCombined(
 export async function rateLimitRoute(
   route: 'send-otp' | 'verify-otp',
   req: Request,
-  email: string,
+  email: string
 ): Promise<RateLimitResult> {
   const cfg = RATE_LIMITS[route];
-  const ipCfg    = cfg.ip();
+  const ipCfg = cfg.ip();
   const emailCfg = cfg.email();
 
   const [ipRes, emailRes] = await Promise.all([
@@ -248,14 +251,14 @@ export async function rateLimitRoute(
     rateLimitByEmail(email, emailCfg.limit, emailCfg.window),
   ]);
 
-  if (!ipRes.success)    return ipRes;
+  if (!ipRes.success) return ipRes;
   if (!emailRes.success) return emailRes;
 
   return {
-    success:   true,
-    limit:     Math.min(ipRes.limit,     emailRes.limit),
+    success: true,
+    limit: Math.min(ipRes.limit, emailRes.limit),
     remaining: Math.min(ipRes.remaining, emailRes.remaining),
-    reset:     Math.max(ipRes.reset,     emailRes.reset),
+    reset: Math.max(ipRes.reset, emailRes.reset),
   };
 }
 
@@ -288,9 +291,9 @@ export function getClientIP(req: Request): string {
 
 export function createRateLimitHeaders(result: RateLimitResult): Record<string, string> {
   return {
-    'X-RateLimit-Limit':     result.limit.toString(),
+    'X-RateLimit-Limit': result.limit.toString(),
     'X-RateLimit-Remaining': result.remaining.toString(),
-    'X-RateLimit-Reset':     new Date(result.reset).toISOString(),
+    'X-RateLimit-Reset': new Date(result.reset).toISOString(),
   };
 }
 
@@ -300,7 +303,7 @@ export function cleanupMemoryStore(): void {
   const now = Date.now();
   const MAX_AGE = 2 * 3600 * 1000; // 2 hours
   for (const [key, records] of memoryStore.entries()) {
-    const valid = records.filter(r => now - r.windowStart < MAX_AGE);
+    const valid = records.filter((r) => now - r.windowStart < MAX_AGE);
     if (valid.length === 0) memoryStore.delete(key);
     else memoryStore.set(key, valid);
   }

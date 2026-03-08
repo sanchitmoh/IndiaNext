@@ -1,6 +1,6 @@
 /**
  * Scoring Rubric Component
- * 
+ *
  * Criteria-based scoring interface with:
  * - Individual criterion scoring (0-10 points)
  * - Real-time weighted score calculation
@@ -10,11 +10,19 @@
  * - Score variance and conflict warnings
  */
 
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { Award, MessageSquare, Info, CheckCircle, Users, AlertTriangle, TrendingUp } from "lucide-react";
-import { toast } from "sonner";
+import { useState, useEffect } from 'react';
+import {
+  Award,
+  MessageSquare,
+  Info,
+  CheckCircle,
+  Users,
+  AlertTriangle,
+  TrendingUp,
+} from 'lucide-react';
+import { toast } from 'sonner';
 
 interface ScoringCriterion {
   id: string;
@@ -65,7 +73,7 @@ interface MultiJudgeData {
 
 interface ScoringRubricProps {
   teamId: string;
-  track: "IDEA_SPRINT" | "BUILD_STORM"; // kept for future track-specific UI
+  track: 'IDEA_SPRINT' | 'BUILD_STORM'; // kept for future track-specific UI
   criteria: ScoringCriterion[];
   existingScores?: CriterionScoreData[];
   multiJudge?: MultiJudgeData;
@@ -120,16 +128,16 @@ export function ScoringRubric({
     );
 
     if (missingCriteria.length > 0) {
-      toast.error(`Please score all criteria: ${missingCriteria.map((c) => c.name).join(", ")}`);
+      toast.error(`Please score all criteria: ${missingCriteria.map((c) => c.name).join(', ')}`);
       return;
     }
 
     setIsSubmitting(true);
     try {
       await onScoreUpdate(Array.from(scores.values()));
-      toast.success("Scores submitted successfully!");
+      toast.success('Scores submitted successfully!');
     } catch (error: any) {
-      toast.error(error.message || "Failed to submit scores");
+      toast.error(error.message || 'Failed to submit scores');
     } finally {
       setIsSubmitting(false);
     }
@@ -153,16 +161,16 @@ export function ScoringRubric({
           <div className="text-right">
             <span className="text-[9px] font-mono text-gray-600 block">YOUR SCORE</span>
             <div className="flex items-baseline gap-1">
-              <span className="text-2xl font-mono font-bold text-amber-400">
-                {totalScore}
-              </span>
+              <span className="text-2xl font-mono font-bold text-amber-400">{totalScore}</span>
               <span className="text-[10px] font-mono text-gray-500">/100</span>
             </div>
           </div>
           {/* Average Score (multi-judge) */}
           {multiJudge && multiJudge.judgeCount > 1 && multiJudge.averageScore !== null && (
             <div className="text-right border-l border-white/[0.06] pl-4">
-              <span className="text-[9px] font-mono text-gray-600 block">AVG ({multiJudge.judgeCount} JUDGES)</span>
+              <span className="text-[9px] font-mono text-gray-600 block">
+                AVG ({multiJudge.judgeCount} JUDGES)
+              </span>
               <div className="flex items-baseline gap-1">
                 <span className="text-2xl font-mono font-bold text-cyan-400">
                   {multiJudge.averageScore}
@@ -211,8 +219,11 @@ export function ScoringRubric({
               const isYou = judge.isYou || judge.judgeId === teamId; // teamId used as fallback
               return (
                 <div key={judge.judgeId} className="flex items-center gap-2">
-                  <span className={`text-[10px] font-mono flex-1 ${isYou ? 'text-amber-400 font-bold' : 'text-gray-400'}`}>
-                    {judge.judgeName}{isYou ? ' (You)' : ''}
+                  <span
+                    className={`text-[10px] font-mono flex-1 ${isYou ? 'text-amber-400 font-bold' : 'text-gray-400'}`}
+                  >
+                    {judge.judgeName}
+                    {isYou ? ' (You)' : ''}
                   </span>
                   <div className="w-24 bg-white/[0.05] rounded-full h-1.5">
                     <div
@@ -220,7 +231,9 @@ export function ScoringRubric({
                       style={{ width: `${judge.weightedTotal}%` }}
                     />
                   </div>
-                  <span className={`text-[10px] font-mono w-8 text-right ${isYou ? 'text-amber-400' : 'text-cyan-400'}`}>
+                  <span
+                    className={`text-[10px] font-mono w-8 text-right ${isYou ? 'text-amber-400' : 'text-cyan-400'}`}
+                  >
                     {judge.weightedTotal}
                   </span>
                 </div>
@@ -241,7 +254,9 @@ export function ScoringRubric({
           </div>
         </div>
         <p className="text-[10px] font-mono text-gray-600">
-          {allScored ? "All criteria scored" : `${criteria.length - Array.from(scores.keys()).length} criteria remaining`}
+          {allScored
+            ? 'All criteria scored'
+            : `${criteria.length - Array.from(scores.keys()).length} criteria remaining`}
         </p>
       </div>
 
@@ -263,9 +278,7 @@ export function ScoringRubric({
               <div className="flex items-start justify-between gap-3 mb-3">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
-                    <h4 className="text-sm font-mono font-bold text-gray-200">
-                      {criterion.name}
-                    </h4>
+                    <h4 className="text-sm font-mono font-bold text-gray-200">{criterion.name}</h4>
                     <span className="text-[10px] font-mono text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded">
                       {criterion.weight}%
                     </span>
@@ -275,16 +288,12 @@ export function ScoringRubric({
                     className="flex items-center gap-1 text-[10px] font-mono text-gray-500 hover:text-gray-400"
                   >
                     <Info className="h-3 w-3" />
-                    {isExpanded ? "Hide" : "Show"} description
+                    {isExpanded ? 'Hide' : 'Show'} description
                   </button>
                 </div>
                 <div className="text-right">
-                  <div className="text-2xl font-mono font-bold text-amber-400">
-                    {currentPoints}
-                  </div>
-                  <div className="text-[10px] font-mono text-gray-500">
-                    / {criterion.maxPoints}
-                  </div>
+                  <div className="text-2xl font-mono font-bold text-amber-400">{currentPoints}</div>
+                  <div className="text-[10px] font-mono text-gray-500">/ {criterion.maxPoints}</div>
                   {/* Criterion average from other judges */}
                   {criterionAvg && criterionAvg.count > 1 && (
                     <div className="text-[9px] font-mono text-cyan-400/70 mt-0.5 flex items-center gap-0.5 justify-end">
@@ -311,7 +320,11 @@ export function ScoringRubric({
                   step="0.5"
                   value={currentPoints}
                   onChange={(e) =>
-                    updateScore(criterion.criterionId, Number(e.target.value), score?.comments || "")
+                    updateScore(
+                      criterion.criterionId,
+                      Number(e.target.value),
+                      score?.comments || ''
+                    )
                   }
                   className="w-full h-2 bg-white/[0.05] rounded-lg appearance-none cursor-pointer slider-thumb"
                   style={{
@@ -336,7 +349,7 @@ export function ScoringRubric({
                   Comments (Optional)
                 </label>
                 <textarea
-                  value={score?.comments || ""}
+                  value={score?.comments || ''}
                   onChange={(e) =>
                     updateScore(criterion.criterionId, currentPoints, e.target.value)
                   }
@@ -359,7 +372,7 @@ export function ScoringRubric({
         {allScored ? (
           <>
             <CheckCircle className="h-4 w-4" />
-            {isSubmitting ? "SUBMITTING..." : "SUBMIT ALL SCORES"}
+            {isSubmitting ? 'SUBMITTING...' : 'SUBMIT ALL SCORES'}
           </>
         ) : (
           <>
@@ -382,7 +395,8 @@ export function ScoringRubric({
                 <div key={criterion.id} className="flex justify-between text-[10px] font-mono">
                   <span className="text-gray-500">{criterion.name}:</span>
                   <span className="text-amber-400">
-                    {score.points}/{criterion.maxPoints} × {criterion.weight}% = {weightedScore.toFixed(1)}
+                    {score.points}/{criterion.maxPoints} × {criterion.weight}% ={' '}
+                    {weightedScore.toFixed(1)}
                   </span>
                 </div>
               );

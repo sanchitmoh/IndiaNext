@@ -36,7 +36,7 @@ async function verifyAdmin(_req: Request) {
 /**
  * POST /api/admin/teams/comment
  * Add comment to a team
- * 
+ *
  * CRITICAL: Judges can ONLY comment on APPROVED teams
  */
 export async function POST(req: Request) {
@@ -47,7 +47,10 @@ export async function POST(req: Request) {
     if (!rl.success) {
       return NextResponse.json(
         { success: false, error: 'Too many requests' },
-        { status: 429, headers: { 'Retry-After': String(Math.ceil((rl.reset - Date.now()) / 1000)) } }
+        {
+          status: 429,
+          headers: { 'Retry-After': String(Math.ceil((rl.reset - Date.now()) / 1000)) },
+        }
       );
     }
 
@@ -68,11 +71,14 @@ export async function POST(req: Request) {
     const validation = CommentSchema.safeParse(body);
 
     if (!validation.success) {
-      return NextResponse.json({
-        success: false,
-        error: 'Validation error',
-        details: validation.error.errors,
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Validation error',
+          details: validation.error.errors,
+        },
+        { status: 400 }
+      );
     }
 
     const { teamId, content, isInternal } = validation.data;
@@ -86,10 +92,7 @@ export async function POST(req: Request) {
     });
 
     if (!team) {
-      return NextResponse.json(
-        { success: false, error: 'Team not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ success: false, error: 'Team not found' }, { status: 404 });
     }
 
     // ⭐ CRITICAL: Judges can ONLY comment on APPROVED teams
@@ -178,10 +181,7 @@ export async function GET(req: Request) {
     });
 
     if (!team) {
-      return NextResponse.json(
-        { success: false, error: 'Team not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ success: false, error: 'Team not found' }, { status: 404 });
     }
 
     // Judges can only view comments for approved teams
@@ -204,7 +204,7 @@ export async function GET(req: Request) {
         teamName: team.name,
         status: team.status,
         canComment: team.status === 'APPROVED' || admin.role !== 'JUDGE',
-        comments: comments.map(c => ({
+        comments: comments.map((c) => ({
           id: c.id,
           content: c.content,
           isInternal: c.isInternal,

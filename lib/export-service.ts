@@ -23,10 +23,10 @@ export interface AuditLogEntry {
 export class ExportService {
   /**
    * Converts audit log entries to CSV format
-   * 
+   *
    * @param logs - Array of audit log entries to convert
    * @returns CSV string with headers and data rows
-   * 
+   *
    * CSV Format:
    * - Headers: Timestamp, User, Email, Role, Action, Field, Old Value, New Value, IP Address
    * - Timestamps formatted as YYYY-MM-DD HH:mm:ss
@@ -46,9 +46,9 @@ export class ExportService {
       'New Value',
       'IP Address',
     ];
-    
+
     // Convert logs to CSV rows
-    const rows = logs.map(log => [
+    const rows = logs.map((log) => [
       this.formatTimestamp(log.timestamp),
       log.user.name,
       log.user.email,
@@ -59,18 +59,18 @@ export class ExportService {
       this.escapeCSV(log.newValue),
       log.ipAddress || '',
     ]);
-    
+
     // Combine headers and rows
     const allRows = [headers, ...rows];
-    
+
     // Join each row with commas and rows with newlines
-    return allRows.map(row => row.join(',')).join('\n');
+    return allRows.map((row) => row.join(',')).join('\n');
   }
-  
+
   /**
    * Formats a timestamp to readable format: YYYY-MM-DD HH:mm:ss
    * Uses UTC time to ensure consistency across timezones
-   * 
+   *
    * @param date - Date object to format
    * @returns Formatted timestamp string in UTC
    */
@@ -81,17 +81,17 @@ export class ExportService {
     const hours = String(date.getUTCHours()).padStart(2, '0');
     const minutes = String(date.getUTCMinutes()).padStart(2, '0');
     const seconds = String(date.getUTCSeconds()).padStart(2, '0');
-    
+
     return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
   }
-  
+
   /**
    * Formats field names to be more human-readable
    * Converts camelCase to Title Case with spaces
-   * 
+   *
    * @param fieldName - Field name in camelCase
    * @returns Formatted field name
-   * 
+   *
    * Examples:
    * - teamName -> Team Name
    * - member2Email -> Member 2 Email
@@ -100,21 +100,21 @@ export class ExportService {
   private formatFieldName(fieldName: string): string {
     // Insert space before capital letters and numbers
     const withSpaces = fieldName.replace(/([A-Z])/g, ' $1').replace(/(\d+)/g, ' $1');
-    
+
     // Capitalize first letter of each word
     return withSpaces
       .split(' ')
-      .filter(word => word.length > 0)
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .filter((word) => word.length > 0)
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');
   }
-  
+
   /**
    * Escapes CSV special characters (quotes, commas, newlines)
-   * 
+   *
    * @param value - Value to escape (can be null)
    * @returns Escaped CSV value
-   * 
+   *
    * Rules:
    * - Null values return empty string
    * - Values with quotes, commas, or newlines are wrapped in quotes
@@ -124,23 +124,24 @@ export class ExportService {
     if (value === null || value === undefined) {
       return '';
     }
-    
+
     // Convert to string if not already
     const stringValue = String(value);
-    
+
     // Check if value contains special characters that require escaping
-    const needsEscaping = stringValue.includes(',') || 
-                         stringValue.includes('"') || 
-                         stringValue.includes('\n') ||
-                         stringValue.includes('\r');
-    
+    const needsEscaping =
+      stringValue.includes(',') ||
+      stringValue.includes('"') ||
+      stringValue.includes('\n') ||
+      stringValue.includes('\r');
+
     if (needsEscaping) {
       // Escape quotes by doubling them
       const escaped = stringValue.replace(/"/g, '""');
       // Wrap in quotes
       return `"${escaped}"`;
     }
-    
+
     return stringValue;
   }
 }

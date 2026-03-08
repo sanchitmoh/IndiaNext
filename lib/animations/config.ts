@@ -1,17 +1,17 @@
 /**
  * Animation Configuration System
- * 
+ *
  * Central configuration for all animations in the application.
  * Provides consistent timing, easing, and behavior across components.
  */
 
 export interface AnimationConfig {
   duration: {
-    instant: number;      // 0ms - No animation
-    fast: number;         // 150ms - Quick interactions
-    normal: number;       // 300ms - Standard animations
-    slow: number;         // 500ms - Deliberate animations
-    verySlow: number;     // 800ms - Emphasis animations
+    instant: number; // 0ms - No animation
+    fast: number; // 150ms - Quick interactions
+    normal: number; // 300ms - Standard animations
+    slow: number; // 500ms - Deliberate animations
+    verySlow: number; // 800ms - Emphasis animations
   };
   easing: {
     linear: string;
@@ -21,13 +21,13 @@ export interface AnimationConfig {
     spring: { stiffness: number; damping: number };
   };
   stagger: {
-    fast: number;         // 30ms - Quick succession
-    normal: number;       // 50ms - Standard stagger
-    slow: number;         // 100ms - Deliberate stagger
+    fast: number; // 30ms - Quick succession
+    normal: number; // 50ms - Standard stagger
+    slow: number; // 100ms - Deliberate stagger
   };
   viewport: {
-    margin: string;       // Margin before triggering scroll animations
-    once: boolean;        // Animate only once when entering viewport
+    margin: string; // Margin before triggering scroll animations
+    once: boolean; // Animate only once when entering viewport
   };
 }
 
@@ -63,18 +63,14 @@ export const animationConfig: AnimationConfig = {
 /**
  * Get animation duration by key
  */
-export const getAnimationDuration = (
-  key: keyof AnimationConfig['duration']
-): number => {
+export const getAnimationDuration = (key: keyof AnimationConfig['duration']): number => {
   return animationConfig.duration[key];
 };
 
 /**
  * Get stagger delay by key
  */
-export const getStaggerDelay = (
-  key: keyof AnimationConfig['stagger']
-): number => {
+export const getStaggerDelay = (key: keyof AnimationConfig['stagger']): number => {
   return animationConfig.stagger[key];
 };
 
@@ -129,9 +125,7 @@ export const validateConfig = (config: Partial<AnimationConfig>): boolean => {
 /**
  * Merge custom configuration with defaults
  */
-export const mergeConfig = (
-  custom: Partial<AnimationConfig>
-): AnimationConfig => {
+export const mergeConfig = (custom: Partial<AnimationConfig>): AnimationConfig => {
   if (!validateConfig(custom)) {
     console.warn('Invalid custom config provided, using defaults');
     return animationConfig;

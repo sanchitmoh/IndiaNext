@@ -1,6 +1,6 @@
 /**
  * AnimatedCard Component
- * 
+ *
  * Card component with hover elevation and translation effects.
  * Provides visual feedback for interactive cards.
  */

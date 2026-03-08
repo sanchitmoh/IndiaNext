@@ -1,16 +1,14 @@
-"use client";
+'use client';
 
-import { use, useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import {
-  AlertCircle,
-} from "lucide-react";
-import { AuditHeader } from "@/components/admin/teams/AuditHeader";
-import { AuditSummary } from "@/components/admin/teams/AuditSummary";
-import { AuditFilters } from "@/components/admin/teams/AuditFilters";
-import { AuditTimeline } from "@/components/admin/teams/AuditTimeline";
-import { Pagination } from "@/components/admin/teams/Pagination";
-import { ExportButton } from "@/components/admin/teams/ExportButton";
+import { use, useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { AlertCircle } from 'lucide-react';
+import { AuditHeader } from '@/components/admin/teams/AuditHeader';
+import { AuditSummary } from '@/components/admin/teams/AuditSummary';
+import { AuditFilters } from '@/components/admin/teams/AuditFilters';
+import { AuditTimeline } from '@/components/admin/teams/AuditTimeline';
+import { Pagination } from '@/components/admin/teams/Pagination';
+import { ExportButton } from '@/components/admin/teams/ExportButton';
 
 // ── Types ──────────────────────────────────────────────────
 
@@ -18,7 +16,7 @@ interface AuditLogEntry {
   id: string;
   submissionId: string;
   timestamp: Date | string;
-  action: "CREATE" | "UPDATE" | "DELETE";
+  action: 'CREATE' | 'UPDATE' | 'DELETE';
   fieldName: string;
   oldValue: string | null;
   newValue: string | null;
@@ -26,7 +24,7 @@ interface AuditLogEntry {
     id: string;
     name: string;
     email: string;
-    role: "LEADER" | "CO_LEADER" | "MEMBER";
+    role: 'LEADER' | 'CO_LEADER' | 'MEMBER';
   };
   ipAddress: string | null;
   userAgent: string | null;
@@ -71,17 +69,13 @@ interface AuditFilters {
   toDate?: string;
   userId?: string;
   fieldName?: string;
-  action?: "CREATE" | "UPDATE" | "DELETE";
+  action?: 'CREATE' | 'UPDATE' | 'DELETE';
   search?: string;
 }
 
 // ── Main Component ──────────────────────────────────────────
 
-export default function AuditTrailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default function AuditTrailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: teamId } = use(params);
   const router = useRouter();
 
@@ -115,40 +109,24 @@ export default function AuditTrailPage({
         ...(filters.search && { search: filters.search }),
       });
 
-      const response = await fetch(
-        `/api/admin/teams/${teamId}/audit?${queryParams}`,
-        {
-          signal: AbortSignal.timeout(30000), // 30 second timeout
-        }
-      );
+      const response = await fetch(`/api/admin/teams/${teamId}/audit?${queryParams}`, {
+        signal: AbortSignal.timeout(30000), // 30 second timeout
+      });
 
       if (!response.ok) {
         let errorData;
+        let errorCode = 'UNKNOWN_ERROR';
+        let errorMsg = response.statusText;
         try {
           errorData = await response.json();
+          errorCode = errorData.error || 'UNKNOWN_ERROR';
+          errorMsg = errorData.message || errorMsg;
         } catch {
           // If response is not JSON, use status text
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
-
-        const errorCode = errorData.error || 'UNKNOWN_ERROR';
         setErrorType(errorCode);
-
-        // Provide user-friendly error messages based on error type
-        switch (errorCode) {
-          case 'UNAUTHORIZED':
-            throw new Error('Your session has expired. Please log in again.');
-          case 'FORBIDDEN':
-            throw new Error('You do not have permission to view audit logs.');
-          case 'TEAM_NOT_FOUND':
-            throw new Error('This team could not be found. It may have been deleted.');
-          case 'INVALID_FILTER':
-            throw new Error('Invalid filter parameters. Please check your filters and try again.');
-          case 'DATABASE_ERROR':
-            throw new Error('Unable to connect to the database. Please try again in a moment.');
-          default:
-            throw new Error(errorData.message || 'Failed to fetch audit logs. Please try again.');
-        }
+        setError(errorMsg);
+        return;
       }
 
       const data: AuditResponse = await response.json();
@@ -163,7 +141,8 @@ export default function AuditTrailPage({
         }
         setRetryCount(0); // Reset retry count on success
       } else {
-        throw new Error('Failed to fetch audit logs');
+        setErrorType('UNKNOWN_ERROR');
+        setError('Failed to fetch audit logs');
       }
     } catch (err) {
       if (err instanceof Error) {
@@ -171,15 +150,19 @@ export default function AuditTrailPage({
         if (err.name === 'AbortError' || err.name === 'TimeoutError') {
           setError('Request timed out. The server is taking too long to respond.');
           setErrorType('TIMEOUT');
-        } else if (err.message.includes('Failed to fetch') || err.message.includes('NetworkError')) {
+        } else if (
+          err.message.includes('Failed to fetch') ||
+          err.message.includes('NetworkError')
+        ) {
           setError('Network error. Please check your internet connection and try again.');
           setErrorType('NETWORK_ERROR');
         } else {
+          setErrorType('UNKNOWN_ERROR');
           setError(err.message);
         }
       } else {
-        setError('An unexpected error occurred. Please try again.');
         setErrorType('UNKNOWN_ERROR');
+        setError('An unexpected error occurred. Please try again.');
       }
     } finally {
       setLoading(false);
@@ -246,54 +229,71 @@ export default function AuditTrailPage({
         <div
           className={`${getErrorStyle().bgColor} border ${getErrorStyle().borderColor} rounded-lg p-4 flex items-start gap-3 transition-colors duration-300 animate-fadeIn`}
         >
-          <AlertCircle className={`h-5 w-5 ${getErrorStyle().iconColor} shrink-0 mt-0.5 animate-pulse`} />
+          <AlertCircle
+            className={`h-5 w-5 ${getErrorStyle().iconColor} shrink-0 mt-0.5 animate-pulse`}
+          />
           <div className="flex-1">
+            {/* Render error headline as a plain <p> tag for test matchers */}
             <p className={`text-sm font-mono ${getErrorStyle().textColor} font-bold`}>
               {errorType === 'UNAUTHORIZED' || errorType === 'FORBIDDEN'
                 ? 'Access Denied'
                 : errorType === 'TEAM_NOT_FOUND'
-                ? 'Team Not Found'
-                : errorType === 'NETWORK_ERROR'
-                ? 'Network Error'
-                : errorType === 'TIMEOUT'
-                ? 'Request Timeout'
-                : errorType === 'INVALID_FILTER'
-                ? 'Invalid Filters'
-                : 'Error Loading Audit Trail'}
+                  ? 'Team Not Found'
+                  : errorType === 'NETWORK_ERROR'
+                    ? 'Network Error'
+                    : errorType === 'TIMEOUT'
+                      ? 'Request Timeout'
+                      : errorType === 'INVALID_FILTER'
+                        ? 'Invalid Filters'
+                        : 'Error Loading Audit Trail'}
             </p>
             <p className={`text-xs font-mono ${getErrorStyle().textColor} mt-1 opacity-90`}>
               {error}
             </p>
-            
+
             {/* Retry button - only show for retryable errors */}
-            {errorType !== 'UNAUTHORIZED' && errorType !== 'FORBIDDEN' && errorType !== 'TEAM_NOT_FOUND' && (
-              <div className="flex items-center gap-3 mt-3">
-                <button
-                  onClick={handleRetry}
-                  disabled={loading}
-                  className={`text-xs font-mono ${getErrorStyle().textColor} hover:opacity-80 underline transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5`}
-                >
-                  {loading ? (
-                    <>
-                      <div className="h-3 w-3 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
-                      Retrying...
-                    </>
-                  ) : (
-                    <>
-                      <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                      </svg>
-                      Try Again
-                    </>
+            {errorType !== 'UNAUTHORIZED' &&
+              errorType !== 'FORBIDDEN' &&
+              errorType !== 'TEAM_NOT_FOUND' && (
+                <div className="flex items-center gap-3 mt-3">
+                  <button
+                    onClick={handleRetry}
+                    disabled={loading}
+                    className={`text-xs font-mono ${getErrorStyle().textColor} hover:opacity-80 underline transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5`}
+                  >
+                    {loading ? (
+                      <>
+                        <div className="h-3 w-3 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                        Retrying...
+                      </>
+                    ) : (
+                      <>
+                        <svg
+                          className="h-3 w-3"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                          />
+                        </svg>
+                        Try Again
+                      </>
+                    )}
+                  </button>
+                  {retryCount > 0 && (
+                    <span
+                      className={`text-[10px] font-mono ${getErrorStyle().textColor} opacity-60`}
+                    >
+                      (Attempt {retryCount + 1})
+                    </span>
                   )}
-                </button>
-                {retryCount > 0 && (
-                  <span className={`text-[10px] font-mono ${getErrorStyle().textColor} opacity-60`}>
-                    (Attempt {retryCount + 1})
-                  </span>
-                )}
-              </div>
-            )}
+                </div>
+              )}
 
             {/* Helpful actions for specific error types */}
             {errorType === 'UNAUTHORIZED' && (
@@ -326,19 +326,10 @@ export default function AuditTrailPage({
       {/* Filters and Export */}
       {!error && (
         <div className="space-y-4 animate-fadeIn" style={{ animationDelay: '100ms' }}>
-          <AuditFilters
-            teamId={teamId}
-            filters={filters}
-            onChange={setFilters}
-            loading={loading}
-          />
+          <AuditFilters teamId={teamId} filters={filters} onChange={setFilters} loading={loading} />
           {!loading && (
             <div className="flex justify-end animate-fadeIn">
-              <ExportButton
-                teamId={teamId}
-                teamName={teamName}
-                filters={filters}
-              />
+              <ExportButton teamId={teamId} teamName={teamName} filters={filters} />
             </div>
           )}
         </div>
@@ -355,9 +346,7 @@ export default function AuditTrailPage({
               <Pagination
                 currentPage={pagination.page}
                 totalPages={totalPages}
-                onPageChange={(page) =>
-                  setPagination((prev) => ({ ...prev, page }))
-                }
+                onPageChange={(page) => setPagination((prev) => ({ ...prev, page }))}
               />
             </div>
           )}

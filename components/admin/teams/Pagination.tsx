@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
+import { useState, useEffect } from 'react';
 
 interface PaginationProps {
   currentPage: number;
@@ -8,11 +8,7 @@ interface PaginationProps {
   onPageChange: (page: number) => void;
 }
 
-export function Pagination({
-  currentPage,
-  totalPages,
-  onPageChange,
-}: PaginationProps) {
+export function Pagination({ currentPage, totalPages, onPageChange }: PaginationProps) {
   const [pageInput, setPageInput] = useState(currentPage.toString());
 
   // Update input when currentPage changes externally
@@ -27,7 +23,7 @@ export function Pagination({
   const handlePageInputSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const pageNum = parseInt(pageInput, 10);
-    
+
     // Validate page number
     if (!isNaN(pageNum) && pageNum >= 1 && pageNum <= totalPages) {
       onPageChange(pageNum);

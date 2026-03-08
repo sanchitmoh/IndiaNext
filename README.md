@@ -79,11 +79,11 @@ model User {
   degree        String?
   role          UserRole  @default(PARTICIPANT)
   emailVerified Boolean   @default(false)
-  
+
   teamMemberships TeamMember[]
   sessions        Session[]
   notifications   Notification[]
-  
+
   @@index([email])
   @@index([college])
 }
@@ -96,15 +96,15 @@ model Team {
   status    RegistrationStatus @default(PENDING)
   size      Int      @default(1)
   college   String?
-  
+
   members    TeamMember[]
   submission Submission?
   comments   Comment[]
   tags       TeamTag[]
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   @@index([track, status])
   @@index([college])
   @@fulltext([name])
@@ -116,10 +116,10 @@ model TeamMember {
   role   MemberRole @default(MEMBER)
   userId String
   teamId String
-  
+
   user User @relation(fields: [userId], references: [id])
   team Team @relation(fields: [teamId], references: [id])
-  
+
   @@unique([userId, teamId])
   @@index([userId])
   @@index([teamId])
@@ -129,18 +129,18 @@ model TeamMember {
 model Submission {
   id     String @id @default(cuid())
   teamId String @unique
-  
+
   // IdeaSprint fields
   ideaTitle        String?
   problemStatement String?  @db.Text
   proposedSolution String?  @db.Text
-  
+
   // BuildStorm fields
   problemDesc String?  @db.Text
   githubLink  String?
-  
+
   files File[]
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -154,9 +154,9 @@ model File {
   fileSize     Int
   mimeType     String
   category     FileCategory
-  
+
   uploadedAt DateTime @default(now())
-  
+
   @@index([submissionId])
 }
 ```
@@ -204,15 +204,15 @@ enum FileCategory {
 
 ### Schema Improvements
 
-| Feature | Old Schema | New Schema |
-|---------|-----------|------------|
-| **Models** | 3 (duplicated) | 13 (normalized) |
-| **Data Duplication** | 80% | 0% |
-| **Normalization** | ❌ Violates 1NF | ✅ 3NF compliant |
-| **Indexes** | 2 | 30+ |
-| **Enums** | 0 | 8 |
-| **Foreign Keys** | 0 | 15+ |
-| **Extensibility** | ❌ Schema changes | ✅ Just add rows |
+| Feature              | Old Schema        | New Schema               |
+| -------------------- | ----------------- | ------------------------ |
+| **Models**           | 3 (duplicated)    | 13 (normalized)          |
+| **Data Duplication** | 80%               | 0%                       |
+| **Normalization**    | ❌ Violates 1NF   | ✅ 3NF compliant         |
+| **Indexes**          | 2                 | 30+                      |
+| **Enums**            | 0                 | 8                        |
+| **Foreign Keys**     | 0                 | 15+                      |
+| **Extensibility**    | ❌ Schema changes | ✅ Just add rows         |
 | **Full-Text Search** | ❌ Not configured | ✅ Use `contains` filter |
 
 ### Migration Notes
@@ -231,11 +231,12 @@ enum FileCategory {
 3. **Full-Text Search:**
    - Removed `@@fulltext` indexes (PostgreSQL configuration required)
    - Use Prisma's `contains` filter for text search:
+
    ```typescript
    await prisma.team.findMany({
      where: {
-       name: { contains: searchTerm, mode: 'insensitive' }
-     }
+       name: { contains: searchTerm, mode: 'insensitive' },
+     },
    });
    ```
 
@@ -252,6 +253,7 @@ enum FileCategory {
 #### Authentication & OTP
 
 **POST /api/send-otp**
+
 ```typescript
 // Request
 {
@@ -268,6 +270,7 @@ enum FileCategory {
 ```
 
 **POST /api/verify-otp**
+
 ```typescript
 // Request
 {
@@ -291,6 +294,7 @@ enum FileCategory {
 ```
 
 **POST /api/register**
+
 ```typescript
 // Request
 {
@@ -298,21 +302,21 @@ enum FileCategory {
   track: 'IDEA_SPRINT' | 'BUILD_STORM';
   teamName: string;
   teamSize: number;
-  
+
   // Leader Info
   leaderName: string;
   leaderEmail: string;
   leaderMobile: string;
   leaderCollege: string;
   leaderDegree: string;
-  
+
   // Members (optional)
   member2Name?: string;
   member2Email?: string;
   member2College?: string;
   member2Degree?: string;
   // ... member3, member4
-  
+
   // IdeaSprint Fields
   ideaTitle?: string;
   problemStatement?: string;
@@ -320,11 +324,11 @@ enum FileCategory {
   targetUsers?: string;
   expectedImpact?: string;
   techStack?: string;
-  
+
   // BuildStorm Fields
   problemDesc?: string;
   githubLink?: string;
-  
+
   // Meta
   hearAbout?: string;
   additionalNotes?: string;
@@ -341,6 +345,7 @@ enum FileCategory {
 ### tRPC API
 
 #### Admin Router (`admin.*`)
+
 ```typescript
 admin.getStats()                    // Dashboard statistics
 admin.getTeams(filters)             // List teams with filters
@@ -354,6 +359,7 @@ admin.exportTeams(filters)          // Export to CSV
 ```
 
 #### Team Router (`team.*`)
+
 ```typescript
 team.create(data)                   // Create new team
 team.getMyTeams()                   // Get user's teams
@@ -362,12 +368,13 @@ team.submitForReview(id)            // Submit for review
 ```
 
 #### Auth Router (`auth.*`)
+
 ```typescript
-auth.sendOtp(email)                 // Send OTP email
-auth.verifyOtp(email, otp)          // Verify OTP & login
-auth.me()                           // Get current user
-auth.updateProfile(data)            // Update profile
-auth.getNotifications()             // Get notifications
+auth.sendOtp(email); // Send OTP email
+auth.verifyOtp(email, otp); // Verify OTP & login
+auth.me(); // Get current user
+auth.updateProfile(data); // Update profile
+auth.getNotifications(); // Get notifications
 ```
 
 ### Usage Example
@@ -379,14 +386,14 @@ import { trpc } from "@/lib/trpc-client";
 export function MyComponent() {
   // Query
   const { data, isLoading } = trpc.admin.getStats.useQuery();
-  
+
   // Mutation
   const updateStatus = trpc.admin.updateTeamStatus.useMutation({
     onSuccess: () => {
       toast.success("Status updated");
     },
   });
-  
+
   return <div>{/* Your UI */}</div>;
 }
 ```
@@ -423,15 +430,15 @@ export function MyComponent() {
 
 ## 🌐 Free Services Stack
 
-| Service | Free Tier | Purpose | Cost |
-|---------|-----------|---------|------|
-| **Neon** | 0.5 GB | PostgreSQL database | $0 |
-| **Upstash** | 10K cmds/day | Redis cache | $0 |
-| **Cloudinary** | 25 GB | File storage | $0 |
-| **Resend** | 3K emails/mo | Transactional emails | $0 |
-| **Cloudflare** | Unlimited | CDN & DDoS protection | $0 |
-| **Sentry** | 5K errors/mo | Error tracking | $0 |
-| **PostHog** | 1M events/mo | Analytics | $0 |
+| Service        | Free Tier    | Purpose               | Cost |
+| -------------- | ------------ | --------------------- | ---- |
+| **Neon**       | 0.5 GB       | PostgreSQL database   | $0   |
+| **Upstash**    | 10K cmds/day | Redis cache           | $0   |
+| **Cloudinary** | 25 GB        | File storage          | $0   |
+| **Resend**     | 3K emails/mo | Transactional emails  | $0   |
+| **Cloudflare** | Unlimited    | CDN & DDoS protection | $0   |
+| **Sentry**     | 5K errors/mo | Error tracking        | $0   |
+| **PostHog**    | 1M events/mo | Analytics             | $0   |
 
 **Total: $0/month** (for 1K-2K teams)
 
@@ -440,6 +447,7 @@ export function MyComponent() {
 ## 📦 Tech Stack
 
 ### Frontend
+
 - **Next.js 16** - React framework with App Router
 - **React 19** - UI library
 - **TailwindCSS 4** - Styling
@@ -448,12 +456,14 @@ export function MyComponent() {
 - **Lucide React** - Icons
 
 ### Backend
+
 - **tRPC** - Type-safe API
 - **Prisma 7** - ORM
 - **Zod** - Validation
 - **React Query** - Data fetching
 
 ### Services
+
 - **Neon** - PostgreSQL database
 - **Upstash Redis** - Caching
 - **Cloudinary** - File storage
@@ -587,13 +597,13 @@ pm2 startup
 
 ### Scalability
 
-| Scenario | Mechanism |
-|----------|-----------|
-| **10x registrations** | Neon auto-scales, serverless functions |
-| **Spike traffic** | Edge caching, rate limiting |
+| Scenario               | Mechanism                                   |
+| ---------------------- | ------------------------------------------- |
+| **10x registrations**  | Neon auto-scales, serverless functions      |
+| **Spike traffic**      | Edge caching, rate limiting                 |
 | **Large file uploads** | Direct to Cloudinary (no server bottleneck) |
-| **Email bursts** | Queue-based async sending |
-| **Global users** | Edge functions + global Redis |
+| **Email bursts**       | Queue-based async sending                   |
+| **Global users**       | Edge functions + global Redis               |
 
 ---
 
@@ -639,12 +649,14 @@ npm run lint
 ### Adding a New Feature
 
 1. **Update Schema** (if needed)
+
    ```bash
    # Edit prisma/schema.prisma
    npx prisma migrate dev --name feature_name
    ```
 
 2. **Create tRPC Route**
+
    ```typescript
    // server/routers/feature.ts
    export const featureRouter = router({
@@ -657,6 +669,7 @@ npm run lint
    ```
 
 3. **Add to Main Router**
+
    ```typescript
    // server/routers/_app.ts
    export const appRouter = router({
@@ -676,21 +689,25 @@ npm run lint
 ### Common Issues
 
 **Issue: "Prisma Client not generated"**
+
 ```bash
 npx prisma generate
 ```
 
 **Issue: "Database connection failed"**
+
 - Check DATABASE_URL in .env
 - Ensure database is running
 - Check firewall rules
 
 **Issue: "tRPC endpoint not found"**
+
 - Restart dev server
-- Check router is added to _app.ts
+- Check router is added to \_app.ts
 - Verify endpoint name
 
 **Issue: "File upload fails"**
+
 - Check Cloudinary credentials
 - Verify file size limits
 - Check CORS settings

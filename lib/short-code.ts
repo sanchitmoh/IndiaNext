@@ -67,10 +67,7 @@ export async function generateShortCode(track: Track): Promise<string> {
  * Generate a short code inside a Prisma transaction client.
  * Use this when creating teams within $transaction.
  */
-export async function generateShortCodeTx(
-  tx: any,
-  track: Track
-): Promise<string> {
+export async function generateShortCodeTx(tx: any, track: Track): Promise<string> {
   const prefix = TRACK_PREFIX[track];
 
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {

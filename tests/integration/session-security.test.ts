@@ -21,9 +21,7 @@ describe('Session Security', () => {
 
     it('admin session should be shorter than user session', () => {
       // Admin sessions should be more restrictive
-      expect(SESSION_CONFIGS.admin.maxAge).toBeLessThanOrEqual(
-        SESSION_CONFIGS.user.maxAge
-      );
+      expect(SESSION_CONFIGS.admin.maxAge).toBeLessThanOrEqual(SESSION_CONFIGS.user.maxAge);
     });
   });
 
@@ -71,10 +69,7 @@ describe('Session Security', () => {
     const IDLE_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes
     const MAX_AGE_MS = SESSION_CONFIGS.admin.maxAge * 1000;
 
-    function calculateTimeSinceLastTouch(
-      now: Date,
-      expiresAt: Date
-    ): number {
+    function calculateTimeSinceLastTouch(now: Date, expiresAt: Date): number {
       // timeSinceLastTouch = maxAge - timeRemaining
       const timeRemaining = expiresAt.getTime() - now.getTime();
       return MAX_AGE_MS - timeRemaining;
@@ -91,9 +86,7 @@ describe('Session Security', () => {
     it('should detect idle session after 30+ minutes', () => {
       const now = new Date();
       // Session was last refreshed 35 minutes ago
-      const expiresAt = new Date(
-        now.getTime() + MAX_AGE_MS - 35 * 60 * 1000
-      );
+      const expiresAt = new Date(now.getTime() + MAX_AGE_MS - 35 * 60 * 1000);
 
       const idle = calculateTimeSinceLastTouch(now, expiresAt);
       expect(idle).toBeGreaterThan(IDLE_TIMEOUT_MS);
@@ -102,9 +95,7 @@ describe('Session Security', () => {
     it('should detect recently active session', () => {
       const now = new Date();
       // Session was refreshed 5 minutes ago
-      const expiresAt = new Date(
-        now.getTime() + MAX_AGE_MS - 5 * 60 * 1000
-      );
+      const expiresAt = new Date(now.getTime() + MAX_AGE_MS - 5 * 60 * 1000);
 
       const idle = calculateTimeSinceLastTouch(now, expiresAt);
       expect(idle).toBeLessThan(IDLE_TIMEOUT_MS);

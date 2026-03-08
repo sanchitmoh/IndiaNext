@@ -1,6 +1,6 @@
 /**
  * ScrollReveal Component
- * 
+ *
  * Reveals content with animation when it enters the viewport.
  * Uses Intersection Observer for efficient scroll detection.
  */

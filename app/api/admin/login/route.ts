@@ -1,26 +1,25 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { checkRateLimit } from "@/lib/rate-limit";
-import bcrypt from "bcryptjs";
-import { z } from "zod";
-import crypto from "crypto";
+import { NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { checkRateLimit } from '@/lib/rate-limit';
+import bcrypt from 'bcryptjs';
+import { z } from 'zod';
+import crypto from 'crypto';
 
-import { SESSION_CONFIGS } from "@/lib/session-security";
+import { SESSION_CONFIGS } from '@/lib/session-security';
 
 const loginSchema = z.object({
-  email: z.string().email("Invalid email address"),
+  email: z.string().email('Invalid email address'),
   // ✅ SECURITY FIX: Enforce password complexity
-  password: z.string()
-    .min(8, "Password must be at least 8 characters")
-    .max(128, "Password too long"),
+  password: z
+    .string()
+    .min(8, 'Password must be at least 8 characters')
+    .max(128, 'Password too long'),
 });
 
 function getClientIP(req: Request): string {
   const headers = new Headers(req.headers);
   return (
-    headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-    headers.get("x-real-ip") ||
-    "unknown"
+    headers.get('x-forwarded-for')?.split(',')[0]?.trim() || headers.get('x-real-ip') || 'unknown'
   );
 }
 
@@ -33,15 +32,15 @@ export async function POST(req: Request) {
       return NextResponse.json(
         {
           success: false,
-          error: "TOO_MANY_ATTEMPTS",
-          message: "Too many login attempts. Please try again later.",
+          error: 'TOO_MANY_ATTEMPTS',
+          message: 'Too many login attempts. Please try again later.',
         },
         {
           status: 429,
           headers: {
-            "Retry-After": String(Math.ceil((rl.reset - Date.now()) / 1000)),
-            "X-RateLimit-Limit": String(rl.limit),
-            "X-RateLimit-Remaining": String(rl.remaining),
+            'Retry-After': String(Math.ceil((rl.reset - Date.now()) / 1000)),
+            'X-RateLimit-Limit': String(rl.limit),
+            'X-RateLimit-Remaining': String(rl.remaining),
           },
         }
       );
@@ -54,8 +53,8 @@ export async function POST(req: Request) {
       return NextResponse.json(
         {
           success: false,
-          error: "VALIDATION_ERROR",
-          message: parsed.error.errors[0]?.message || "Invalid input",
+          error: 'VALIDATION_ERROR',
+          message: parsed.error.errors[0]?.message || 'Invalid input',
         },
         { status: 400 }
       );
@@ -73,8 +72,8 @@ export async function POST(req: Request) {
       NextResponse.json(
         {
           success: false,
-          error: "INVALID_CREDENTIALS",
-          message: "Invalid email or password.",
+          error: 'INVALID_CREDENTIALS',
+          message: 'Invalid email or password.',
         },
         { status: 401 }
       );
@@ -90,7 +89,7 @@ export async function POST(req: Request) {
     }
 
     // 5. Create admin session
-    const token = crypto.randomBytes(32).toString("hex");
+    const token = crypto.randomBytes(32).toString('hex');
     // ✅ SECURITY FIX: Use centralized SESSION_CONFIGS instead of hardcoded 8h
     const expiresAt = new Date(Date.now() + SESSION_CONFIGS.admin.maxAge * 1000);
 
@@ -104,12 +103,15 @@ export async function POST(req: Request) {
     });
     const activeSessions = await prisma.adminSession.findMany({
       where: { adminId: admin.id },
-      orderBy: { createdAt: "asc" },
+      orderBy: { createdAt: 'asc' },
     });
     const MAX_ADMIN_SESSIONS = 5;
     if (activeSessions.length >= MAX_ADMIN_SESSIONS) {
       // Delete oldest sessions to make room
-      const sessionsToDelete = activeSessions.slice(0, activeSessions.length - MAX_ADMIN_SESSIONS + 1);
+      const sessionsToDelete = activeSessions.slice(
+        0,
+        activeSessions.length - MAX_ADMIN_SESSIONS + 1
+      );
       await prisma.adminSession.deleteMany({
         where: { id: { in: sessionsToDelete.map((s) => s.id) } },
       });
@@ -121,7 +123,7 @@ export async function POST(req: Request) {
         token: hashSessionToken(token),
         expiresAt,
         ipAddress: ip,
-        userAgent: req.headers.get("user-agent") || undefined,
+        userAgent: req.headers.get('user-agent') || undefined,
       },
     });
 
@@ -135,7 +137,7 @@ export async function POST(req: Request) {
     });
 
     // 7. Set cookie & respond
-    const isProduction = process.env.NODE_ENV === "production";
+    const isProduction = process.env.NODE_ENV === 'production';
     const response = NextResponse.json(
       {
         success: true,
@@ -149,12 +151,12 @@ export async function POST(req: Request) {
       { status: 200 }
     );
 
-    response.cookies.set("admin_token", token, {
+    response.cookies.set('admin_token', token, {
       httpOnly: true,
       secure: isProduction,
       // ✅ SECURITY FIX: Use strict sameSite for admin cookie + centralized maxAge
-      sameSite: "strict",
-      path: "/",
+      sameSite: 'strict',
+      path: '/',
       maxAge: SESSION_CONFIGS.admin.maxAge,
     });
 

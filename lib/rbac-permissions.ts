@@ -1,9 +1,9 @@
 /**
  * RBAC Permissions - Client & Server Safe
- * 
+ *
  * This file contains only permission checking logic and can be imported
  * by both client and server components. It does NOT import next/headers.
- * 
+ *
  * For session management functions, use lib/auth-admin.ts (server-only).
  */
 
@@ -20,7 +20,7 @@ const ROLE_HIERARCHY: Record<UserRole, number> = {
   PARTICIPANT: 0,
   ORGANIZER: 1,
   JUDGE: 2,
-  LOGISTICS: 2,  // Same level as JUDGE — event-day role
+  LOGISTICS: 2, // Same level as JUDGE — event-day role
   ADMIN: 3,
   SUPER_ADMIN: 4,
 };
@@ -165,31 +165,31 @@ export function canPerformAction(
  */
 export const TRPC_PERMISSION_MAP: Record<string, Permission> = {
   // Analytics
-  'viewAnalytics': 'VIEW_ANALYTICS',
+  viewAnalytics: 'VIEW_ANALYTICS',
 
   // Teams
-  'viewTeams': 'VIEW_ALL_TEAMS',
-  'editTeams': 'EDIT_TEAMS',
-  'deleteTeams': 'DELETE_TEAMS',
-  'exportTeams': 'EXPORT_DATA',
+  viewTeams: 'VIEW_ALL_TEAMS',
+  editTeams: 'EDIT_TEAMS',
+  deleteTeams: 'DELETE_TEAMS',
+  exportTeams: 'EXPORT_DATA',
 
   // Submissions
-  'viewSubmissions': 'VIEW_SUBMISSIONS',
-  'scoreSubmissions': 'SCORE_TEAMS',
-  'commentOnSubmissions': 'ADD_COMMENTS',
+  viewSubmissions: 'VIEW_SUBMISSIONS',
+  scoreSubmissions: 'SCORE_TEAMS',
+  commentOnSubmissions: 'ADD_COMMENTS',
 
   // User Management
-  'manageUsers': 'MANAGE_USERS',
-  'assignRoles': 'ASSIGN_ROLES',
-  
+  manageUsers: 'MANAGE_USERS',
+  assignRoles: 'ASSIGN_ROLES',
+
   // Audit Logs
-  'viewAuditLogs': 'VIEW_AUDIT_LOGS',
+  viewAuditLogs: 'VIEW_AUDIT_LOGS',
 
   // Logistics
-  'editTeamMembers': 'EDIT_TEAM_MEMBERS',
-  'swapTeamMembers': 'SWAP_TEAM_MEMBERS',
-  'markAttendance': 'MARK_ATTENDANCE',
-  'viewAttendance': 'VIEW_ATTENDANCE',
+  editTeamMembers: 'EDIT_TEAM_MEMBERS',
+  swapTeamMembers: 'SWAP_TEAM_MEMBERS',
+  markAttendance: 'MARK_ATTENDANCE',
+  viewAttendance: 'VIEW_ATTENDANCE',
 } as const;
 
 /**
@@ -234,14 +234,20 @@ const ALL_NAV_ITEMS: NavItem[] = [
 export function getAllowedNavItems(role: AdminRole): NavItem[] {
   return ALL_NAV_ITEMS.filter((item) => {
     switch (item.label) {
-      case 'DASHBOARD': return hasPermission(role as UserRole, 'VIEW_ALL_TEAMS');
-      case 'TEAMS': return hasPermission(role as UserRole, 'VIEW_ALL_TEAMS');
-      case 'PROBLEMS': return hasPermission(role as UserRole, 'VIEW_ALL_TEAMS');
-      case 'ANALYTICS': return hasPermission(role as UserRole, 'VIEW_ANALYTICS');
-      case 'LOGISTICS': return hasPermission(role as UserRole, 'VIEW_ATTENDANCE');
-      case 'EMAILS': return hasPermission(role as UserRole, 'SEND_EMAILS');
-      default: return false;
+      case 'DASHBOARD':
+        return hasPermission(role as UserRole, 'VIEW_ALL_TEAMS');
+      case 'TEAMS':
+        return hasPermission(role as UserRole, 'VIEW_ALL_TEAMS');
+      case 'PROBLEMS':
+        return hasPermission(role as UserRole, 'VIEW_ALL_TEAMS');
+      case 'ANALYTICS':
+        return hasPermission(role as UserRole, 'VIEW_ANALYTICS');
+      case 'LOGISTICS':
+        return hasPermission(role as UserRole, 'VIEW_ATTENDANCE');
+      case 'EMAILS':
+        return hasPermission(role as UserRole, 'SEND_EMAILS');
+      default:
+        return false;
     }
   });
 }
-

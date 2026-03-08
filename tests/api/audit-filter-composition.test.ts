@@ -1,9 +1,9 @@
 /**
  * Property-Based Test for Audit Trail Filter Composition
- * 
+ *
  * Feature: admin-audit-trail, Property 5: Filter Composition
  * **Validates: Requirements US-4.1, US-4.2, US-4.3, US-4.4, US-4.5**
- * 
+ *
  * This test verifies that when multiple filters are applied simultaneously,
  * all returned audit logs satisfy ALL filter conditions (AND logic).
  * Tests various combinations of date range, userId, fieldName, and action filters.
@@ -48,7 +48,7 @@ import { prisma } from '@/lib/prisma';
  * Generator for audit log entries with diverse values for filtering
  */
 function auditLogGenerator() {
-  return fc.constantFrom('user-1', 'user-2', 'user-3', 'user-4').chain(userId =>
+  return fc.constantFrom('user-1', 'user-2', 'user-3', 'user-4').chain((userId) =>
     fc.record({
       id: fc.uuid(),
       teamId: fc.constant('test-team-filter'),
@@ -89,18 +89,23 @@ function filterGenerator() {
   return fc.record({
     userId: fc.option(fc.constantFrom('user-1', 'user-2', 'user-3', 'user-4'), { nil: null }),
     fieldName: fc.option(
-      fc.constantFrom('teamName', 'member2Email', 'problemStatement', 'ideaTitle', 'college', 'hearAbout'),
+      fc.constantFrom(
+        'teamName',
+        'member2Email',
+        'problemStatement',
+        'ideaTitle',
+        'college',
+        'hearAbout'
+      ),
       { nil: null }
     ),
     action: fc.option(fc.constantFrom('CREATE', 'UPDATE', 'DELETE'), { nil: null }),
-    fromDate: fc.option(
-      fc.date({ min: new Date('2024-01-01'), max: new Date('2024-06-30') }),
-      { nil: null }
-    ),
-    toDate: fc.option(
-      fc.date({ min: new Date('2024-07-01'), max: new Date('2024-12-31') }),
-      { nil: null }
-    ),
+    fromDate: fc.option(fc.date({ min: new Date('2024-01-01'), max: new Date('2024-06-30') }), {
+      nil: null,
+    }),
+    toDate: fc.option(fc.date({ min: new Date('2024-07-01'), max: new Date('2024-12-31') }), {
+      nil: null,
+    }),
   });
 }
 
@@ -168,7 +173,7 @@ describe('Audit Trail API - Property 5: Filter Composition', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     // Setup default mocks
     (prisma.adminSession.findUnique as any).mockResolvedValue(mockAdminSession as any);
     (prisma.team.findUnique as any).mockResolvedValue(mockTeam as any);
@@ -181,8 +186,8 @@ describe('Audit Trail API - Property 5: Filter Composition', () => {
         filterGenerator(),
         async (generatedLogs, filters) => {
           // Filter out logs with invalid timestamps
-          const validLogs = generatedLogs.filter(log => !isNaN(log.timestamp.getTime()));
-          
+          const validLogs = generatedLogs.filter((log) => !isNaN(log.timestamp.getTime()));
+
           // Skip test if we don't have enough valid logs
           if (validLogs.length < 10) {
             return true;
@@ -197,16 +202,18 @@ describe('Audit Trail API - Property 5: Filter Composition', () => {
           }
 
           // Skip if no filters are applied (not testing filter composition)
-          const hasFilters = filters.userId || filters.fieldName || filters.action || 
-                            filters.fromDate || filters.toDate;
+          const hasFilters =
+            filters.userId ||
+            filters.fieldName ||
+            filters.action ||
+            filters.fromDate ||
+            filters.toDate;
           if (!hasFilters) {
             return true;
           }
 
           // Manually filter logs to match expected behavior
-          const expectedFilteredLogs = validLogs.filter(log => 
-            logMatchesFilters(log, filters)
-          );
+          const expectedFilteredLogs = validLogs.filter((log) => logMatchesFilters(log, filters));
 
           // Sort by timestamp descending (as API does)
           const sortedExpectedLogs = [...expectedFilteredLogs].sort(
@@ -290,7 +297,7 @@ describe('Audit Trail API - Property 5: Filter Composition', () => {
 
           // Filter logs within date range
           const filteredLogs = generatedLogs.filter(
-            log => log.timestamp >= fromDate && log.timestamp <= toDate
+            (log) => log.timestamp >= fromDate && log.timestamp <= toDate
           );
 
           // Sort by timestamp descending
@@ -332,7 +339,7 @@ describe('Audit Trail API - Property 5: Filter Composition', () => {
         fc.constantFrom('user-1', 'user-2', 'user-3'),
         async (generatedLogs, userId) => {
           // Filter logs by userId
-          const filteredLogs = generatedLogs.filter(log => log.userId === userId);
+          const filteredLogs = generatedLogs.filter((log) => log.userId === userId);
 
           // Sort by timestamp descending
           const sortedLogs = [...filteredLogs].sort(
@@ -371,7 +378,7 @@ describe('Audit Trail API - Property 5: Filter Composition', () => {
         fc.constantFrom('teamName', 'member2Email', 'problemStatement'),
         async (generatedLogs, fieldName) => {
           // Filter logs by fieldName
-          const filteredLogs = generatedLogs.filter(log => log.fieldName === fieldName);
+          const filteredLogs = generatedLogs.filter((log) => log.fieldName === fieldName);
 
           // Sort by timestamp descending
           const sortedLogs = [...filteredLogs].sort(
@@ -410,7 +417,7 @@ describe('Audit Trail API - Property 5: Filter Composition', () => {
         fc.constantFrom('CREATE', 'UPDATE', 'DELETE'),
         async (generatedLogs, action) => {
           // Filter logs by action
-          const filteredLogs = generatedLogs.filter(log => log.action === action);
+          const filteredLogs = generatedLogs.filter((log) => log.action === action);
 
           // Sort by timestamp descending
           const sortedLogs = [...filteredLogs].sort(
@@ -451,7 +458,7 @@ describe('Audit Trail API - Property 5: Filter Composition', () => {
         async (generatedLogs, userId, fieldName) => {
           // Filter logs by both userId and fieldName
           const filteredLogs = generatedLogs.filter(
-            log => log.userId === userId && log.fieldName === fieldName
+            (log) => log.userId === userId && log.fieldName === fieldName
           );
 
           // Sort by timestamp descending
@@ -495,9 +502,7 @@ describe('Audit Trail API - Property 5: Filter Composition', () => {
         async (generatedLogs, action, fromDate, toDate) => {
           // Filter logs by action and date range
           const filteredLogs = generatedLogs.filter(
-            log => log.action === action && 
-                   log.timestamp >= fromDate && 
-                   log.timestamp <= toDate
+            (log) => log.action === action && log.timestamp >= fromDate && log.timestamp <= toDate
           );
 
           // Sort by timestamp descending
@@ -540,7 +545,7 @@ describe('Audit Trail API - Property 5: Filter Composition', () => {
         async (generatedLogs) => {
           // Use a userId that doesn't exist in the generated logs
           const nonExistentUserId = 'user-nonexistent-999';
-          
+
           // Filter should return empty
           const filteredLogs: any[] = [];
 

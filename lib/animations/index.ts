@@ -1,11 +1,17 @@
 /**
  * Animation System - Main Export
- * 
+ *
  * Central export point for all animation utilities, hooks, and components.
  */
 
 // Configuration
-export { animationConfig, getAnimationDuration, getStaggerDelay, validateConfig, mergeConfig } from './config';
+export {
+  animationConfig,
+  getAnimationDuration,
+  getStaggerDelay,
+  validateConfig,
+  mergeConfig,
+} from './config';
 export type { AnimationConfig } from './config';
 
 // Variants

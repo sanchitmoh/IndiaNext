@@ -1,6 +1,6 @@
 /**
  * Unit Tests: ChangeItem Component
- * 
+ *
  * Tests the ChangeItem component functionality:
  * - Displays field name formatted for readability
  * - Displays old value → new value for UPDATE
@@ -77,10 +77,10 @@ describe('ChangeItem Component', () => {
       };
 
       const { container } = render(<ChangeItem change={change} />);
-      
+
       expect(screen.getByText('Added:')).toBeInTheDocument();
       expect(screen.getByText('"New notes added"')).toBeInTheDocument();
-      
+
       // Check for green color class
       const listItem = container.querySelector('li');
       expect(listItem?.className).toContain('text-emerald-400');
@@ -102,7 +102,7 @@ describe('ChangeItem Component', () => {
       };
 
       render(<ChangeItem change={change} />);
-      
+
       // Should show truncated text
       expect(screen.getByText(/"A{100}\.\.\."/)).toBeInTheDocument();
     });
@@ -124,10 +124,10 @@ describe('ChangeItem Component', () => {
       };
 
       const { container } = render(<ChangeItem change={change} />);
-      
+
       expect(screen.getByText('Removed:')).toBeInTheDocument();
       expect(screen.getByText('"removed@example.com"')).toBeInTheDocument();
-      
+
       // Check for red color class
       const listItem = container.querySelector('li');
       expect(listItem?.className).toContain('text-red-400');
@@ -149,7 +149,7 @@ describe('ChangeItem Component', () => {
       };
 
       render(<ChangeItem change={change} />);
-      
+
       // Should show truncated text
       expect(screen.getByText(/"B{100}\.\.\."/)).toBeInTheDocument();
     });
@@ -171,11 +171,11 @@ describe('ChangeItem Component', () => {
       };
 
       const { container } = render(<ChangeItem change={change} />);
-      
+
       expect(screen.getByText('"Old Team Name"')).toBeInTheDocument();
       expect(screen.getByText('→')).toBeInTheDocument();
       expect(screen.getByText('"New Team Name"')).toBeInTheDocument();
-      
+
       // Check for yellow color class
       const listItem = container.querySelector('li');
       expect(listItem?.className).toContain('text-amber-400');
@@ -198,7 +198,7 @@ describe('ChangeItem Component', () => {
       };
 
       render(<ChangeItem change={change} />);
-      
+
       // Should show truncated text (50 chars for UPDATE)
       expect(screen.getByText(/"C{50}\.\.\."/)).toBeInTheDocument();
       expect(screen.getByText(/"D{50}\.\.\."/)).toBeInTheDocument();
@@ -222,7 +222,7 @@ describe('ChangeItem Component', () => {
       };
 
       render(<ChangeItem change={change} />);
-      
+
       expect(screen.getByText('View Full Diff')).toBeInTheDocument();
     });
 
@@ -241,7 +241,7 @@ describe('ChangeItem Component', () => {
       };
 
       render(<ChangeItem change={change} />);
-      
+
       expect(screen.queryByText('View Full Diff')).not.toBeInTheDocument();
     });
 
@@ -261,22 +261,22 @@ describe('ChangeItem Component', () => {
       };
 
       render(<ChangeItem change={change} />);
-      
+
       // Initially shows truncated text
       expect(screen.getByText(/"F{100}\.\.\."/)).toBeInTheDocument();
       expect(screen.queryByText(`"${longText}"`)).not.toBeInTheDocument();
-      
+
       // Click "View Full Diff" button
       const button = screen.getByText('View Full Diff');
       fireEvent.click(button);
-      
+
       // Should now show full text
       expect(screen.getByText(`"${longText}"`)).toBeInTheDocument();
       expect(screen.getByText('Hide Full Diff')).toBeInTheDocument();
-      
+
       // Click "Hide Full Diff" button
       fireEvent.click(screen.getByText('Hide Full Diff'));
-      
+
       // Should show truncated text again
       expect(screen.getByText(/"F{100}\.\.\."/)).toBeInTheDocument();
       expect(screen.getByText('View Full Diff')).toBeInTheDocument();
@@ -298,7 +298,7 @@ describe('ChangeItem Component', () => {
       };
 
       render(<ChangeItem change={change} />);
-      
+
       expect(screen.getByText('View Full Diff')).toBeInTheDocument();
     });
 
@@ -318,7 +318,7 @@ describe('ChangeItem Component', () => {
       };
 
       render(<ChangeItem change={change} />);
-      
+
       expect(screen.getByText('View Full Diff')).toBeInTheDocument();
     });
 
@@ -339,15 +339,15 @@ describe('ChangeItem Component', () => {
       };
 
       render(<ChangeItem change={change} />);
-      
+
       // Initially shows truncated text
       expect(screen.getByText(/"I{50}\.\.\."/)).toBeInTheDocument();
       expect(screen.getByText(/"J{50}\.\.\."/)).toBeInTheDocument();
-      
+
       // Click "View Full Diff" button
       const button = screen.getByText('View Full Diff');
       fireEvent.click(button);
-      
+
       // Should now show full text for both values
       expect(screen.getByText(`"${longOldText}"`)).toBeInTheDocument();
       expect(screen.getByText(`"${longNewText}"`)).toBeInTheDocument();
@@ -370,7 +370,7 @@ describe('ChangeItem Component', () => {
       };
 
       render(<ChangeItem change={change} />);
-      
+
       expect(screen.getByText('Additional Notes:')).toBeInTheDocument();
     });
 
@@ -390,7 +390,7 @@ describe('ChangeItem Component', () => {
       };
 
       render(<ChangeItem change={change} />);
-      
+
       // Should not show "View Full Diff" button for exactly 100 chars
       expect(screen.queryByText('View Full Diff')).not.toBeInTheDocument();
       expect(screen.getByText(`"${exactText}"`)).toBeInTheDocument();
@@ -412,7 +412,7 @@ describe('ChangeItem Component', () => {
       };
 
       render(<ChangeItem change={change} />);
-      
+
       // Should show "View Full Diff" button for 101 chars
       expect(screen.getByText('View Full Diff')).toBeInTheDocument();
     });

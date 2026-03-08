@@ -1,6 +1,6 @@
 /**
  * Integration Tests for API Improvements
- * 
+ *
  * Tests caching, input sanitization, and error handling
  */
 
@@ -14,24 +14,21 @@ import {
   containsXss,
   containsSqlInjection,
 } from '@/lib/input-sanitizer';
-import {
-  createErrorResponse,
-  getStatusCode,
-} from '@/lib/error-handler';
+import { createErrorResponse, getStatusCode } from '@/lib/error-handler';
 
 describe('Redis Caching', () => {
   const testKey = 'test:key';
-  
+
   afterEach(async () => {
     await cacheDelete(testKey);
   });
 
   it('should cache and retrieve values', async () => {
     const testData = { message: 'Hello, World!' };
-    
+
     await cacheSet(testKey, testData, { ttl: 60 });
     const result = await cacheGet(testKey);
-    
+
     expect(result).toEqual(testData);
   });
 
@@ -42,7 +39,7 @@ describe('Redis Caching', () => {
 
   it('should use cacheGetOrSet correctly', async () => {
     let fetchCount = 0;
-    
+
     const fetcher = async () => {
       fetchCount++;
       return { data: 'test' };
@@ -175,11 +172,7 @@ describe('Input Sanitization', () => {
 describe('Error Handling', () => {
   describe('createErrorResponse', () => {
     it('should create standard error response', () => {
-      const error = createErrorResponse(
-        'VALIDATION_ERROR',
-        'Invalid input',
-        { field: 'email' }
-      );
+      const error = createErrorResponse('VALIDATION_ERROR', 'Invalid input', { field: 'email' });
 
       expect(error.success).toBe(false);
       expect(error.error).toBe('VALIDATION_ERROR');
@@ -221,10 +214,7 @@ describe('Integration: Sanitization + Error Handling', () => {
     const sanitized = sanitizeObject(input);
 
     if (containsXss(sanitized.teamName)) {
-      const error = createErrorResponse(
-        'VALIDATION_ERROR',
-        'Invalid input detected'
-      );
+      const error = createErrorResponse('VALIDATION_ERROR', 'Invalid input detected');
 
       expect(error.error).toBe('VALIDATION_ERROR');
       expect(getStatusCode(error.error)).toBe(400);

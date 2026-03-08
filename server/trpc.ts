@@ -17,13 +17,13 @@
 // These are NOT duplicate systems — they serve different auth models.
 // ─────────────────────────────────────────────────────────────
 
-import { initTRPC, TRPCError } from "@trpc/server";
-import { type FetchCreateContextFnOptions } from "@trpc/server/adapters/fetch";
-import superjson from "superjson";
-import { ZodError } from "zod";
-import { prisma } from "@/lib/prisma";
-import { hashSessionToken, SESSION_CONFIGS } from "@/lib/session-security";
-import { checkRateLimit } from "@/lib/rate-limit";
+import { initTRPC, TRPCError } from '@trpc/server';
+import { type FetchCreateContextFnOptions } from '@trpc/server/adapters/fetch';
+import superjson from 'superjson';
+import { ZodError } from 'zod';
+import { prisma } from '@/lib/prisma';
+import { hashSessionToken, SESSION_CONFIGS } from '@/lib/session-security';
+import { checkRateLimit } from '@/lib/rate-limit';
 
 /**
  * Parse cookies from a raw Cookie header string.
@@ -96,10 +96,12 @@ export async function createContext(opts: FetchCreateContextFnOptions) {
         };
         // Extend expiry on activity (non-blocking refresh)
         const newExpiry = new Date(now.getTime() + maxAge);
-        prisma.adminSession.update({
-          where: { id: adminData.id },
-          data: { expiresAt: newExpiry },
-        }).catch(() => {});
+        prisma.adminSession
+          .update({
+            where: { id: adminData.id },
+            data: { expiresAt: newExpiry },
+          })
+          .catch(() => {});
       }
     }
   }
@@ -124,8 +126,7 @@ const t = initTRPC.context<Context>().create({
       ...shape,
       data: {
         ...shape.data,
-        zodError:
-          error.cause instanceof ZodError ? error.cause.flatten() : null,
+        zodError: error.cause instanceof ZodError ? error.cause.flatten() : null,
         timestamp: new Date().toISOString(),
         // Include stack trace in development
         ...(process.env.NODE_ENV === 'development' && {
@@ -143,7 +144,7 @@ export const publicProcedure = t.procedure;
 // Auth middleware
 const isAuthed = t.middleware(({ ctx, next }) => {
   if (!ctx.session?.user) {
-    throw new TRPCError({ code: "UNAUTHORIZED", message: "Not authenticated" });
+    throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Not authenticated' });
   }
   return next({
     ctx: {
@@ -155,9 +156,9 @@ const isAuthed = t.middleware(({ ctx, next }) => {
 // Admin middleware — checks admin_token cookie → Admin table
 const isAdmin = t.middleware(({ ctx, next }) => {
   if (!ctx.adminSession?.admin) {
-    throw new TRPCError({ code: "UNAUTHORIZED", message: "Admin access required" });
+    throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Admin access required' });
   }
-  
+
   return next({
     ctx: {
       ...ctx,
@@ -199,22 +200,22 @@ import { checkPermission } from '@/lib/rbac-permissions';
 /**
  * Create a permission-based middleware guard
  * Usage: requirePermission('viewTeams') or requirePermission('VIEW_ALL_TEAMS')
- * 
+ *
  * ✅ UNIFIED RBAC: Uses checkPermission which handles both tRPC-style and auth-admin-style names
  */
 function requirePermission(permission: string) {
   return t.middleware(({ ctx, next }) => {
     if (!ctx.adminSession?.admin) {
-      throw new TRPCError({ code: "UNAUTHORIZED", message: "Admin access required" });
+      throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Admin access required' });
     }
-    
+
     if (!checkPermission(ctx.adminSession.admin.role, permission)) {
-      throw new TRPCError({ 
-        code: "FORBIDDEN", 
-        message: `Insufficient permissions. Required: ${permission}` 
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+        message: `Insufficient permissions. Required: ${permission}`,
       });
     }
-    
+
     return next({
       ctx: {
         ...ctx,

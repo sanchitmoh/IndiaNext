@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useState, useCallback } from "react";
-import { AdminSidebar } from "./AdminSidebar";
-import { AdminHeader } from "./AdminHeader";
+import { useState, useCallback } from 'react';
+import { AdminSidebar } from './AdminSidebar';
+import { AdminHeader } from './AdminHeader';
 
 interface AdminUser {
   id: string;
@@ -11,13 +11,7 @@ interface AdminUser {
   role: string;
 }
 
-export function AdminShell({
-  user,
-  children,
-}: {
-  user: AdminUser;
-  children: React.ReactNode;
-}) {
+export function AdminShell({ user, children }: { user: AdminUser; children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const toggleSidebar = useCallback(() => setSidebarOpen((v) => !v), []);

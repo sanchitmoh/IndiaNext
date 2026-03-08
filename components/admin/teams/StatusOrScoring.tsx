@@ -1,14 +1,14 @@
 /**
  * Status or Scoring Component
- * 
+ *
  * Shows different UI based on admin role:
  * - Judges: Criteria-based scoring rubric (only for APPROVED teams)
  * - Others: Status management interface
  */
 
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
+import { useState, useEffect } from 'react';
 import {
   CheckCircle,
   XCircle,
@@ -21,14 +21,14 @@ import {
   MessageSquare,
   ChevronDown,
   ChevronUp,
-} from "lucide-react";
-import { ScoringRubric } from "./ScoringRubric";
+} from 'lucide-react';
+import { ScoringRubric } from './ScoringRubric';
 
 interface StatusOrScoringProps {
   userRole: string;
   teamId: string;
   teamStatus: string;
-  teamTrack: "IDEA_SPRINT" | "BUILD_STORM";
+  teamTrack: 'IDEA_SPRINT' | 'BUILD_STORM';
   currentScore: number | null; // used by parent for display
   currentComments: string | null; // used by parent for display
   reviewNotes: string | null;
@@ -38,34 +38,35 @@ interface StatusOrScoringProps {
 
 const statusActions = [
   {
-    status: "APPROVED",
-    label: "Approve",
+    status: 'APPROVED',
+    label: 'Approve',
     icon: CheckCircle,
-    color: "bg-emerald-500/15 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/25",
+    color:
+      'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/25',
   },
   {
-    status: "REJECTED",
-    label: "Reject",
+    status: 'REJECTED',
+    label: 'Reject',
     icon: XCircle,
-    color: "bg-red-500/15 text-red-400 border border-red-500/20 hover:bg-red-500/25",
+    color: 'bg-red-500/15 text-red-400 border border-red-500/20 hover:bg-red-500/25',
   },
   {
-    status: "UNDER_REVIEW",
-    label: "Under Review",
+    status: 'UNDER_REVIEW',
+    label: 'Under Review',
     icon: Eye,
-    color: "bg-cyan-500/15 text-cyan-400 border border-cyan-500/20 hover:bg-cyan-500/25",
+    color: 'bg-cyan-500/15 text-cyan-400 border border-cyan-500/20 hover:bg-cyan-500/25',
   },
   {
-    status: "WAITLISTED",
-    label: "Waitlist",
+    status: 'WAITLISTED',
+    label: 'Waitlist',
     icon: AlertTriangle,
-    color: "bg-orange-500/15 text-orange-400 border border-orange-500/20 hover:bg-orange-500/25",
+    color: 'bg-orange-500/15 text-orange-400 border border-orange-500/20 hover:bg-orange-500/25',
   },
   {
-    status: "PENDING",
-    label: "Reset to Pending",
+    status: 'PENDING',
+    label: 'Reset to Pending',
     icon: Clock,
-    color: "bg-white/[0.05] text-gray-300 border border-white/[0.08] hover:bg-white/[0.08]",
+    color: 'bg-white/[0.05] text-gray-300 border border-white/[0.08] hover:bg-white/[0.08]',
   },
 ];
 
@@ -80,7 +81,7 @@ export function StatusOrScoring({
   onStatusUpdate,
   onScoreUpdate: _onScoreUpdate,
 }: StatusOrScoringProps) {
-  const [statusNote, setStatusNote] = useState("");
+  const [statusNote, setStatusNote] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [criteria, setCriteria] = useState<any[]>([]);
   const [existingScores, setExistingScores] = useState<any[]>([]);
@@ -89,7 +90,7 @@ export function StatusOrScoring({
 
   // Load rubric data for judges AND admins (admins see all judge scores)
   useEffect(() => {
-    if (teamStatus === "APPROVED") {
+    if (teamStatus === 'APPROVED') {
       loadRubricData();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -100,23 +101,23 @@ export function StatusOrScoring({
     try {
       const res = await fetch(`/api/admin/teams/score-rubric?teamId=${teamId}`);
       const data = await res.json();
-      
+
       if (data.success) {
         setCriteria(data.data.criteria);
         setExistingScores(data.data.scores);
         setMultiJudge(data.data.multiJudge || null);
       }
     } catch (error) {
-      console.error("Failed to load rubric data:", error);
+      console.error('Failed to load rubric data:', error);
     } finally {
       setIsLoadingRubric(false);
     }
   };
 
   // Judges see scoring rubric
-  if (userRole === "JUDGE") {
+  if (userRole === 'JUDGE') {
     // Judges can only score APPROVED teams
-    if (teamStatus !== "APPROVED") {
+    if (teamStatus !== 'APPROVED') {
       return (
         <div className="bg-[#0A0A0A] rounded-lg border border-yellow-500/20 p-5">
           <div className="flex items-center gap-3 text-yellow-400">
@@ -144,17 +145,17 @@ export function StatusOrScoring({
     }
 
     const handleRubricScoreUpdate = async (scores: any[]) => {
-      const res = await fetch("/api/admin/teams/score-rubric", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const res = await fetch('/api/admin/teams/score-rubric', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ teamId, scores }),
       });
-      
+
       const data = await res.json();
       if (!data.success) {
-        throw new Error(data.message || "Failed to submit scores");
+        throw new Error(data.message || 'Failed to submit scores');
       }
-      
+
       // Reload rubric data to show updated scores
       await loadRubricData();
     };
@@ -172,7 +173,7 @@ export function StatusOrScoring({
   }
 
   // LOGISTICS and ORGANIZER roles: read-only status view (no update buttons)
-  if (userRole === "LOGISTICS" || userRole === "ORGANIZER") {
+  if (userRole === 'LOGISTICS' || userRole === 'ORGANIZER') {
     return (
       <div className="space-y-4">
         <div className="bg-[#0A0A0A] rounded-lg border border-white/[0.06] p-5">
@@ -180,15 +181,19 @@ export function StatusOrScoring({
             TEAM_STATUS
           </h3>
           <div className="flex items-center gap-3">
-            <span className={`text-[10px] font-mono font-bold px-2 py-1 rounded border ${{
-              PENDING: "bg-amber-500/10 text-amber-400 border-amber-500/20",
-              UNDER_REVIEW: "bg-cyan-500/10 text-cyan-400 border-cyan-500/20",
-              APPROVED: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-              REJECTED: "bg-red-500/10 text-red-400 border-red-500/20",
-              WAITLISTED: "bg-orange-500/10 text-orange-400 border-orange-500/20",
-              WITHDRAWN: "bg-gray-500/10 text-gray-400 border-gray-500/20",
-            }[teamStatus] || "bg-white/[0.03] text-gray-400 border-white/[0.06]"}`}>
-              {teamStatus.replace("_", " ")}
+            <span
+              className={`text-[10px] font-mono font-bold px-2 py-1 rounded border ${
+                {
+                  PENDING: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+                  UNDER_REVIEW: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20',
+                  APPROVED: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+                  REJECTED: 'bg-red-500/10 text-red-400 border-red-500/20',
+                  WAITLISTED: 'bg-orange-500/10 text-orange-400 border-orange-500/20',
+                  WITHDRAWN: 'bg-gray-500/10 text-gray-400 border-gray-500/20',
+                }[teamStatus] || 'bg-white/[0.03] text-gray-400 border-white/[0.06]'
+              }`}
+            >
+              {teamStatus.replace('_', ' ')}
             </span>
             <span className="text-[10px] font-mono text-gray-600">Read-only</span>
           </div>
@@ -201,7 +206,7 @@ export function StatusOrScoring({
         </div>
 
         {/* Judge Scores Panel (visible to logistics/organizers when scores exist) */}
-        {teamStatus === "APPROVED" && (
+        {teamStatus === 'APPROVED' && (
           <AdminJudgeScoresPanel
             criteria={criteria}
             multiJudge={multiJudge}
@@ -238,7 +243,7 @@ export function StatusOrScoring({
                   setIsSubmitting(true);
                   try {
                     await onStatusUpdate(action.status, statusNote || undefined);
-                    setStatusNote("");
+                    setStatusNote('');
                   } finally {
                     setIsSubmitting(false);
                   }
@@ -261,7 +266,7 @@ export function StatusOrScoring({
       </div>
 
       {/* Judge Scores Panel (visible to admins when scores exist) */}
-      {teamStatus === "APPROVED" && (
+      {teamStatus === 'APPROVED' && (
         <AdminJudgeScoresPanel
           criteria={criteria}
           multiJudge={multiJudge}
@@ -325,7 +330,7 @@ function AdminJudgeScoresPanel({
             JUDGE_SCORES
           </h3>
           <span className="text-[10px] font-mono text-gray-600 bg-white/[0.04] px-2 py-0.5 rounded">
-            {multiJudge.judgeCount} judge{multiJudge.judgeCount !== 1 ? "s" : ""}
+            {multiJudge.judgeCount} judge{multiJudge.judgeCount !== 1 ? 's' : ''}
           </span>
         </div>
         {multiJudge.averageScore !== null && (
@@ -383,15 +388,13 @@ function AdminJudgeScoresPanel({
               {/* Judge row — clickable to expand */}
               <button
                 onClick={() =>
-                  setExpandedJudge(
-                    expandedJudge === judge.judgeId ? null : judge.judgeId
-                  )
+                  setExpandedJudge(expandedJudge === judge.judgeId ? null : judge.judgeId)
                 }
                 className="w-full flex items-center gap-3 p-3 text-left"
               >
                 {/* Avatar */}
                 <div className="w-8 h-8 rounded-md bg-gradient-to-br from-amber-500/20 to-amber-600/10 border border-amber-500/20 flex items-center justify-center text-xs font-mono font-bold text-amber-400 shrink-0">
-                  {judge.judgeName?.charAt(0)?.toUpperCase() || "J"}
+                  {judge.judgeName?.charAt(0)?.toUpperCase() || 'J'}
                 </div>
 
                 <div className="flex-1 min-w-0">
@@ -449,7 +452,9 @@ function AdminJudgeScoresPanel({
                             <div className="flex items-center gap-3">
                               <span className="text-sm font-mono font-bold text-amber-400">
                                 {points}
-                                <span className="text-gray-600 font-normal">/{criterion.maxPoints}</span>
+                                <span className="text-gray-600 font-normal">
+                                  /{criterion.maxPoints}
+                                </span>
                               </span>
                               {avg && avg.count > 1 && (
                                 <span className="text-[9px] font-mono text-cyan-400/70 flex items-center gap-0.5">
@@ -480,7 +485,9 @@ function AdminJudgeScoresPanel({
 
                   {/* Judge's weighted breakdown */}
                   <div className="mt-3 p-2 bg-amber-500/5 border border-amber-500/10 rounded-md">
-                    <div className="text-[9px] font-mono text-gray-500 mb-1">WEIGHTED_BREAKDOWN:</div>
+                    <div className="text-[9px] font-mono text-gray-500 mb-1">
+                      WEIGHTED_BREAKDOWN:
+                    </div>
                     <div className="flex flex-wrap gap-x-4 gap-y-0.5">
                       {criteria.map((criterion: any) => {
                         const judgeScore = judge.scores?.find(
@@ -491,7 +498,7 @@ function AdminJudgeScoresPanel({
                         const weightedScore = (normalizedScore * criterion.weight) / 100;
                         return (
                           <span key={criterion.id} className="text-[10px] font-mono text-gray-500">
-                            {criterion.name.split(" ")[0]}:{" "}
+                            {criterion.name.split(' ')[0]}:{' '}
                             <span className="text-amber-400">{weightedScore.toFixed(1)}</span>
                           </span>
                         );
@@ -518,13 +525,24 @@ function AdminJudgeScoresPanel({
             <table className="w-full text-xs font-mono">
               <thead>
                 <tr className="border-b border-white/[0.06]">
-                  <th className="text-left text-[9px] text-gray-500 font-bold tracking-wider py-2 pr-4">CRITERION</th>
-                  <th className="text-center text-[9px] text-gray-500 font-bold tracking-wider py-2 px-2">AVG</th>
-                  <th className="text-center text-[9px] text-gray-500 font-bold tracking-wider py-2 px-2">MIN</th>
-                  <th className="text-center text-[9px] text-gray-500 font-bold tracking-wider py-2 px-2">MAX</th>
+                  <th className="text-left text-[9px] text-gray-500 font-bold tracking-wider py-2 pr-4">
+                    CRITERION
+                  </th>
+                  <th className="text-center text-[9px] text-gray-500 font-bold tracking-wider py-2 px-2">
+                    AVG
+                  </th>
+                  <th className="text-center text-[9px] text-gray-500 font-bold tracking-wider py-2 px-2">
+                    MIN
+                  </th>
+                  <th className="text-center text-[9px] text-gray-500 font-bold tracking-wider py-2 px-2">
+                    MAX
+                  </th>
                   {judges.map((j: any) => (
-                    <th key={j.judgeId} className="text-center text-[9px] text-gray-500 font-bold tracking-wider py-2 px-2 max-w-[60px] truncate">
-                      {j.judgeName?.split(" ")[0] || "Judge"}
+                    <th
+                      key={j.judgeId}
+                      className="text-center text-[9px] text-gray-500 font-bold tracking-wider py-2 px-2 max-w-[60px] truncate"
+                    >
+                      {j.judgeName?.split(' ')[0] || 'Judge'}
                     </th>
                   ))}
                 </tr>
@@ -537,17 +555,19 @@ function AdminJudgeScoresPanel({
                       <td className="py-2 pr-4">
                         <div className="flex items-center gap-2">
                           <span className="text-gray-300">{criterion.name}</span>
-                          <span className="text-[9px] text-amber-500/60">({criterion.weight}%)</span>
+                          <span className="text-[9px] text-amber-500/60">
+                            ({criterion.weight}%)
+                          </span>
                         </div>
                       </td>
                       <td className="text-center py-2 px-2">
-                        <span className="text-cyan-400 font-bold">{avg?.average ?? "-"}</span>
+                        <span className="text-cyan-400 font-bold">{avg?.average ?? '-'}</span>
                       </td>
                       <td className="text-center py-2 px-2">
-                        <span className="text-gray-500">{avg?.min ?? "-"}</span>
+                        <span className="text-gray-500">{avg?.min ?? '-'}</span>
                       </td>
                       <td className="text-center py-2 px-2">
-                        <span className="text-gray-500">{avg?.max ?? "-"}</span>
+                        <span className="text-gray-500">{avg?.max ?? '-'}</span>
                       </td>
                       {judges.map((judge: any) => {
                         const judgeScore = judge.scores?.find(
@@ -555,15 +575,15 @@ function AdminJudgeScoresPanel({
                         );
                         const points = judgeScore?.points;
                         // Color-code: green if above avg, red if below, neutral otherwise
-                        let color = "text-gray-400";
+                        let color = 'text-gray-400';
                         if (avg && points !== undefined && avg.count > 1) {
-                          if (points > avg.average + 1) color = "text-emerald-400";
-                          else if (points < avg.average - 1) color = "text-red-400";
+                          if (points > avg.average + 1) color = 'text-emerald-400';
+                          else if (points < avg.average - 1) color = 'text-red-400';
                         }
                         return (
                           <td key={judge.judgeId} className="text-center py-2 px-2">
                             <span className={`font-bold ${color}`}>
-                              {points !== undefined ? points : "-"}
+                              {points !== undefined ? points : '-'}
                             </span>
                           </td>
                         );

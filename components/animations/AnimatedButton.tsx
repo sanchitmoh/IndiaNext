@@ -1,6 +1,6 @@
 /**
  * AnimatedButton Component
- * 
+ *
  * Interactive button with hover, press, and focus animations.
  * Uses spring physics for smooth, natural feel.
  */

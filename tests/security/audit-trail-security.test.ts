@@ -1,12 +1,12 @@
 /**
  * Security Tests: Admin Audit Trail
- * 
+ *
  * Tests security requirements for the audit trail feature:
  * - Non-admin users cannot access audit trail
  * - Audit logs cannot be modified or deleted
  * - SQL injection prevention in filters
  * - XSS prevention in displayed values
- * 
+ *
  * Requirements: NFR-1 (Security)
  */
 
@@ -55,13 +55,13 @@ describe('Audit Trail Security Tests', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     // Default mock for team existence
     (prisma.team.findUnique as any).mockResolvedValue({
       id: testTeamId,
       name: 'Test Team',
     });
-    
+
     // Default mock for audit logs
     (prisma.auditLog.findMany as any).mockResolvedValue([]);
     (prisma.auditLog.count as any).mockResolvedValue(0);
@@ -93,7 +93,7 @@ describe('Audit Trail Security Tests', () => {
       (cookies as any).mockResolvedValue({
         get: vi.fn().mockReturnValue({ value: invalidToken }),
       });
-      
+
       (prisma.adminSession.findUnique as any).mockResolvedValue(null);
 
       const req = new Request(`http://localhost/api/admin/teams/${testTeamId}/audit`);
@@ -110,7 +110,7 @@ describe('Audit Trail Security Tests', () => {
       (cookies as any).mockResolvedValue({
         get: vi.fn().mockReturnValue({ value: validAdminToken }),
       });
-      
+
       const expiredDate = new Date(Date.now() - 1000 * 60 * 60); // 1 hour ago
       (prisma.adminSession.findUnique as any).mockResolvedValue({
         token: `hashed_${validAdminToken}`,
@@ -135,7 +135,7 @@ describe('Audit Trail Security Tests', () => {
       (cookies as any).mockResolvedValue({
         get: vi.fn().mockReturnValue({ value: validUserToken }),
       });
-      
+
       const futureDate = new Date(Date.now() + 1000 * 60 * 60); // 1 hour from now
       (prisma.adminSession.findUnique as any).mockResolvedValue({
         token: `hashed_${validUserToken}`,
@@ -161,7 +161,7 @@ describe('Audit Trail Security Tests', () => {
       (cookies as any).mockResolvedValue({
         get: vi.fn().mockReturnValue({ value: validAdminToken }),
       });
-      
+
       const futureDate = new Date(Date.now() + 1000 * 60 * 60);
       (prisma.adminSession.findUnique as any).mockResolvedValue({
         token: `hashed_${validAdminToken}`,
@@ -185,7 +185,7 @@ describe('Audit Trail Security Tests', () => {
       (cookies as any).mockResolvedValue({
         get: vi.fn().mockReturnValue({ value: validAdminToken }),
       });
-      
+
       const futureDate = new Date(Date.now() + 1000 * 60 * 60);
       (prisma.adminSession.findUnique as any).mockResolvedValue({
         token: `hashed_${validAdminToken}`,
@@ -209,11 +209,11 @@ describe('Audit Trail Security Tests', () => {
     it('should not expose update operations on audit logs', async () => {
       // Verify that the Prisma mock for update is never called
       // This test ensures the API doesn't provide update functionality
-      
+
       (cookies as any).mockResolvedValue({
         get: vi.fn().mockReturnValue({ value: validAdminToken }),
       });
-      
+
       const futureDate = new Date(Date.now() + 1000 * 60 * 60);
       (prisma.adminSession.findUnique as any).mockResolvedValue({
         token: `hashed_${validAdminToken}`,
@@ -237,7 +237,7 @@ describe('Audit Trail Security Tests', () => {
       (cookies as any).mockResolvedValue({
         get: vi.fn().mockReturnValue({ value: validAdminToken }),
       });
-      
+
       const futureDate = new Date(Date.now() + 1000 * 60 * 60);
       (prisma.adminSession.findUnique as any).mockResolvedValue({
         token: `hashed_${validAdminToken}`,
@@ -254,7 +254,7 @@ describe('Audit Trail Security Tests', () => {
       // Verify only read operations are called
       expect(prisma.auditLog.findMany).toHaveBeenCalled();
       expect(prisma.auditLog.count).toHaveBeenCalled();
-      
+
       // Verify no write operations
       expect(prisma.auditLog.update).not.toHaveBeenCalled();
       expect(prisma.auditLog.delete).not.toHaveBeenCalled();
@@ -267,7 +267,7 @@ describe('Audit Trail Security Tests', () => {
       (cookies as any).mockResolvedValue({
         get: vi.fn().mockReturnValue({ value: validAdminToken }),
       });
-      
+
       const futureDate = new Date(Date.now() + 1000 * 60 * 60);
       (prisma.adminSession.findUnique as any).mockResolvedValue({
         token: `hashed_${validAdminToken}`,
@@ -293,18 +293,20 @@ describe('Audit Trail Security Tests', () => {
         const req = new Request(
           `http://localhost/api/admin/teams/${testTeamId}/audit?search=${encodeURIComponent(maliciousInput)}`
         );
-        
+
         const response = await GET(req, { params: { teamId: testTeamId } });
         const data = await response.json();
 
         // Should return 200 (treated as normal search string)
         expect(response.status).toBe(200);
         expect(data.success).toBe(true);
-        
+
         // Verify Prisma was called with safe parameterized query
         expect(prisma.auditLog.findMany).toHaveBeenCalled();
-        const callArgs = (prisma.auditLog.findMany as any).mock.calls[(prisma.auditLog.findMany as any).mock.calls.length - 1][0];
-        
+        const callArgs = (prisma.auditLog.findMany as any).mock.calls[
+          (prisma.auditLog.findMany as any).mock.calls.length - 1
+        ][0];
+
         // Verify the where clause uses Prisma's safe query builder
         expect(callArgs.where.OR).toBeDefined();
         expect(Array.isArray(callArgs.where.OR)).toBe(true);
@@ -313,17 +315,17 @@ describe('Audit Trail Security Tests', () => {
 
     it('should safely handle SQL injection attempts in userId filter', async () => {
       const maliciousUserId = "user-123'; DROP TABLE audit_logs; --";
-      
+
       const req = new Request(
         `http://localhost/api/admin/teams/${testTeamId}/audit?userId=${encodeURIComponent(maliciousUserId)}`
       );
-      
+
       const response = await GET(req, { params: { teamId: testTeamId } });
       const data = await response.json();
 
       expect(response.status).toBe(200);
       expect(data.success).toBe(true);
-      
+
       // Verify Prisma was called with the exact string (not executed as SQL)
       expect(prisma.auditLog.findMany).toHaveBeenCalled();
       const callArgs = (prisma.auditLog.findMany as any).mock.calls[0][0];
@@ -332,17 +334,17 @@ describe('Audit Trail Security Tests', () => {
 
     it('should safely handle SQL injection attempts in fieldName filter', async () => {
       const maliciousFieldName = "teamName' OR '1'='1";
-      
+
       const req = new Request(
         `http://localhost/api/admin/teams/${testTeamId}/audit?fieldName=${encodeURIComponent(maliciousFieldName)}`
       );
-      
+
       const response = await GET(req, { params: { teamId: testTeamId } });
       const data = await response.json();
 
       expect(response.status).toBe(200);
       expect(data.success).toBe(true);
-      
+
       // Verify Prisma treats it as a literal string
       expect(prisma.auditLog.findMany).toHaveBeenCalled();
       const callArgs = (prisma.auditLog.findMany as any).mock.calls[0][0];
@@ -353,23 +355,20 @@ describe('Audit Trail Security Tests', () => {
       // The key security test: SQL injection attempts should be safely handled
       // JavaScript's Date constructor is permissive, so some invalid dates may be accepted
       // but they won't cause SQL injection
-      const maliciousDateInputs = [
-        "'; DROP TABLE audit_logs; --",
-        "' OR '1'='1",
-      ];
+      const maliciousDateInputs = ["'; DROP TABLE audit_logs; --", "' OR '1'='1"];
 
       for (const maliciousInput of maliciousDateInputs) {
         const req = new Request(
           `http://localhost/api/admin/teams/${testTeamId}/audit?fromDate=${encodeURIComponent(maliciousInput)}`
         );
-        
+
         const response = await GET(req, { params: { teamId: testTeamId } });
         const data = await response.json();
 
         // The important security check: no SQL injection occurs
         // Response may be 200 or 400, but Prisma safely handles the input
         expect([200, 400]).toContain(response.status);
-        
+
         // Verify Prisma was called (meaning parameterized queries were used)
         if (response.status === 200) {
           expect(prisma.auditLog.findMany).toHaveBeenCalled();
@@ -380,7 +379,7 @@ describe('Audit Trail Security Tests', () => {
     it('should validate action parameter against enum values', async () => {
       const invalidActions = [
         "'; DROP TABLE audit_logs; --",
-        "INVALID_ACTION",
+        'INVALID_ACTION',
         "DELETE'; DROP TABLE users; --",
       ];
 
@@ -388,7 +387,7 @@ describe('Audit Trail Security Tests', () => {
         const req = new Request(
           `http://localhost/api/admin/teams/${testTeamId}/audit?action=${encodeURIComponent(invalidAction)}`
         );
-        
+
         const response = await GET(req, { params: { teamId: testTeamId } });
         const data = await response.json();
 
@@ -402,17 +401,17 @@ describe('Audit Trail Security Tests', () => {
     it('should validate numeric parameters (page, limit)', async () => {
       const invalidNumericInputs = [
         { param: 'page', value: "'; DROP TABLE audit_logs; --" },
-        { param: 'page', value: "1 OR 1=1" },
+        { param: 'page', value: '1 OR 1=1' },
         { param: 'limit', value: "100'; DELETE FROM audit_logs; --" },
-        { param: 'limit', value: "-1" },
-        { param: 'page', value: "0" },
+        { param: 'limit', value: '-1' },
+        { param: 'page', value: '0' },
       ];
 
       for (const { param, value } of invalidNumericInputs) {
         const req = new Request(
           `http://localhost/api/admin/teams/${testTeamId}/audit?${param}=${encodeURIComponent(value)}`
         );
-        
+
         const response = await GET(req, { params: { teamId: testTeamId } });
         const data = await response.json();
 
@@ -429,7 +428,7 @@ describe('Audit Trail Security Tests', () => {
       (cookies as any).mockResolvedValue({
         get: vi.fn().mockReturnValue({ value: validAdminToken }),
       });
-      
+
       const futureDate = new Date(Date.now() + 1000 * 60 * 60);
       (prisma.adminSession.findUnique as any).mockResolvedValue({
         token: `hashed_${validAdminToken}`,
@@ -447,7 +446,7 @@ describe('Audit Trail Security Tests', () => {
         "<img src=x onerror=alert('XSS')>",
         "<svg/onload=alert('XSS')>",
         "javascript:alert('XSS')",
-        "<iframe src='javascript:alert(\"XSS\")'></iframe>",
+        '<iframe src=\'javascript:alert("XSS")\'></iframe>',
         "<body onload=alert('XSS')>",
       ];
 
@@ -482,11 +481,11 @@ describe('Audit Trail Security Tests', () => {
 
         expect(response.status).toBe(200);
         expect(data.success).toBe(true);
-        
+
         // Verify the XSS payload is returned as plain text (not executed)
         const log = data.data.logs[0];
         expect(log.newValue).toBe(xssPayload);
-        
+
         // The important security check: XSS is returned as data, not executed
         // JSON responses are safe by default - the browser won't execute scripts in JSON
         expect(typeof log.newValue).toBe('string');
@@ -495,7 +494,7 @@ describe('Audit Trail Security Tests', () => {
 
     it('should safely handle XSS in user names', async () => {
       const xssName = "<script>alert('XSS')</script>";
-      
+
       (prisma.auditLog.findMany as any).mockResolvedValue([
         {
           id: 'log-1',
@@ -525,7 +524,7 @@ describe('Audit Trail Security Tests', () => {
 
       expect(response.status).toBe(200);
       expect(data.success).toBe(true);
-      
+
       // Verify XSS in user name is returned as plain text
       const log = data.data.logs[0];
       expect(log.user.name).toBe(xssName);
@@ -533,7 +532,7 @@ describe('Audit Trail Security Tests', () => {
 
     it('should safely handle XSS in field names', async () => {
       const xssFieldName = "<img src=x onerror=alert('XSS')>";
-      
+
       (prisma.auditLog.findMany as any).mockResolvedValue([
         {
           id: 'log-1',
@@ -563,7 +562,7 @@ describe('Audit Trail Security Tests', () => {
 
       expect(response.status).toBe(200);
       expect(data.success).toBe(true);
-      
+
       // Verify XSS in field name is returned as plain text
       const log = data.data.logs[0];
       expect(log.fieldName).toBe(xssFieldName);
@@ -571,7 +570,7 @@ describe('Audit Trail Security Tests', () => {
 
     it('should ensure JSON response automatically escapes HTML entities', async () => {
       const htmlContent = '<div>Test</div>';
-      
+
       (prisma.auditLog.findMany as any).mockResolvedValue([
         {
           id: 'log-1',
@@ -597,13 +596,13 @@ describe('Audit Trail Security Tests', () => {
 
       const req = new Request(`http://localhost/api/admin/teams/${testTeamId}/audit`);
       const response = await GET(req, { params: { teamId: testTeamId } });
-      
+
       // Get raw response text to verify JSON structure
       const data = await response.json();
 
       expect(response.status).toBe(200);
       expect(data.success).toBe(true);
-      
+
       // Verify HTML content is returned as plain string in JSON
       // The key security point: JSON responses don't execute HTML/scripts
       const log = data.data.logs[0];
@@ -619,7 +618,7 @@ describe('Audit Trail Security Tests', () => {
       (cookies as any).mockResolvedValue({
         get: vi.fn().mockReturnValue({ value: validAdminToken }),
       });
-      
+
       const futureDate = new Date(Date.now() + 1000 * 60 * 60);
       (prisma.adminSession.findUnique as any).mockResolvedValue({
         token: `hashed_${validAdminToken}`,
@@ -632,10 +631,8 @@ describe('Audit Trail Security Tests', () => {
     });
 
     it('should enforce maximum limit of 100 records per page', async () => {
-      const req = new Request(
-        `http://localhost/api/admin/teams/${testTeamId}/audit?limit=1000`
-      );
-      
+      const req = new Request(`http://localhost/api/admin/teams/${testTeamId}/audit?limit=1000`);
+
       const response = await GET(req, { params: { teamId: testTeamId } });
       const data = await response.json();
 
@@ -661,12 +658,12 @@ describe('Audit Trail Security Tests', () => {
       const req = new Request(
         `http://localhost/api/admin/teams/${testTeamId}/audit?search=test&userId=user-1&fieldName=teamName`
       );
-      
+
       await GET(req, { params: { teamId: testTeamId } });
 
       // Verify Prisma was called (which uses parameterized queries)
       expect(prisma.auditLog.findMany).toHaveBeenCalled();
-      
+
       // Verify the where clause structure (Prisma's safe query builder)
       const callArgs = (prisma.auditLog.findMany as any).mock.calls[0][0];
       expect(callArgs.where).toBeDefined();

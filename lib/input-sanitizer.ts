@@ -1,6 +1,6 @@
 /**
  * Input Sanitization Utilities
- * 
+ *
  * Prevents XSS and injection attacks by sanitizing user input.
  */
 
@@ -11,11 +11,11 @@
  */
 export function sanitizeHtml(input: string): string {
   if (!input) return '';
-  
+
   // Escape all HTML special characters to prevent XSS
   // This prevents both tag injection and attribute injection
   return input
-    .replace(/&/g, '&amp;')   // Must be first to avoid double-escaping
+    .replace(/&/g, '&amp;') // Must be first to avoid double-escaping
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
@@ -28,12 +28,14 @@ export function sanitizeHtml(input: string): string {
  */
 export function sanitizeText(input: string): string {
   if (!input) return '';
-  
-  return input
-    .trim()
-    // eslint-disable-next-line no-control-regex
-    .replace(/[\x00-\x1F\x7F]/g, '') // Remove control characters
-    .replace(/\s+/g, ' '); // Normalize whitespace
+
+  return (
+    input
+      .trim()
+      // eslint-disable-next-line no-control-regex
+      .replace(/[\x00-\x1F\x7F]/g, '') // Remove control characters
+      .replace(/\s+/g, ' ')
+  ); // Normalize whitespace
 }
 
 /**
@@ -41,7 +43,7 @@ export function sanitizeText(input: string): string {
  */
 export function sanitizeEmail(email: string): string {
   if (!email) return '';
-  
+
   return email
     .toLowerCase()
     .trim()
@@ -53,15 +55,15 @@ export function sanitizeEmail(email: string): string {
  */
 export function sanitizeUrl(url: string): string {
   if (!url) return '';
-  
+
   try {
     const parsed = new URL(url);
-    
+
     // Only allow http and https protocols
     if (!['http:', 'https:'].includes(parsed.protocol)) {
       return '';
     }
-    
+
     return parsed.toString();
   } catch {
     return '';
@@ -73,7 +75,7 @@ export function sanitizeUrl(url: string): string {
  */
 export function sanitizePhone(phone: string): string {
   if (!phone) return '';
-  
+
   return phone.replace(/\D/g, '');
 }
 
@@ -88,13 +90,16 @@ export function sanitizeObject<T extends Record<string, unknown>>(
   } = {}
 ): T {
   const { sanitizeHtml: shouldSanitizeHtml = true, sanitizeUrls = true } = options;
-  
+
   const sanitized: Record<string, unknown> = {};
-  
+
   for (const [key, value] of Object.entries(obj)) {
     if (typeof value === 'string') {
       // Check if it's a URL field
-      if (sanitizeUrls && (key.toLowerCase().includes('url') || key.toLowerCase().includes('link'))) {
+      if (
+        sanitizeUrls &&
+        (key.toLowerCase().includes('url') || key.toLowerCase().includes('link'))
+      ) {
         sanitized[key] = sanitizeUrl(value);
       }
       // Check if it's an email field
@@ -110,7 +115,7 @@ export function sanitizeObject<T extends Record<string, unknown>>(
         sanitized[key] = shouldSanitizeHtml ? sanitizeHtml(value) : sanitizeText(value);
       }
     } else if (Array.isArray(value)) {
-      sanitized[key] = value.map(item =>
+      sanitized[key] = value.map((item) =>
         typeof item === 'object' && item !== null
           ? sanitizeObject(item as Record<string, unknown>, options)
           : item
@@ -121,7 +126,7 @@ export function sanitizeObject<T extends Record<string, unknown>>(
       sanitized[key] = value;
     }
   }
-  
+
   return sanitized as T;
 }
 
@@ -130,7 +135,7 @@ export function sanitizeObject<T extends Record<string, unknown>>(
  */
 export function sanitizeSqlInput(input: string): string {
   if (!input) return '';
-  
+
   // Remove common SQL injection patterns
   return input
     .replace(/['";\\]/g, '') // Remove quotes and backslashes
@@ -147,7 +152,7 @@ export function sanitizeSqlInput(input: string): string {
  */
 export function sanitizeFilename(filename: string): string {
   if (!filename) return '';
-  
+
   return filename
     .replace(/[^a-zA-Z0-9._-]/g, '_') // Replace invalid characters
     .replace(/\.{2,}/g, '.') // Remove multiple dots
@@ -169,8 +174,8 @@ export function containsXss(input: string): boolean {
     /eval\(/i,
     /expression\(/i,
   ];
-  
-  return xssPatterns.some(pattern => pattern.test(input));
+
+  return xssPatterns.some((pattern) => pattern.test(input));
 }
 
 /**
@@ -184,6 +189,6 @@ export function containsSqlInjection(input: string): boolean {
     /(\bOR\b.*=.*)/i,
     /('|")\s*(OR|AND)\s*('|")/i,
   ];
-  
-  return sqlPatterns.some(pattern => pattern.test(input));
+
+  return sqlPatterns.some((pattern) => pattern.test(input));
 }

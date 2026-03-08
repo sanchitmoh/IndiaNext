@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -77,8 +77,12 @@ export default function LoginPage() {
     <div className="min-h-screen bg-black text-white flex flex-col justify-center items-center font-mono p-4">
       <div className="w-full max-w-md border border-white/10 bg-[#050505] p-8 md:p-12">
         <div className="mb-10 text-center">
-          <h1 className="text-3xl font-black uppercase tracking-tighter mb-2 italic">Participant <span className="text-orange-500">Login</span></h1>
-          <p className="text-gray-400 text-xs tracking-widest uppercase mb-4">IndiaNext Hackathon</p>
+          <h1 className="text-3xl font-black uppercase tracking-tighter mb-2 italic">
+            Participant <span className="text-orange-500">Login</span>
+          </h1>
+          <p className="text-gray-400 text-xs tracking-widest uppercase mb-4">
+            IndiaNext Hackathon
+          </p>
           <div className="h-px w-full bg-gradient-to-r from-transparent via-orange-500/50 to-transparent" />
         </div>
 
@@ -92,7 +96,9 @@ export default function LoginPage() {
         {step === 'EMAIL' ? (
           <form onSubmit={requestOtp} className="space-y-6">
             <div>
-              <label className="block text-[10px] text-gray-500 tracking-[0.2em] font-black uppercase mb-2">Registered Email</label>
+              <label className="block text-[10px] text-gray-500 tracking-[0.2em] font-black uppercase mb-2">
+                Registered Email
+              </label>
               <input
                 type="email"
                 value={email}
@@ -103,7 +109,7 @@ export default function LoginPage() {
                 autoComplete="email"
               />
             </div>
-            
+
             <button
               type="submit"
               disabled={loading}
@@ -115,7 +121,9 @@ export default function LoginPage() {
         ) : (
           <form onSubmit={verifyOtp} className="space-y-6">
             <div>
-              <label className="block text-[10px] text-gray-500 tracking-[0.2em] font-black uppercase mb-2">Verification Code</label>
+              <label className="block text-[10px] text-gray-500 tracking-[0.2em] font-black uppercase mb-2">
+                Verification Code
+              </label>
               <input
                 type="text"
                 value={otp}
@@ -128,7 +136,7 @@ export default function LoginPage() {
               />
               <p className="text-[10px] text-gray-500 mt-2">Sent to {email}</p>
             </div>
-            
+
             <button
               type="submit"
               disabled={loading}

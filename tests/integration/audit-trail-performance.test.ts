@@ -1,14 +1,14 @@
 /**
  * Performance Tests for Admin Audit Trail
- * 
+ *
  * Task 14.2: Performance testing
- * 
+ *
  * Validates:
  * - Page load time < 2 seconds with 100+ audit log entries
  * - Filter response time < 300ms
  * - Search response time < 500ms
  * - Export generation time < 5 seconds for 1000 records
- * 
+ *
  * Requirements: FR-5, NFR-2
  */
 
@@ -73,7 +73,7 @@ describe('Audit Trail Performance Tests', () => {
   function generateMockAuditLogs(count: number) {
     const logs = [];
     const baseTimestamp = new Date('2024-03-08T14:30:00Z').getTime();
-    
+
     for (let i = 0; i < count; i++) {
       logs.push({
         id: `log-${i}`,
@@ -82,7 +82,9 @@ describe('Audit Trail Performance Tests', () => {
         submissionId: `sub-${Math.floor(i / 3)}`, // Group every 3 changes
         timestamp: new Date(baseTimestamp - i * 60000), // 1 minute apart
         action: ['CREATE', 'UPDATE', 'DELETE'][i % 3] as 'CREATE' | 'UPDATE' | 'DELETE',
-        fieldName: ['teamName', 'member2Email', 'problemStatement', 'ideaTitle', 'techStack'][i % 5],
+        fieldName: ['teamName', 'member2Email', 'problemStatement', 'ideaTitle', 'techStack'][
+          i % 5
+        ],
         oldValue: `old-value-${i}`,
         newValue: `new-value-${i}`,
         ipAddress: `192.168.1.${(i % 255) + 1}`,
@@ -95,13 +97,13 @@ describe('Audit Trail Performance Tests', () => {
         },
       });
     }
-    
+
     return logs;
   }
 
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     // Setup default mocks
     (prisma.adminSession.findUnique as any).mockResolvedValue(mockAdminSession);
     (prisma.team.findUnique as any).mockResolvedValue(mockTeam);
@@ -115,19 +117,21 @@ describe('Audit Trail Performance Tests', () => {
     it('should load audit trail page in less than 2 seconds with 100 entries', async () => {
       // Generate 100 audit log entries
       const mockLogs = generateMockAuditLogs(100);
-      
+
       // Mock Prisma responses
       (prisma.auditLog.findMany as any).mockResolvedValue(mockLogs.slice(0, 20)); // First page
       (prisma.auditLog.count as any).mockResolvedValue(100);
 
       // Create request
-      const req = new Request('http://localhost:3000/api/admin/teams/team-123/audit?page=1&limit=20');
+      const req = new Request(
+        'http://localhost:3000/api/admin/teams/team-123/audit?page=1&limit=20'
+      );
 
       // Measure page load time
       const startTime = performance.now();
       const response = await GET(req, { params: { teamId: 'team-123' } });
       const endTime = performance.now();
-      
+
       const loadTime = endTime - startTime;
       const data = await response.json();
 
@@ -139,26 +143,30 @@ describe('Audit Trail Performance Tests', () => {
 
       // Verify performance requirement: < 2000ms
       expect(loadTime).toBeLessThan(2000);
-      
-      console.log(`✓ Page load time with 100 entries: ${loadTime.toFixed(2)}ms (requirement: < 2000ms)`);
+
+      console.log(
+        `✓ Page load time with 100 entries: ${loadTime.toFixed(2)}ms (requirement: < 2000ms)`
+      );
     });
 
     it('should load audit trail page in less than 2 seconds with 200 entries', async () => {
       // Generate 200 audit log entries
       const mockLogs = generateMockAuditLogs(200);
-      
+
       // Mock Prisma responses
       (prisma.auditLog.findMany as any).mockResolvedValue(mockLogs.slice(0, 20)); // First page
       (prisma.auditLog.count as any).mockResolvedValue(200);
 
       // Create request
-      const req = new Request('http://localhost:3000/api/admin/teams/team-123/audit?page=1&limit=20');
+      const req = new Request(
+        'http://localhost:3000/api/admin/teams/team-123/audit?page=1&limit=20'
+      );
 
       // Measure page load time
       const startTime = performance.now();
       const response = await GET(req, { params: { teamId: 'team-123' } });
       const endTime = performance.now();
-      
+
       const loadTime = endTime - startTime;
       const data = await response.json();
 
@@ -170,26 +178,30 @@ describe('Audit Trail Performance Tests', () => {
 
       // Verify performance requirement: < 2000ms
       expect(loadTime).toBeLessThan(2000);
-      
-      console.log(`✓ Page load time with 200 entries: ${loadTime.toFixed(2)}ms (requirement: < 2000ms)`);
+
+      console.log(
+        `✓ Page load time with 200 entries: ${loadTime.toFixed(2)}ms (requirement: < 2000ms)`
+      );
     });
 
     it('should load audit trail page in less than 2 seconds with 500 entries', async () => {
       // Generate 500 audit log entries
       const mockLogs = generateMockAuditLogs(500);
-      
+
       // Mock Prisma responses
       (prisma.auditLog.findMany as any).mockResolvedValue(mockLogs.slice(0, 20)); // First page
       (prisma.auditLog.count as any).mockResolvedValue(500);
 
       // Create request
-      const req = new Request('http://localhost:3000/api/admin/teams/team-123/audit?page=1&limit=20');
+      const req = new Request(
+        'http://localhost:3000/api/admin/teams/team-123/audit?page=1&limit=20'
+      );
 
       // Measure page load time
       const startTime = performance.now();
       const response = await GET(req, { params: { teamId: 'team-123' } });
       const endTime = performance.now();
-      
+
       const loadTime = endTime - startTime;
       const data = await response.json();
 
@@ -201,15 +213,17 @@ describe('Audit Trail Performance Tests', () => {
 
       // Verify performance requirement: < 2000ms
       expect(loadTime).toBeLessThan(2000);
-      
-      console.log(`✓ Page load time with 500 entries: ${loadTime.toFixed(2)}ms (requirement: < 2000ms)`);
+
+      console.log(
+        `✓ Page load time with 500 entries: ${loadTime.toFixed(2)}ms (requirement: < 2000ms)`
+      );
     });
   });
 
   describe('Performance Requirement: Filter Response < 300ms', () => {
     it('should apply date range filter in less than 300ms', async () => {
       const mockLogs = generateMockAuditLogs(150);
-      
+
       // Mock Prisma responses
       (prisma.auditLog.findMany as any).mockResolvedValue(mockLogs.slice(0, 20));
       (prisma.auditLog.count as any).mockResolvedValue(50);
@@ -223,7 +237,7 @@ describe('Audit Trail Performance Tests', () => {
       const startTime = performance.now();
       const response = await GET(req, { params: { teamId: 'team-123' } });
       const endTime = performance.now();
-      
+
       const filterTime = endTime - startTime;
       const data = await response.json();
 
@@ -233,13 +247,15 @@ describe('Audit Trail Performance Tests', () => {
 
       // Verify performance requirement: < 300ms
       expect(filterTime).toBeLessThan(300);
-      
-      console.log(`✓ Date range filter response time: ${filterTime.toFixed(2)}ms (requirement: < 300ms)`);
+
+      console.log(
+        `✓ Date range filter response time: ${filterTime.toFixed(2)}ms (requirement: < 300ms)`
+      );
     });
 
     it('should apply user filter in less than 300ms', async () => {
       const mockLogs = generateMockAuditLogs(150);
-      
+
       // Mock Prisma responses
       (prisma.auditLog.findMany as any).mockResolvedValue(mockLogs.slice(0, 20));
       (prisma.auditLog.count as any).mockResolvedValue(30);
@@ -253,7 +269,7 @@ describe('Audit Trail Performance Tests', () => {
       const startTime = performance.now();
       const response = await GET(req, { params: { teamId: 'team-123' } });
       const endTime = performance.now();
-      
+
       const filterTime = endTime - startTime;
       const data = await response.json();
 
@@ -263,13 +279,13 @@ describe('Audit Trail Performance Tests', () => {
 
       // Verify performance requirement: < 300ms
       expect(filterTime).toBeLessThan(300);
-      
+
       console.log(`✓ User filter response time: ${filterTime.toFixed(2)}ms (requirement: < 300ms)`);
     });
 
     it('should apply field name filter in less than 300ms', async () => {
       const mockLogs = generateMockAuditLogs(150);
-      
+
       // Mock Prisma responses
       (prisma.auditLog.findMany as any).mockResolvedValue(mockLogs.slice(0, 20));
       (prisma.auditLog.count as any).mockResolvedValue(30);
@@ -283,7 +299,7 @@ describe('Audit Trail Performance Tests', () => {
       const startTime = performance.now();
       const response = await GET(req, { params: { teamId: 'team-123' } });
       const endTime = performance.now();
-      
+
       const filterTime = endTime - startTime;
       const data = await response.json();
 
@@ -293,13 +309,15 @@ describe('Audit Trail Performance Tests', () => {
 
       // Verify performance requirement: < 300ms
       expect(filterTime).toBeLessThan(300);
-      
-      console.log(`✓ Field name filter response time: ${filterTime.toFixed(2)}ms (requirement: < 300ms)`);
+
+      console.log(
+        `✓ Field name filter response time: ${filterTime.toFixed(2)}ms (requirement: < 300ms)`
+      );
     });
 
     it('should apply action filter in less than 300ms', async () => {
       const mockLogs = generateMockAuditLogs(150);
-      
+
       // Mock Prisma responses
       (prisma.auditLog.findMany as any).mockResolvedValue(mockLogs.slice(0, 20));
       (prisma.auditLog.count as any).mockResolvedValue(50);
@@ -313,7 +331,7 @@ describe('Audit Trail Performance Tests', () => {
       const startTime = performance.now();
       const response = await GET(req, { params: { teamId: 'team-123' } });
       const endTime = performance.now();
-      
+
       const filterTime = endTime - startTime;
       const data = await response.json();
 
@@ -323,13 +341,15 @@ describe('Audit Trail Performance Tests', () => {
 
       // Verify performance requirement: < 300ms
       expect(filterTime).toBeLessThan(300);
-      
-      console.log(`✓ Action filter response time: ${filterTime.toFixed(2)}ms (requirement: < 300ms)`);
+
+      console.log(
+        `✓ Action filter response time: ${filterTime.toFixed(2)}ms (requirement: < 300ms)`
+      );
     });
 
     it('should apply multiple filters in less than 300ms', async () => {
       const mockLogs = generateMockAuditLogs(150);
-      
+
       // Mock Prisma responses
       (prisma.auditLog.findMany as any).mockResolvedValue(mockLogs.slice(0, 20));
       (prisma.auditLog.count as any).mockResolvedValue(10);
@@ -343,7 +363,7 @@ describe('Audit Trail Performance Tests', () => {
       const startTime = performance.now();
       const response = await GET(req, { params: { teamId: 'team-123' } });
       const endTime = performance.now();
-      
+
       const filterTime = endTime - startTime;
       const data = await response.json();
 
@@ -353,15 +373,17 @@ describe('Audit Trail Performance Tests', () => {
 
       // Verify performance requirement: < 300ms
       expect(filterTime).toBeLessThan(300);
-      
-      console.log(`✓ Multiple filters response time: ${filterTime.toFixed(2)}ms (requirement: < 300ms)`);
+
+      console.log(
+        `✓ Multiple filters response time: ${filterTime.toFixed(2)}ms (requirement: < 300ms)`
+      );
     });
   });
 
   describe('Performance Requirement: Search Response < 500ms', () => {
     it('should perform keyword search in less than 500ms', async () => {
       const mockLogs = generateMockAuditLogs(150);
-      
+
       // Mock Prisma responses
       (prisma.auditLog.findMany as any).mockResolvedValue(mockLogs.slice(0, 20));
       (prisma.auditLog.count as any).mockResolvedValue(25);
@@ -375,7 +397,7 @@ describe('Audit Trail Performance Tests', () => {
       const startTime = performance.now();
       const response = await GET(req, { params: { teamId: 'team-123' } });
       const endTime = performance.now();
-      
+
       const searchTime = endTime - startTime;
       const data = await response.json();
 
@@ -385,13 +407,13 @@ describe('Audit Trail Performance Tests', () => {
 
       // Verify performance requirement: < 500ms
       expect(searchTime).toBeLessThan(500);
-      
+
       console.log(`✓ Search response time: ${searchTime.toFixed(2)}ms (requirement: < 500ms)`);
     });
 
     it('should perform case-insensitive search in less than 500ms', async () => {
       const mockLogs = generateMockAuditLogs(150);
-      
+
       // Mock Prisma responses
       (prisma.auditLog.findMany as any).mockResolvedValue(mockLogs.slice(0, 20));
       (prisma.auditLog.count as any).mockResolvedValue(25);
@@ -405,7 +427,7 @@ describe('Audit Trail Performance Tests', () => {
       const startTime = performance.now();
       const response = await GET(req, { params: { teamId: 'team-123' } });
       const endTime = performance.now();
-      
+
       const searchTime = endTime - startTime;
       const data = await response.json();
 
@@ -415,13 +437,15 @@ describe('Audit Trail Performance Tests', () => {
 
       // Verify performance requirement: < 500ms
       expect(searchTime).toBeLessThan(500);
-      
-      console.log(`✓ Case-insensitive search response time: ${searchTime.toFixed(2)}ms (requirement: < 500ms)`);
+
+      console.log(
+        `✓ Case-insensitive search response time: ${searchTime.toFixed(2)}ms (requirement: < 500ms)`
+      );
     });
 
     it('should perform search with filters in less than 500ms', async () => {
       const mockLogs = generateMockAuditLogs(150);
-      
+
       // Mock Prisma responses
       (prisma.auditLog.findMany as any).mockResolvedValue(mockLogs.slice(0, 20));
       (prisma.auditLog.count as any).mockResolvedValue(15);
@@ -435,7 +459,7 @@ describe('Audit Trail Performance Tests', () => {
       const startTime = performance.now();
       const response = await GET(req, { params: { teamId: 'team-123' } });
       const endTime = performance.now();
-      
+
       const searchTime = endTime - startTime;
       const data = await response.json();
 
@@ -445,8 +469,10 @@ describe('Audit Trail Performance Tests', () => {
 
       // Verify performance requirement: < 500ms
       expect(searchTime).toBeLessThan(500);
-      
-      console.log(`✓ Search with filters response time: ${searchTime.toFixed(2)}ms (requirement: < 500ms)`);
+
+      console.log(
+        `✓ Search with filters response time: ${searchTime.toFixed(2)}ms (requirement: < 500ms)`
+      );
     });
   });
 
@@ -454,7 +480,7 @@ describe('Audit Trail Performance Tests', () => {
     it('should generate CSV export in less than 5 seconds for 1000 records', async () => {
       // Generate 1000 audit log entries
       const mockLogs = generateMockAuditLogs(1000);
-      
+
       // Mock Prisma responses
       (prisma.auditLog.findMany as any).mockResolvedValue(mockLogs);
 
@@ -465,7 +491,7 @@ describe('Audit Trail Performance Tests', () => {
       const startTime = performance.now();
       const response = await ExportGET(req, { params: { teamId: 'team-123' } });
       const endTime = performance.now();
-      
+
       const exportTime = endTime - startTime;
 
       // Verify response is successful
@@ -476,14 +502,16 @@ describe('Audit Trail Performance Tests', () => {
 
       // Verify performance requirement: < 5000ms
       expect(exportTime).toBeLessThan(5000);
-      
-      console.log(`✓ Export generation time for 1000 records: ${exportTime.toFixed(2)}ms (requirement: < 5000ms)`);
+
+      console.log(
+        `✓ Export generation time for 1000 records: ${exportTime.toFixed(2)}ms (requirement: < 5000ms)`
+      );
     });
 
     it('should generate CSV export in less than 5 seconds for 500 records', async () => {
       // Generate 500 audit log entries
       const mockLogs = generateMockAuditLogs(500);
-      
+
       // Mock Prisma responses
       (prisma.auditLog.findMany as any).mockResolvedValue(mockLogs);
 
@@ -494,7 +522,7 @@ describe('Audit Trail Performance Tests', () => {
       const startTime = performance.now();
       const response = await ExportGET(req, { params: { teamId: 'team-123' } });
       const endTime = performance.now();
-      
+
       const exportTime = endTime - startTime;
 
       // Verify response is successful
@@ -503,14 +531,16 @@ describe('Audit Trail Performance Tests', () => {
 
       // Verify performance requirement: < 5000ms
       expect(exportTime).toBeLessThan(5000);
-      
-      console.log(`✓ Export generation time for 500 records: ${exportTime.toFixed(2)}ms (requirement: < 5000ms)`);
+
+      console.log(
+        `✓ Export generation time for 500 records: ${exportTime.toFixed(2)}ms (requirement: < 5000ms)`
+      );
     });
 
     it('should generate filtered CSV export in less than 5 seconds', async () => {
       // Generate 1000 audit log entries
       const mockLogs = generateMockAuditLogs(1000);
-      
+
       // Mock Prisma responses (filtered results)
       (prisma.auditLog.findMany as any).mockResolvedValue(mockLogs.slice(0, 200));
 
@@ -523,7 +553,7 @@ describe('Audit Trail Performance Tests', () => {
       const startTime = performance.now();
       const response = await ExportGET(req, { params: { teamId: 'team-123' } });
       const endTime = performance.now();
-      
+
       const exportTime = endTime - startTime;
 
       // Verify response is successful
@@ -532,27 +562,31 @@ describe('Audit Trail Performance Tests', () => {
 
       // Verify performance requirement: < 5000ms
       expect(exportTime).toBeLessThan(5000);
-      
-      console.log(`✓ Filtered export generation time: ${exportTime.toFixed(2)}ms (requirement: < 5000ms)`);
+
+      console.log(
+        `✓ Filtered export generation time: ${exportTime.toFixed(2)}ms (requirement: < 5000ms)`
+      );
     });
   });
 
   describe('Performance Requirement: Summary Statistics Calculation', () => {
     it('should calculate summary statistics efficiently with 100+ entries', async () => {
       const mockLogs = generateMockAuditLogs(150);
-      
+
       // Mock Prisma responses
       (prisma.auditLog.findMany as any).mockResolvedValue(mockLogs);
       (prisma.auditLog.count as any).mockResolvedValue(150);
 
       // Create request
-      const req = new Request('http://localhost:3000/api/admin/teams/team-123/audit?page=1&limit=20');
+      const req = new Request(
+        'http://localhost:3000/api/admin/teams/team-123/audit?page=1&limit=20'
+      );
 
       // Measure total response time (includes summary calculation)
       const startTime = performance.now();
       const response = await GET(req, { params: { teamId: 'team-123' } });
       const endTime = performance.now();
-      
+
       const totalTime = endTime - startTime;
       const data = await response.json();
 
@@ -568,7 +602,7 @@ describe('Audit Trail Performance Tests', () => {
       // Summary calculation should not significantly impact page load time
       // Total time should still be < 2000ms
       expect(totalTime).toBeLessThan(2000);
-      
+
       console.log(`✓ Summary statistics calculation time (150 entries): ${totalTime.toFixed(2)}ms`);
     });
   });
@@ -576,24 +610,28 @@ describe('Audit Trail Performance Tests', () => {
   describe('Performance Requirement: Pagination Performance', () => {
     it('should navigate to different pages efficiently', async () => {
       const mockLogs = generateMockAuditLogs(200);
-      
+
       // Test multiple page loads
       const pageTimes: number[] = [];
-      
+
       for (let page = 1; page <= 5; page++) {
         // Mock Prisma responses for each page
         const startIdx = (page - 1) * 20;
-        (prisma.auditLog.findMany as any).mockResolvedValue(mockLogs.slice(startIdx, startIdx + 20));
+        (prisma.auditLog.findMany as any).mockResolvedValue(
+          mockLogs.slice(startIdx, startIdx + 20)
+        );
         (prisma.auditLog.count as any).mockResolvedValue(200);
 
         // Create request for specific page
-        const req = new Request(`http://localhost:3000/api/admin/teams/team-123/audit?page=${page}&limit=20`);
+        const req = new Request(
+          `http://localhost:3000/api/admin/teams/team-123/audit?page=${page}&limit=20`
+        );
 
         // Measure page load time
         const startTime = performance.now();
         const response = await GET(req, { params: { teamId: 'team-123' } });
         const endTime = performance.now();
-        
+
         const pageTime = endTime - startTime;
         pageTimes.push(pageTime);
 
@@ -609,7 +647,7 @@ describe('Audit Trail Performance Tests', () => {
 
       const avgPageTime = pageTimes.reduce((sum, time) => sum + time, 0) / pageTimes.length;
       console.log(`✓ Average pagination time across 5 pages: ${avgPageTime.toFixed(2)}ms`);
-      console.log(`  Page times: ${pageTimes.map(t => t.toFixed(2)).join('ms, ')}ms`);
+      console.log(`  Page times: ${pageTimes.map((t) => t.toFixed(2)).join('ms, ')}ms`);
     });
   });
 });

@@ -1,6 +1,6 @@
 /**
  * Animation Variants Library
- * 
+ *
  * Reusable Framer Motion animation variants for common patterns.
  * All variants include reduced motion support.
  */
@@ -171,7 +171,8 @@ export interface VariantConfig {
 // Helper to map string easings to Framer Motion allowed values
 const mapEase = (ease: any): Easing | Easing[] => {
   if (Array.isArray(ease)) return ease;
-  if (ease === 'linear' || ease === 'easeIn' || ease === 'easeOut' || ease === 'easeInOut') return ease;
+  if (ease === 'linear' || ease === 'easeIn' || ease === 'easeOut' || ease === 'easeInOut')
+    return ease;
   // fallback to cubic-bezier array if string is a bezier
   if (typeof ease === 'string' && ease.startsWith('cubic-bezier')) {
     // Example: 'cubic-bezier(0.4, 0, 0.2, 1)' => [0.4, 0, 0.2, 1]
@@ -212,7 +213,7 @@ export const createVariant = (config: VariantConfig): Variants => {
  */
 export const createReducedMotionVariant = (variant: Variants): Variants => {
   const _visible = variant.visible as any;
-  
+
   return {
     hidden: { opacity: 0 },
     visible: {

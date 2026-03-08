@@ -79,12 +79,12 @@ function formatTimestamp(date: Date): string {
  */
 function escapeCSV(value: string | null): string {
   if (!value) return '';
-  
+
   // If value contains comma, newline, or quote, wrap in quotes and escape quotes
   if (value.includes(',') || value.includes('\n') || value.includes('"')) {
     return `"${value.replace(/"/g, '""')}"`;
   }
-  
+
   return value;
 }
 
@@ -121,9 +121,9 @@ function convertToCSV(logs: any[]): string {
 
 /**
  * GET /api/admin/teams/[teamId]/audit/export
- * 
+ *
  * Export audit logs to CSV format
- * 
+ *
  * Query Parameters (same as GET endpoint - respects filters):
  * - fromDate: Start of date range (ISO date string)
  * - toDate: End of date range (ISO date string)
@@ -131,13 +131,10 @@ function convertToCSV(logs: any[]): string {
  * - fieldName: Filter by field
  * - action: Filter by action type (CREATE, UPDATE, DELETE)
  * - search: Keyword search in values
- * 
+ *
  * Response: CSV file download
  */
-export async function GET(
-  req: Request,
-  { params }: { params: Promise<{ teamId: string }> }
-) {
+export async function GET(req: Request, { params }: { params: Promise<{ teamId: string }> }) {
   try {
     // 1. Authenticate admin
     const admin = await verifyAdmin(req);
@@ -150,7 +147,7 @@ export async function GET(
 
     // 2. Get teamId from params
     const { teamId } = await params;
-    
+
     // Check if admin has permission to view audit logs
     const allowedRoles = ['ADMIN', 'SUPER_ADMIN'];
     if (!allowedRoles.includes(admin.role)) {

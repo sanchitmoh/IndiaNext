@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 :root {
   --background: #ffffff;
@@ -11,9 +11,9 @@
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 
-  --color-neon-orange: #FF6600;
-  --color-neon-green: #00CC44;
-  --color-neon-blue: #2266FF;
+  --color-neon-orange: #ff6600;
+  --color-neon-green: #00cc44;
+  --color-neon-blue: #2266ff;
 
   /* Animation System Utilities */
   --animate-fade-in: fade-in 0.3s ease-out;
@@ -58,7 +58,7 @@ body {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #FF6600;
+  background: #ff6600;
   box-shadow: 0 0 10px rgba(255, 102, 0, 0.5);
 }
 
@@ -69,7 +69,6 @@ body {
 
 /* Nebula background pulse — CSS-only (GPU-composited) */
 @keyframes nebula-pulse {
-
   0%,
   100% {
     transform: scale(1);
@@ -119,7 +118,8 @@ body {
 }
 
 @keyframes shake {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateX(0);
   }
   25% {

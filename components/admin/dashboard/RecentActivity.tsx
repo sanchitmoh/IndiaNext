@@ -1,24 +1,24 @@
-"use client";
+'use client';
 
-import { trpc } from "@/lib/trpc-client";
-import { Clock, Shield, FileText, Users } from "lucide-react";
+import { trpc } from '@/lib/trpc-client';
+import { Clock, Shield, FileText, Users } from 'lucide-react';
 
 const actionIcons: Record<string, typeof Clock> = {
-  "team.status_updated": Shield,
-  "team.bulk_status_updated": Shield,
-  "team.deleted": Users,
-  "comment.created": FileText,
-  "teams.exported": FileText,
-  "user.role_updated": Shield,
+  'team.status_updated': Shield,
+  'team.bulk_status_updated': Shield,
+  'team.deleted': Users,
+  'comment.created': FileText,
+  'teams.exported': FileText,
+  'user.role_updated': Shield,
 };
 
 const actionLabels: Record<string, string> = {
-  "team.status_updated": "Updated team status",
-  "team.bulk_status_updated": "Bulk status update",
-  "team.deleted": "Deleted a team",
-  "comment.created": "Added a comment",
-  "teams.exported": "Exported teams",
-  "user.role_updated": "Updated user role",
+  'team.status_updated': 'Updated team status',
+  'team.bulk_status_updated': 'Bulk status update',
+  'team.deleted': 'Deleted a team',
+  'comment.created': 'Added a comment',
+  'teams.exported': 'Exported teams',
+  'user.role_updated': 'Updated user role',
 };
 
 function timeAgo(date: Date | string): string {
@@ -26,7 +26,7 @@ function timeAgo(date: Date | string): string {
   const d = new Date(date);
   const seconds = Math.floor((now.getTime() - d.getTime()) / 1000);
 
-  if (seconds < 60) return "just now";
+  if (seconds < 60) return 'just now';
   if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
   if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
   return `${Math.floor(seconds / 86400)}d ago`;
@@ -70,9 +70,7 @@ export function RecentActivity() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-xs text-gray-400">
-                    <span className="font-medium text-gray-300">
-                      {log.user?.name || "Admin"}
-                    </span>{" "}
+                    <span className="font-medium text-gray-300">{log.user?.name || 'Admin'}</span>{' '}
                     {actionLabels[log.action] || log.action}
                   </p>
                   <p className="text-[10px] font-mono text-gray-600 mt-0.5">

@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { Calendar, Users, FileText } from "lucide-react";
+import { Calendar, Users, FileText } from 'lucide-react';
 
 // ── Types ──────────────────────────────────────────────────
 
@@ -30,39 +30,39 @@ interface AuditSummaryProps {
 function formatFieldName(fieldName: string): string {
   // Convert camelCase to Title Case
   const formatted = fieldName
-    .replace(/([A-Z])/g, " $1")
+    .replace(/([A-Z])/g, ' $1')
     .replace(/^./, (str) => str.toUpperCase())
     .trim();
 
   // Handle specific field names
   const fieldNameMap: Record<string, string> = {
-    "Team Name": "Team Name",
-    "Hear About": "How Did You Hear About Us",
-    "Additional Notes": "Additional Notes",
-    "Member 2 Email": "Member 2 Email",
-    "Member 2 Name": "Member 2 Name",
-    "Member 2 College": "Member 2 College",
-    "Member 2 Degree": "Member 2 Degree",
-    "Member 2 Gender": "Member 2 Gender",
-    "Member 3 Email": "Member 3 Email",
-    "Member 3 Name": "Member 3 Name",
-    "Member 3 College": "Member 3 College",
-    "Member 3 Degree": "Member 3 Degree",
-    "Member 3 Gender": "Member 3 Gender",
-    "Member 4 Email": "Member 4 Email",
-    "Member 4 Name": "Member 4 Name",
-    "Member 4 College": "Member 4 College",
-    "Member 4 Degree": "Member 4 Degree",
-    "Member 4 Gender": "Member 4 Gender",
-    "Idea Title": "Idea Title",
-    "Problem Statement": "Problem Statement",
-    "Proposed Solution": "Proposed Solution",
-    "Target Users": "Target Users",
-    "Expected Impact": "Expected Impact",
-    "Tech Stack": "Tech Stack",
-    "Doc Link": "Document Link",
-    "Problem Desc": "Problem Description",
-    "Github Link": "GitHub Link",
+    'Team Name': 'Team Name',
+    'Hear About': 'How Did You Hear About Us',
+    'Additional Notes': 'Additional Notes',
+    'Member 2 Email': 'Member 2 Email',
+    'Member 2 Name': 'Member 2 Name',
+    'Member 2 College': 'Member 2 College',
+    'Member 2 Degree': 'Member 2 Degree',
+    'Member 2 Gender': 'Member 2 Gender',
+    'Member 3 Email': 'Member 3 Email',
+    'Member 3 Name': 'Member 3 Name',
+    'Member 3 College': 'Member 3 College',
+    'Member 3 Degree': 'Member 3 Degree',
+    'Member 3 Gender': 'Member 3 Gender',
+    'Member 4 Email': 'Member 4 Email',
+    'Member 4 Name': 'Member 4 Name',
+    'Member 4 College': 'Member 4 College',
+    'Member 4 Degree': 'Member 4 Degree',
+    'Member 4 Gender': 'Member 4 Gender',
+    'Idea Title': 'Idea Title',
+    'Problem Statement': 'Problem Statement',
+    'Proposed Solution': 'Proposed Solution',
+    'Target Users': 'Target Users',
+    'Expected Impact': 'Expected Impact',
+    'Tech Stack': 'Tech Stack',
+    'Doc Link': 'Document Link',
+    'Problem Desc': 'Problem Description',
+    'Github Link': 'GitHub Link',
   };
 
   return fieldNameMap[formatted] || formatted;
@@ -155,11 +155,9 @@ export function AuditSummary({ summary, loading = false }: AuditSummaryProps) {
           </span>
         </div>
         <div className="flex items-baseline gap-2">
-          <p className="text-2xl font-mono font-bold text-white">
-            {summary.totalEdits}
-          </p>
+          <p className="text-2xl font-mono font-bold text-white">{summary.totalEdits}</p>
           <span className="inline-flex items-center justify-center px-2 py-0.5 text-[9px] font-mono font-bold bg-orange-500/15 text-orange-400 border border-orange-500/20 rounded hover:bg-orange-500/25 hover:border-orange-500/30 transition-all duration-200">
-            {summary.totalEdits === 1 ? "EDIT" : "EDITS"}
+            {summary.totalEdits === 1 ? 'EDIT' : 'EDITS'}
           </span>
         </div>
       </div>
@@ -174,18 +172,18 @@ export function AuditSummary({ summary, loading = false }: AuditSummaryProps) {
         </div>
         <p className="text-sm font-mono text-gray-300">
           {summary.lastEditDate
-            ? new Date(summary.lastEditDate).toLocaleDateString("en-US", {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
+            ? new Date(summary.lastEditDate).toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
               })
-            : "N/A"}
+            : 'N/A'}
         </p>
         {summary.lastEditDate && (
           <p className="text-[10px] font-mono text-gray-600 mt-1">
-            {new Date(summary.lastEditDate).toLocaleTimeString("en-US", {
-              hour: "numeric",
-              minute: "2-digit",
+            {new Date(summary.lastEditDate).toLocaleTimeString('en-US', {
+              hour: 'numeric',
+              minute: '2-digit',
             })}
           </p>
         )}
@@ -206,8 +204,8 @@ export function AuditSummary({ summary, loading = false }: AuditSummaryProps) {
             </p>
             <div className="flex items-center gap-2 mt-1">
               <span className="inline-flex items-center justify-center px-2 py-0.5 text-[9px] font-mono font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/20 rounded hover:bg-emerald-500/25 hover:border-emerald-500/30 transition-all duration-200">
-                {summary.mostActiveUser.count}{" "}
-                {summary.mostActiveUser.count === 1 ? "CHANGE" : "CHANGES"}
+                {summary.mostActiveUser.count}{' '}
+                {summary.mostActiveUser.count === 1 ? 'CHANGE' : 'CHANGES'}
               </span>
             </div>
           </>
@@ -231,8 +229,8 @@ export function AuditSummary({ summary, loading = false }: AuditSummaryProps) {
             </p>
             <div className="flex items-center gap-2 mt-1">
               <span className="inline-flex items-center justify-center px-2 py-0.5 text-[9px] font-mono font-bold bg-amber-500/15 text-amber-400 border border-amber-500/20 rounded hover:bg-amber-500/25 hover:border-amber-500/30 transition-all duration-200">
-                {summary.topChangedFields[0].count}{" "}
-                {summary.topChangedFields[0].count === 1 ? "CHANGE" : "CHANGES"}
+                {summary.topChangedFields[0].count}{' '}
+                {summary.topChangedFields[0].count === 1 ? 'CHANGE' : 'CHANGES'}
               </span>
             </div>
           </>

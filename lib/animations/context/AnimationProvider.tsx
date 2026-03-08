@@ -1,6 +1,6 @@
 /**
  * Animation Provider
- * 
+ *
  * Global context provider for animation configuration and state.
  * Manages reduced motion preference, test mode, and performance metrics.
  */
@@ -79,7 +79,7 @@ export const AnimationProvider: React.FC<AnimationProviderProps> = ({
   // Adjust config for test mode
   useEffect(() => {
     if (!testMode) return;
-    
+
     const testConfig = {
       ...config,
       duration: {
@@ -102,11 +102,7 @@ export const AnimationProvider: React.FC<AnimationProviderProps> = ({
     updateConfig,
   };
 
-  return (
-    <AnimationContext.Provider value={value}>
-      {children}
-    </AnimationContext.Provider>
-  );
+  return <AnimationContext.Provider value={value}>{children}</AnimationContext.Provider>;
 };
 
 /**
@@ -114,10 +110,10 @@ export const AnimationProvider: React.FC<AnimationProviderProps> = ({
  */
 export const useAnimationContext = (): AnimationContextValue => {
   const context = useContext(AnimationContext);
-  
+
   if (context === undefined) {
     throw new Error('useAnimationContext must be used within AnimationProvider');
   }
-  
+
   return context;
 };

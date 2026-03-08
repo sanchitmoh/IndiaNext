@@ -1,13 +1,13 @@
 /**
  * Seed Scoring Criteria for Both Tracks
- * 
+ *
  * IdeaSprint Criteria:
  * - Innovation & Creativity (25%)
  * - Feasibility & Viability (20%)
  * - Impact & Value (25%)
  * - Market Potential (15%)
  * - Presentation Quality (15%)
- * 
+ *
  * BuildStorm Criteria:
  * - Technical Excellence (30%)
  * - Functionality & Features (25%)
@@ -23,7 +23,8 @@ const ideaSprintCriteria = [
   {
     criterionId: 'innovation',
     name: 'Innovation & Creativity',
-    description: 'Originality of the idea, creative approach to solving the problem, uniqueness compared to existing solutions',
+    description:
+      'Originality of the idea, creative approach to solving the problem, uniqueness compared to existing solutions',
     weight: 25,
     maxPoints: 10,
     order: 1,
@@ -31,7 +32,8 @@ const ideaSprintCriteria = [
   {
     criterionId: 'feasibility',
     name: 'Feasibility & Viability',
-    description: 'Practicality of implementation, resource requirements, technical feasibility, business viability',
+    description:
+      'Practicality of implementation, resource requirements, technical feasibility, business viability',
     weight: 20,
     maxPoints: 10,
     order: 2,
@@ -55,7 +57,8 @@ const ideaSprintCriteria = [
   {
     criterionId: 'presentation',
     name: 'Presentation Quality',
-    description: 'Clarity of pitch, quality of documentation, visual presentation, communication effectiveness',
+    description:
+      'Clarity of pitch, quality of documentation, visual presentation, communication effectiveness',
     weight: 15,
     maxPoints: 10,
     order: 5,
@@ -66,7 +69,8 @@ const buildStormCriteria = [
   {
     criterionId: 'technical',
     name: 'Technical Excellence',
-    description: 'Code quality, architecture design, use of best practices, technical complexity, performance optimization',
+    description:
+      'Code quality, architecture design, use of best practices, technical complexity, performance optimization',
     weight: 30,
     maxPoints: 10,
     order: 1,
@@ -82,7 +86,8 @@ const buildStormCriteria = [
   {
     criterionId: 'innovation',
     name: 'Innovation & Creativity',
-    description: 'Novel technical approaches, creative problem-solving, unique features or implementations',
+    description:
+      'Novel technical approaches, creative problem-solving, unique features or implementations',
     weight: 20,
     maxPoints: 10,
     order: 3,
@@ -90,7 +95,8 @@ const buildStormCriteria = [
   {
     criterionId: 'uiux',
     name: 'UI/UX Design',
-    description: 'User interface design, user experience, accessibility, responsiveness, visual appeal',
+    description:
+      'User interface design, user experience, accessibility, responsiveness, visual appeal',
     weight: 15,
     maxPoints: 10,
     order: 4,
@@ -98,7 +104,8 @@ const buildStormCriteria = [
   {
     criterionId: 'completion',
     name: 'Completion & Polish',
-    description: 'Project completeness, attention to detail, documentation quality, deployment readiness',
+    description:
+      'Project completeness, attention to detail, documentation quality, deployment readiness',
     weight: 10,
     maxPoints: 10,
     order: 5,

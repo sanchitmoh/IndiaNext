@@ -37,27 +37,45 @@ async function verifyAdmin(_req: Request) {
 /**
  * POST /api/admin/teams/score
  * Add score and comments to a team submission
- * 
+ *
  * CRITICAL: Judges can ONLY score APPROVED teams
  */
 export async function POST(req: Request) {
   try {
     const admin = await verifyAdmin(req);
     if (!admin) {
-      const err = createErrorResponse('UNAUTHORIZED', 'Authentication required', undefined, '/api/admin/teams/score');
+      const err = createErrorResponse(
+        'UNAUTHORIZED',
+        'Authentication required',
+        undefined,
+        '/api/admin/teams/score'
+      );
       return NextResponse.json(err, { status: getStatusCode('UNAUTHORIZED') });
     }
 
     // ✅ SECURITY FIX: Rate limit scoring to 20 req/min per admin
     const rl = await checkRateLimit(`score:${admin.id}`, 20, 60);
     if (!rl.success) {
-      const err = createErrorResponse('RATE_LIMIT_EXCEEDED', 'Too many scoring requests. Please slow down.', undefined, '/api/admin/teams/score');
-      return NextResponse.json(err, { status: 429, headers: { 'Retry-After': String(Math.ceil((rl.reset - Date.now()) / 1000)) } });
+      const err = createErrorResponse(
+        'RATE_LIMIT_EXCEEDED',
+        'Too many scoring requests. Please slow down.',
+        undefined,
+        '/api/admin/teams/score'
+      );
+      return NextResponse.json(err, {
+        status: 429,
+        headers: { 'Retry-After': String(Math.ceil((rl.reset - Date.now()) / 1000)) },
+      });
     }
 
     // Check if admin has permission to score
     if (!hasPermission(admin.role, 'SCORE_TEAMS')) {
-      const err = createErrorResponse('FORBIDDEN', 'Insufficient permissions to score submissions', undefined, '/api/admin/teams/score');
+      const err = createErrorResponse(
+        'FORBIDDEN',
+        'Insufficient permissions to score submissions',
+        undefined,
+        '/api/admin/teams/score'
+      );
       return NextResponse.json(err, { status: getStatusCode('FORBIDDEN') });
     }
 
@@ -65,7 +83,12 @@ export async function POST(req: Request) {
     const validation = ScoreSchema.safeParse(body);
 
     if (!validation.success) {
-      const err = createErrorResponse('VALIDATION_ERROR', validation.error.errors[0].message, validation.error.errors, '/api/admin/teams/score');
+      const err = createErrorResponse(
+        'VALIDATION_ERROR',
+        validation.error.errors[0].message,
+        validation.error.errors,
+        '/api/admin/teams/score'
+      );
       return NextResponse.json(err, { status: 400 });
     }
 
@@ -78,10 +101,7 @@ export async function POST(req: Request) {
     });
 
     if (!team) {
-      return NextResponse.json(
-        { success: false, error: 'Team not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ success: false, error: 'Team not found' }, { status: 404 });
     }
 
     // ⭐ CRITICAL: Judges can ONLY score APPROVED teams
@@ -155,7 +175,12 @@ export async function GET(req: Request) {
   try {
     const admin = await verifyAdmin(req);
     if (!admin) {
-      const err = createErrorResponse('UNAUTHORIZED', 'Authentication required', undefined, '/api/admin/teams/score');
+      const err = createErrorResponse(
+        'UNAUTHORIZED',
+        'Authentication required',
+        undefined,
+        '/api/admin/teams/score'
+      );
       return NextResponse.json(err, { status: getStatusCode('UNAUTHORIZED') });
     }
 
@@ -175,10 +200,7 @@ export async function GET(req: Request) {
     });
 
     if (!team) {
-      return NextResponse.json(
-        { success: false, error: 'Team not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ success: false, error: 'Team not found' }, { status: 404 });
     }
 
     // Judges can only view scores for approved teams

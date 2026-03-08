@@ -55,7 +55,10 @@ export async function GET(req: Request) {
 
     // ✅ SECURITY FIX (H-3): Check granular permission
     if (!hasPermission(admin.role, 'VIEW_ALL_TEAMS')) {
-      return NextResponse.json({ success: false, error: 'Insufficient permissions' }, { status: 403 });
+      return NextResponse.json(
+        { success: false, error: 'Insufficient permissions' },
+        { status: 403 }
+      );
     }
 
     const problems = await prisma.problemStatement.findMany({
@@ -72,7 +75,7 @@ export async function GET(req: Request) {
 
     return NextResponse.json({
       success: true,
-      data: problems.map(p => ({
+      data: problems.map((p) => ({
         id: p.id,
         order: p.order,
         title: p.title,
@@ -107,18 +110,24 @@ export async function POST(req: Request) {
 
     // ✅ SECURITY FIX (H-3): Check granular permission
     if (!hasPermission(admin.role, 'EDIT_TEAMS')) {
-      return NextResponse.json({ success: false, error: 'Insufficient permissions' }, { status: 403 });
+      return NextResponse.json(
+        { success: false, error: 'Insufficient permissions' },
+        { status: 403 }
+      );
     }
 
     const body = await req.json();
     const validation = CreateProblemSchema.safeParse(body);
 
     if (!validation.success) {
-      return NextResponse.json({
-        success: false,
-        error: 'Validation error',
-        details: validation.error.errors,
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Validation error',
+          details: validation.error.errors,
+        },
+        { status: 400 }
+      );
     }
 
     const data = validation.data;
@@ -129,11 +138,14 @@ export async function POST(req: Request) {
     });
 
     if (existing) {
-      return NextResponse.json({
-        success: false,
-        error: 'Order already exists',
-        message: `Problem statement with order ${data.order} already exists`,
-      }, { status: 409 });
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Order already exists',
+          message: `Problem statement with order ${data.order} already exists`,
+        },
+        { status: 409 }
+      );
     }
 
     const problem = await prisma.problemStatement.create({
@@ -156,8 +168,8 @@ export async function POST(req: Request) {
         action: 'problem_statement.created',
         entity: 'ProblemStatement',
         entityId: problem.id,
-        metadata: { 
-          title: problem.title, 
+        metadata: {
+          title: problem.title,
           order: problem.order,
           adminId: admin.id,
           adminEmail: admin.email,
@@ -190,18 +202,24 @@ export async function PATCH(req: Request) {
 
     // ✅ SECURITY FIX (H-3): Check granular permission
     if (!hasPermission(admin.role, 'EDIT_TEAMS')) {
-      return NextResponse.json({ success: false, error: 'Insufficient permissions' }, { status: 403 });
+      return NextResponse.json(
+        { success: false, error: 'Insufficient permissions' },
+        { status: 403 }
+      );
     }
 
     const body = await req.json();
     const validation = UpdateProblemSchema.safeParse(body);
 
     if (!validation.success) {
-      return NextResponse.json({
-        success: false,
-        error: 'Validation error',
-        details: validation.error.errors,
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Validation error',
+          details: validation.error.errors,
+        },
+        { status: 400 }
+      );
     }
 
     const { id, ...data } = validation.data;
@@ -209,7 +227,10 @@ export async function PATCH(req: Request) {
     // ✅ SECURITY FIX (L-6): Verify resource exists before update
     const existing = await prisma.problemStatement.findUnique({ where: { id } });
     if (!existing) {
-      return NextResponse.json({ success: false, error: 'Problem statement not found' }, { status: 404 });
+      return NextResponse.json(
+        { success: false, error: 'Problem statement not found' },
+        { status: 404 }
+      );
     }
 
     // ✅ SECURITY FIX (L-5): Sanitize HTML in updated fields
@@ -230,8 +251,8 @@ export async function PATCH(req: Request) {
         action: 'problem_statement.updated',
         entity: 'ProblemStatement',
         entityId: problem.id,
-        metadata: { 
-          title: problem.title, 
+        metadata: {
+          title: problem.title,
           changes: data,
           adminId: admin.id,
           adminEmail: admin.email,
@@ -264,7 +285,10 @@ export async function DELETE(req: NextRequest) {
 
     // ✅ SECURITY FIX (H-3): Check granular permission
     if (!hasPermission(admin.role, 'DELETE_TEAMS')) {
-      return NextResponse.json({ success: false, error: 'Insufficient permissions' }, { status: 403 });
+      return NextResponse.json(
+        { success: false, error: 'Insufficient permissions' },
+        { status: 403 }
+      );
     }
 
     const id = req.nextUrl.searchParams.get('id');
@@ -283,11 +307,14 @@ export async function DELETE(req: NextRequest) {
     }
 
     if (problem._count.submissions > 0) {
-      return NextResponse.json({
-        success: false,
-        error: 'Cannot delete',
-        message: 'Cannot delete problem statement with existing submissions',
-      }, { status: 409 });
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Cannot delete',
+          message: 'Cannot delete problem statement with existing submissions',
+        },
+        { status: 409 }
+      );
     }
 
     // Delete reservations first, then the problem statement
@@ -305,7 +332,7 @@ export async function DELETE(req: NextRequest) {
         action: 'problem_statement.deleted',
         entity: 'ProblemStatement',
         entityId: id,
-        metadata: { 
+        metadata: {
           title: problem.title,
           adminId: admin.id,
           adminEmail: admin.email,

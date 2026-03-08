@@ -30,19 +30,15 @@ export function AdminRoleProvider({
     isLogistics: role === 'LOGISTICS',
   };
 
-  return (
-    <AdminRoleContext.Provider value={value}>
-      {children}
-    </AdminRoleContext.Provider>
-  );
+  return <AdminRoleContext.Provider value={value}>{children}</AdminRoleContext.Provider>;
 }
 
 export function useAdminRole() {
   const context = useContext(AdminRoleContext);
-  
+
   if (!context) {
     throw new Error('useAdminRole must be used within AdminRoleProvider');
   }
-  
+
   return context;
 }

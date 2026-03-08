@@ -1,8 +1,8 @@
 // TeamQRCode — Display QR code for team's shortCode (for event-day check-in)
-"use client";
+'use client';
 
-import { useEffect, useRef } from "react";
-import { X, Download, Printer } from "lucide-react";
+import { useEffect, useRef } from 'react';
+import { X, Download, Printer } from 'lucide-react';
 
 interface TeamQRCodeProps {
   shortCode: string;
@@ -19,7 +19,7 @@ export function TeamQRCode({ shortCode, teamName, onClose }: TeamQRCodeProps) {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
     const size = 256;
@@ -27,7 +27,7 @@ export function TeamQRCode({ shortCode, teamName, onClose }: TeamQRCodeProps) {
     canvas.height = size;
 
     // White background
-    ctx.fillStyle = "#FFFFFF";
+    ctx.fillStyle = '#FFFFFF';
     ctx.fillRect(0, 0, size, size);
 
     // Generate a simple visual QR-like pattern from the shortCode
@@ -38,11 +38,11 @@ export function TeamQRCode({ shortCode, teamName, onClose }: TeamQRCodeProps) {
 
     // Finder patterns (corners)
     const drawFinder = (x: number, y: number) => {
-      ctx.fillStyle = "#000000";
+      ctx.fillStyle = '#000000';
       ctx.fillRect(x * cellSize, y * cellSize, 7 * cellSize, 7 * cellSize);
-      ctx.fillStyle = "#FFFFFF";
+      ctx.fillStyle = '#FFFFFF';
       ctx.fillRect((x + 1) * cellSize, (y + 1) * cellSize, 5 * cellSize, 5 * cellSize);
-      ctx.fillStyle = "#000000";
+      ctx.fillStyle = '#000000';
       ctx.fillRect((x + 2) * cellSize, (y + 2) * cellSize, 3 * cellSize, 3 * cellSize);
     };
 
@@ -56,7 +56,7 @@ export function TeamQRCode({ shortCode, teamName, onClose }: TeamQRCodeProps) {
       hash = ((hash << 5) - hash + shortCode.charCodeAt(i)) | 0;
     }
 
-    ctx.fillStyle = "#000000";
+    ctx.fillStyle = '#000000';
     for (let y = padding + 8; y < gridSize - padding - 8; y++) {
       for (let x = padding + 8; x < gridSize - padding - 8; x++) {
         // Deterministic pattern from hash
@@ -68,9 +68,9 @@ export function TeamQRCode({ shortCode, teamName, onClose }: TeamQRCodeProps) {
     }
 
     // Draw shortCode text at the bottom
-    ctx.fillStyle = "#000000";
-    ctx.font = "bold 16px monospace";
-    ctx.textAlign = "center";
+    ctx.fillStyle = '#000000';
+    ctx.font = 'bold 16px monospace';
+    ctx.textAlign = 'center';
     ctx.fillText(shortCode, size / 2, size - 8);
   }, [shortCode]);
 
@@ -78,9 +78,9 @@ export function TeamQRCode({ shortCode, teamName, onClose }: TeamQRCodeProps) {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const link = document.createElement("a");
+    const link = document.createElement('a');
     link.download = `${shortCode}-qr.png`;
-    link.href = canvas.toDataURL("image/png");
+    link.href = canvas.toDataURL('image/png');
     link.click();
   };
 
@@ -88,7 +88,7 @@ export function TeamQRCode({ shortCode, teamName, onClose }: TeamQRCodeProps) {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const win = window.open("", "_blank");
+    const win = window.open('', '_blank');
     if (!win) return;
     win.document.write(`
       <html>
@@ -125,7 +125,9 @@ export function TeamQRCode({ shortCode, teamName, onClose }: TeamQRCodeProps) {
           </div>
 
           <div className="text-center">
-            <p className="text-lg font-mono font-bold text-emerald-400 tracking-[0.4em]">{shortCode}</p>
+            <p className="text-lg font-mono font-bold text-emerald-400 tracking-[0.4em]">
+              {shortCode}
+            </p>
             <p className="text-[10px] font-mono text-gray-500 mt-1">{teamName}</p>
           </div>
 
@@ -147,7 +149,8 @@ export function TeamQRCode({ shortCode, teamName, onClose }: TeamQRCodeProps) {
           </div>
 
           <p className="text-[8px] font-mono text-gray-600 text-center max-w-[200px]">
-            Logistics members can scan this code with the QR CHECK-IN button to quickly find and check in this team.
+            Logistics members can scan this code with the QR CHECK-IN button to quickly find and
+            check in this team.
           </p>
         </div>
       </div>

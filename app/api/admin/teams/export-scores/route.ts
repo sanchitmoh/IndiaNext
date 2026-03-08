@@ -21,10 +21,10 @@ async function verifyAdmin() {
 
 /**
  * GET /api/admin/teams/export-scores?format=csv&track=BUILD_STORM
- * 
+ *
  * Export detailed scorecards for all scored teams as CSV.
  * Includes per-judge, per-criterion breakdown, averages, and variance.
- * 
+ *
  * Query params:
  * - format: "csv" (default) or "json"
  * - track: "IDEA_SPRINT" | "BUILD_STORM" (optional filter)
@@ -99,11 +99,14 @@ export async function GET(req: Request) {
       const allScores = team.submission.criterionScores;
 
       // Group by judge
-      const judgeMap = new Map<string, {
-        judgeName: string;
-        scores: Map<string, number>;
-        weightedTotal: number;
-      }>();
+      const judgeMap = new Map<
+        string,
+        {
+          judgeName: string;
+          scores: Map<string, number>;
+          weightedTotal: number;
+        }
+      >();
 
       for (const cs of allScores) {
         if (!judgeMap.has(cs.judgeId)) {
@@ -124,19 +127,17 @@ export async function GET(req: Request) {
       const judgeCount = judges.length;
 
       // Average score
-      const averageScore = judgeCount > 0
-        ? Math.round(
-            (judges.reduce((sum, j) => sum + j.weightedTotal, 0) / judgeCount) * 10
-          ) / 10
-        : null;
+      const averageScore =
+        judgeCount > 0
+          ? Math.round((judges.reduce((sum, j) => sum + j.weightedTotal, 0) / judgeCount) * 10) / 10
+          : null;
 
       // Std dev
       let stdDev = 0;
       if (judgeCount > 1 && averageScore !== null) {
-        const variance = judges.reduce(
-          (sum, j) => sum + Math.pow(j.weightedTotal - averageScore, 2),
-          0
-        ) / judgeCount;
+        const variance =
+          judges.reduce((sum, j) => sum + Math.pow(j.weightedTotal - averageScore, 2), 0) /
+          judgeCount;
         stdDev = Math.round(Math.sqrt(variance) * 10) / 10;
       }
 
@@ -180,8 +181,8 @@ export async function GET(req: Request) {
         const row: Record<string, string | number> = {
           'Team Code': team.shortCode,
           'Team Name': team.name,
-          'Track': team.track === 'IDEA_SPRINT' ? 'Idea Sprint' : 'Build Storm',
-          'Status': team.status,
+          Track: team.track === 'IDEA_SPRINT' ? 'Idea Sprint' : 'Build Storm',
+          Status: team.status,
           'Judge Count': judgeCount,
           'Average Score': averageScore ?? '',
           'Std Dev': stdDev,
@@ -198,7 +199,8 @@ export async function GET(req: Request) {
           row[`Judge ${i + 1}`] = judge.judgeName;
           row[`Judge ${i + 1} Total`] = Math.round(judge.weightedTotal * 10) / 10;
           for (const criterion of teamCriteria) {
-            row[`Judge ${i + 1}: ${criterion.name}`] = judge.scores.get(criterion.criterionId) ?? '';
+            row[`Judge ${i + 1}: ${criterion.name}`] =
+              judge.scores.get(criterion.criterionId) ?? '';
           }
         });
 

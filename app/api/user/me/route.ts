@@ -23,16 +23,16 @@ export async function GET(req: Request) {
                   include: {
                     members: {
                       include: { user: true },
-                      orderBy: { id: 'asc' }
+                      orderBy: { id: 'asc' },
                     },
-                    submission: true
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
+                    submission: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     });
 
     if (!session || session.expiresAt < new Date()) {
@@ -52,43 +52,45 @@ export async function GET(req: Request) {
       return NextResponse.json({
         success: true,
         multipleTeams: true,
-        teams: user.teamMemberships.map(m => ({
+        teams: user.teamMemberships.map((m) => ({
           id: m.team.id,
           name: m.team.name,
           track: m.team.track,
-          trackDisplay: m.team.track === 'IDEA_SPRINT' 
-            ? 'Track 2: IdeaSprint - Build MVP in 24 Hours'
-            : 'Track 1: BuildStorm - Solve Problem Statement in 24 Hours'
-        }))
+          trackDisplay:
+            m.team.track === 'IDEA_SPRINT'
+              ? 'Track 2: IdeaSprint - Build MVP in 24 Hours'
+              : 'Track 1: BuildStorm - Solve Problem Statement in 24 Hours',
+        })),
       });
     }
 
     // Pick specific track if requested, otherwise default to first
     let selectedMembership = user.teamMemberships[0];
     if (requestedTrack) {
-      const match = user.teamMemberships.find(m => m.team.track === requestedTrack);
+      const match = user.teamMemberships.find((m) => m.team.track === requestedTrack);
       if (match) selectedMembership = match;
     }
 
     const teamRecord = selectedMembership.team;
     const teamMembers = teamRecord.members;
-    
+
     // 🚩 CHECK LOCK STATUS: Has this team already been updated?
     const existingUpdateLog = await prisma.activityLog.findFirst({
       where: {
         entityId: teamRecord.id,
-        action: 'team.updated'
-      }
+        action: 'team.updated',
+      },
     });
     const isLocked = !!existingUpdateLog;
 
     // Identify the "Leader" as the current user for form mapping purposes
-    const leaderMembership = teamMembers.find(m => m.userId === user.id) || teamMembers[0];
-    const otherMemberships = teamMembers.filter(m => m.id !== leaderMembership.id);
+    const leaderMembership = teamMembers.find((m) => m.userId === user.id) || teamMembers[0];
+    const otherMemberships = teamMembers.filter((m) => m.id !== leaderMembership.id);
 
-    const trackString = teamRecord.track === 'IDEA_SPRINT' 
-      ? 'Track 2: IdeaSprint - Build MVP in 24 Hours'
-      : 'Track 1: BuildStorm - Solve Problem Statement in 24 Hours';
+    const trackString =
+      teamRecord.track === 'IDEA_SPRINT'
+        ? 'Track 2: IdeaSprint - Build MVP in 24 Hours'
+        : 'Track 1: BuildStorm - Solve Problem Statement in 24 Hours';
 
     // Map Prisma to HackathonForm 'Answers' format
     const answers: Record<string, any> = {
@@ -105,9 +107,13 @@ export async function GET(req: Request) {
       leaderMobile: leaderMembership.user.phone || '',
       leaderCollege: leaderMembership.user.college || '',
       leaderDegree: leaderMembership.user.degree || '',
-      
+
       // agreement arrays
-      consent: ["I confirm all details submitted are correct.", "I agree to receive updates via Email/WhatsApp.", "I understand participation is subject to verification."]
+      consent: [
+        'I confirm all details submitted are correct.',
+        'I agree to receive updates via Email/WhatsApp.',
+        'I understand participation is subject to verification.',
+      ],
     };
 
     if (otherMemberships[0]) {
@@ -149,29 +155,29 @@ export async function GET(req: Request) {
         answers.githubLinkIdea = sub.githubLink || ''; // pre-fill the IdeaSprint-specific question ID
         answers.ideaAdditionalNotes = teamRecord.additionalNotes || '';
         answers.ideaRules = [
-          "I confirm that this idea is original and not copied.",
-          "I agree that plagiarism will lead to disqualification.",
-          "I agree organizers may use idea name for promotion.",
-          "I understand judges decision is final.",
-          "I agree to maintain respectful communication."
+          'I confirm that this idea is original and not copied.',
+          'I agree that plagiarism will lead to disqualification.',
+          'I agree organizers may use idea name for promotion.',
+          'I understand judges decision is final.',
+          'I agree to maintain respectful communication.',
         ];
       } else {
         answers.problemDesc = sub.problemDesc || '';
         answers.githubLink = sub.githubLink || '';
         answers.buildAdditionalNotes = teamRecord.additionalNotes || '';
         answers.buildRules = [
-          "I agree MVP must be built during 24-hour hackathon.",
-          "I agree reused pre-built projects lead to disqualification.",
-          "I agree to submit GitHub repo link with full source code.",
-          "I agree to submit deployed demo link before deadline.",
-          "I agree plagiarism leads to disqualification.",
-          "I agree to follow code of conduct.",
-          "I agree organizers decision is final."
+          'I agree MVP must be built during 24-hour hackathon.',
+          'I agree reused pre-built projects lead to disqualification.',
+          'I agree to submit GitHub repo link with full source code.',
+          'I agree to submit deployed demo link before deadline.',
+          'I agree plagiarism leads to disqualification.',
+          'I agree to follow code of conduct.',
+          'I agree organizers decision is final.',
         ];
-        
+
         if (sub.assignedProblemStatementId) {
           const problemStmt = await prisma.problemStatement.findUnique({
-             where: { id: sub.assignedProblemStatementId }
+            where: { id: sub.assignedProblemStatementId },
           });
           if (problemStmt) {
             assignedProblem = {
@@ -179,7 +185,7 @@ export async function GET(req: Request) {
               title: problemStmt.title,
               objective: problemStmt.objective,
               description: problemStmt.description,
-              extensionsRemaining: 0
+              extensionsRemaining: 0,
             };
           }
         }
@@ -190,7 +196,7 @@ export async function GET(req: Request) {
       success: true,
       data: answers,
       initialAssignedProblem: assignedProblem,
-      isLocked: isLocked
+      isLocked: isLocked,
     });
   } catch (error) {
     console.error('Fetch me error:', error);

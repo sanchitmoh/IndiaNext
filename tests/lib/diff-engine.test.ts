@@ -1,6 +1,6 @@
 /**
  * Property-Based Tests for DiffEngine
- * 
+ *
  * These tests use fast-check to verify universal properties across
  * randomized inputs, ensuring the diff engine behaves correctly for
  * all possible registration data combinations.
@@ -20,38 +20,38 @@ function registrationDataGenerator() {
     teamName: fc.option(fc.string({ minLength: 3, maxLength: 50 })),
     hearAbout: fc.option(fc.string({ maxLength: 100 })),
     additionalNotes: fc.option(fc.string({ maxLength: 500 })),
-    
+
     // Leader fields
     leaderName: fc.option(fc.string({ minLength: 2, maxLength: 50 })),
     leaderEmail: fc.option(fc.emailAddress()),
     leaderCollege: fc.option(fc.string({ minLength: 3, maxLength: 100 })),
     leaderDegree: fc.option(fc.string({ maxLength: 50 })),
     leaderGender: fc.option(fc.constantFrom('Male', 'Female', 'Other', 'Prefer not to say')),
-    
+
     // Member 2 fields
     member2Email: fc.option(fc.emailAddress()),
     member2Name: fc.option(fc.string({ minLength: 2, maxLength: 50 })),
     member2College: fc.option(fc.string({ minLength: 3, maxLength: 100 })),
     member2Degree: fc.option(fc.string({ maxLength: 50 })),
     member2Gender: fc.option(fc.constantFrom('Male', 'Female', 'Other', 'Prefer not to say')),
-    
+
     // Member 3 fields
     member3Email: fc.option(fc.emailAddress()),
     member3Name: fc.option(fc.string({ minLength: 2, maxLength: 50 })),
     member3College: fc.option(fc.string({ minLength: 3, maxLength: 100 })),
     member3Degree: fc.option(fc.string({ maxLength: 50 })),
     member3Gender: fc.option(fc.constantFrom('Male', 'Female', 'Other', 'Prefer not to say')),
-    
+
     // Member 4 fields
     member4Email: fc.option(fc.emailAddress()),
     member4Name: fc.option(fc.string({ minLength: 2, maxLength: 50 })),
     member4College: fc.option(fc.string({ minLength: 3, maxLength: 100 })),
     member4Degree: fc.option(fc.string({ maxLength: 50 })),
     member4Gender: fc.option(fc.constantFrom('Male', 'Female', 'Other', 'Prefer not to say')),
-    
+
     // Track-specific fields
     track: fc.option(fc.constantFrom('IDEA_SPRINT', 'BUILD_STORM')),
-    
+
     // IdeaSprint fields
     ideaTitle: fc.option(fc.string({ minLength: 5, maxLength: 100 })),
     problemStatement: fc.option(fc.string({ minLength: 10, maxLength: 1000 })),
@@ -60,7 +60,7 @@ function registrationDataGenerator() {
     expectedImpact: fc.option(fc.string({ maxLength: 500 })),
     techStack: fc.option(fc.string({ maxLength: 200 })),
     docLink: fc.option(fc.webUrl()),
-    
+
     // BuildStorm fields
     problemDesc: fc.option(fc.string({ minLength: 10, maxLength: 1000 })),
     githubLink: fc.option(fc.webUrl()),
@@ -79,12 +79,12 @@ describe('DiffEngine - Property-Based Tests', () => {
           registrationDataGenerator(),
           (oldData, newData) => {
             const changes = diffEngine.diff(oldData, newData);
-            
+
             // Verify every returned change has different values
             for (const change of changes) {
               const oldVal = oldData[change.fieldName];
               const newVal = newData[change.fieldName];
-              
+
               // Values should be different (using JSON.stringify for deep comparison)
               expect(JSON.stringify(oldVal)).not.toBe(JSON.stringify(newVal));
             }
@@ -101,19 +101,16 @@ describe('DiffEngine - Property-Based Tests', () => {
           registrationDataGenerator(),
           (oldData, newData) => {
             const changes = diffEngine.diff(oldData, newData);
-            const changedFieldNames = new Set(changes.map(c => c.fieldName));
-            
+            const changedFieldNames = new Set(changes.map((c) => c.fieldName));
+
             // Get all keys from both objects
-            const allKeys = new Set([
-              ...Object.keys(oldData),
-              ...Object.keys(newData),
-            ]);
-            
+            const allKeys = new Set([...Object.keys(oldData), ...Object.keys(newData)]);
+
             // For each field, if values are identical, it should NOT be in changes
             for (const key of allKeys) {
               const oldVal = oldData[key];
               const newVal = newData[key];
-              
+
               if (JSON.stringify(oldVal) === JSON.stringify(newVal)) {
                 // Unchanged field should not appear in results
                 expect(changedFieldNames.has(key)).toBe(false);
@@ -132,13 +129,13 @@ describe('DiffEngine - Property-Based Tests', () => {
           registrationDataGenerator(),
           (oldData, newData) => {
             const changes = diffEngine.diff(oldData, newData);
-            
+
             // Verify CREATE actions are correct
-            const createChanges = changes.filter(c => c.action === 'CREATE');
+            const createChanges = changes.filter((c) => c.action === 'CREATE');
             for (const change of createChanges) {
               const oldVal = oldData[change.fieldName];
               const newVal = newData[change.fieldName];
-              
+
               // CREATE means old value was null/undefined and new value exists
               expect(oldVal === null || oldVal === undefined).toBe(true);
               expect(newVal !== null && newVal !== undefined).toBe(true);
@@ -156,13 +153,13 @@ describe('DiffEngine - Property-Based Tests', () => {
           registrationDataGenerator(),
           (oldData, newData) => {
             const changes = diffEngine.diff(oldData, newData);
-            
+
             // Verify DELETE actions are correct
-            const deleteChanges = changes.filter(c => c.action === 'DELETE');
+            const deleteChanges = changes.filter((c) => c.action === 'DELETE');
             for (const change of deleteChanges) {
               const oldVal = oldData[change.fieldName];
               const newVal = newData[change.fieldName];
-              
+
               // DELETE means old value existed and new value is null/undefined
               expect(oldVal !== null && oldVal !== undefined).toBe(true);
               expect(newVal === null || newVal === undefined).toBe(true);
@@ -180,13 +177,13 @@ describe('DiffEngine - Property-Based Tests', () => {
           registrationDataGenerator(),
           (oldData, newData) => {
             const changes = diffEngine.diff(oldData, newData);
-            
+
             // Verify UPDATE actions are correct
-            const updateChanges = changes.filter(c => c.action === 'UPDATE');
+            const updateChanges = changes.filter((c) => c.action === 'UPDATE');
             for (const change of updateChanges) {
               const oldVal = oldData[change.fieldName];
               const newVal = newData[change.fieldName];
-              
+
               // UPDATE means both values exist and are different
               expect(oldVal !== null && oldVal !== undefined).toBe(true);
               expect(newVal !== null && newVal !== undefined).toBe(true);
@@ -200,32 +197,25 @@ describe('DiffEngine - Property-Based Tests', () => {
 
     it('should return empty array for identical objects', () => {
       fc.assert(
-        fc.property(
-          registrationDataGenerator(),
-          (data) => {
-            // Compare object with itself
-            const changes = diffEngine.diff(data, data);
-            
-            // Should return no changes
-            expect(changes).toHaveLength(0);
-          }
-        ),
+        fc.property(registrationDataGenerator(), (data) => {
+          // Compare object with itself
+          const changes = diffEngine.diff(data, data);
+
+          // Should return no changes
+          expect(changes).toHaveLength(0);
+        }),
         { numRuns: 20 }
       );
     });
 
     it('should handle empty objects', () => {
       fc.assert(
-        fc.property(
-          fc.constantFrom({}, {}),
-          fc.constantFrom({}, {}),
-          (oldData, newData) => {
-            const changes = diffEngine.diff(oldData, newData);
-            
-            // Empty objects should produce no changes
-            expect(changes).toHaveLength(0);
-          }
-        ),
+        fc.property(fc.constantFrom({}, {}), fc.constantFrom({}, {}), (oldData, newData) => {
+          const changes = diffEngine.diff(oldData, newData);
+
+          // Empty objects should produce no changes
+          expect(changes).toHaveLength(0);
+        }),
         { numRuns: 20 }
       );
     });
@@ -237,23 +227,20 @@ describe('DiffEngine - Property-Based Tests', () => {
           registrationDataGenerator(),
           (oldData, newData) => {
             const changes = diffEngine.diff(oldData, newData);
-            
+
             // Count expected changes manually
-            const allKeys = new Set([
-              ...Object.keys(oldData),
-              ...Object.keys(newData),
-            ]);
-            
+            const allKeys = new Set([...Object.keys(oldData), ...Object.keys(newData)]);
+
             let expectedChangeCount = 0;
             for (const key of allKeys) {
               const oldVal = oldData[key];
               const newVal = newData[key];
-              
+
               if (JSON.stringify(oldVal) !== JSON.stringify(newVal)) {
                 expectedChangeCount++;
               }
             }
-            
+
             // Number of changes should match expected count
             expect(changes.length).toBe(expectedChangeCount);
           }
@@ -266,7 +253,7 @@ describe('DiffEngine - Property-Based Tests', () => {
 
 /**
  * Unit Tests for DiffEngine Edge Cases
- * 
+ *
  * These tests verify specific examples and edge cases to ensure
  * the diff engine handles all scenarios correctly.
  */
@@ -316,21 +303,21 @@ describe('DiffEngine - Unit Tests for Edge Cases', () => {
       const changes = diffEngine.diff(oldData, newData);
 
       expect(changes).toHaveLength(3);
-      
-      const fieldNames = changes.map(c => c.fieldName).sort();
+
+      const fieldNames = changes.map((c) => c.fieldName).sort();
       expect(fieldNames).toEqual(['college', 'member2Email', 'teamName']);
-      
-      const teamNameChange = changes.find(c => c.fieldName === 'teamName');
+
+      const teamNameChange = changes.find((c) => c.fieldName === 'teamName');
       expect(teamNameChange?.action).toBe('UPDATE');
       expect(teamNameChange?.oldValue).toBe('Old Team Name');
       expect(teamNameChange?.newValue).toBe('New Team Name');
-      
-      const collegeChange = changes.find(c => c.fieldName === 'college');
+
+      const collegeChange = changes.find((c) => c.fieldName === 'college');
       expect(collegeChange?.action).toBe('UPDATE');
       expect(collegeChange?.oldValue).toBe('MIT');
       expect(collegeChange?.newValue).toBe('Stanford');
-      
-      const emailChange = changes.find(c => c.fieldName === 'member2Email');
+
+      const emailChange = changes.find((c) => c.fieldName === 'member2Email');
       expect(emailChange?.action).toBe('UPDATE');
       expect(emailChange?.oldValue).toBe('old@example.com');
       expect(emailChange?.newValue).toBe('new@example.com');
@@ -444,9 +431,9 @@ describe('DiffEngine - Unit Tests for Edge Cases', () => {
       const changes = diffEngine.diff(oldData, newData);
 
       expect(changes).toHaveLength(2);
-      expect(changes.every(c => c.action === 'CREATE')).toBe(true);
-      
-      const teamNameChange = changes.find(c => c.fieldName === 'teamName');
+      expect(changes.every((c) => c.action === 'CREATE')).toBe(true);
+
+      const teamNameChange = changes.find((c) => c.fieldName === 'teamName');
       expect(teamNameChange?.oldValue).toBeUndefined();
       expect(teamNameChange?.newValue).toBe('New Team');
     });
@@ -461,9 +448,9 @@ describe('DiffEngine - Unit Tests for Edge Cases', () => {
       const changes = diffEngine.diff(oldData, newData);
 
       expect(changes).toHaveLength(2);
-      expect(changes.every(c => c.action === 'DELETE')).toBe(true);
-      
-      const teamNameChange = changes.find(c => c.fieldName === 'teamName');
+      expect(changes.every((c) => c.action === 'DELETE')).toBe(true);
+
+      const teamNameChange = changes.find((c) => c.fieldName === 'teamName');
       expect(teamNameChange?.oldValue).toBe('Old Team');
       expect(teamNameChange?.newValue).toBeUndefined();
     });

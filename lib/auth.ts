@@ -1,13 +1,13 @@
 // Authentication Helper Functions
-import { cookies } from "next/headers";
-import { prisma } from "./prisma";
-import { hashSessionToken } from "./session-security";
+import { cookies } from 'next/headers';
+import { prisma } from './prisma';
+import { hashSessionToken } from './session-security';
 
 // ── Participant auth (OTP-based, session_token cookie) ──────
 
 export async function getSession() {
   const cookieStore = await cookies();
-  const token = cookieStore.get("session_token")?.value;
+  const token = cookieStore.get('session_token')?.value;
 
   if (!token) {
     return null;
@@ -37,7 +37,7 @@ export async function getSession() {
 
 export async function getAdminSession() {
   const cookieStore = await cookies();
-  const token = cookieStore.get("admin_token")?.value;
+  const token = cookieStore.get('admin_token')?.value;
 
   if (!token) {
     return null;
@@ -81,9 +81,9 @@ export async function checkAdminAuth() {
 
 export async function requireAuth() {
   const session = await getSession();
-  
+
   if (!session) {
-    throw new Error("Unauthorized");
+    throw new Error('Unauthorized');
   }
 
   return session;
@@ -91,9 +91,9 @@ export async function requireAuth() {
 
 export async function requireAdminAuth() {
   const admin = await checkAdminAuth();
-  
+
   if (!admin) {
-    throw new Error("Admin access required");
+    throw new Error('Admin access required');
   }
 
   return admin;

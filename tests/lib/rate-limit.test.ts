@@ -1,5 +1,10 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { checkRateLimit, getClientIP, createRateLimitHeaders, cleanupMemoryStore } from '@/lib/rate-limit';
+import {
+  checkRateLimit,
+  getClientIP,
+  createRateLimitHeaders,
+  cleanupMemoryStore,
+} from '@/lib/rate-limit';
 import { createMockRequest } from '../helpers';
 
 describe('Rate Limiting', () => {

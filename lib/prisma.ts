@@ -1,7 +1,7 @@
 // Prisma Client Setup (Prisma 7 — client engine with pg adapter)
-import { PrismaClient } from "@prisma/client";
-import { PrismaPg } from "@prisma/adapter-pg";
-import { Pool } from "pg";
+import { PrismaClient } from '@prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
+import { Pool } from 'pg';
 
 const globalForPrisma = global as unknown as {
   prisma: PrismaClient | undefined;
@@ -10,7 +10,7 @@ const globalForPrisma = global as unknown as {
 function createPrismaClient() {
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) {
-    console.warn("DATABASE_URL is not set — Prisma queries will fail at runtime.");
+    console.warn('DATABASE_URL is not set — Prisma queries will fail at runtime.');
     return new Proxy({} as PrismaClient, {
       get(_, prop) {
         if (typeof prop === 'string') {
@@ -25,10 +25,10 @@ function createPrismaClient() {
   const adapter = new PrismaPg(pool);
   return new PrismaClient({
     adapter,
-    log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
+    log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
   });
 }
 
 export const prisma = globalForPrisma.prisma ?? createPrismaClient();
 
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;

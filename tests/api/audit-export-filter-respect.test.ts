@@ -1,9 +1,9 @@
 /**
  * Property-Based Test for Audit Trail Export Filter Respect
- * 
+ *
  * Feature: admin-audit-trail, Property 9: Export Filter Respect
  * **Validates: Requirements US-6.4**
- * 
+ *
  * This test verifies that when filters are applied to the audit trail,
  * the exported CSV contains only the audit logs that match those filters,
  * identical to what would be displayed on the page.
@@ -48,7 +48,7 @@ import { prisma } from '@/lib/prisma';
  * Generator for audit log entries with diverse values for filtering
  */
 function auditLogGenerator() {
-  return fc.constantFrom('user-1', 'user-2', 'user-3', 'user-4').chain(userId =>
+  return fc.constantFrom('user-1', 'user-2', 'user-3', 'user-4').chain((userId) =>
     fc.record({
       id: fc.uuid(),
       teamId: fc.constant('test-team-export'),
@@ -89,18 +89,23 @@ function filterGenerator() {
   return fc.record({
     userId: fc.option(fc.constantFrom('user-1', 'user-2', 'user-3', 'user-4'), { nil: null }),
     fieldName: fc.option(
-      fc.constantFrom('teamName', 'member2Email', 'problemStatement', 'ideaTitle', 'college', 'hearAbout'),
+      fc.constantFrom(
+        'teamName',
+        'member2Email',
+        'problemStatement',
+        'ideaTitle',
+        'college',
+        'hearAbout'
+      ),
       { nil: null }
     ),
     action: fc.option(fc.constantFrom('CREATE', 'UPDATE', 'DELETE'), { nil: null }),
-    fromDate: fc.option(
-      fc.date({ min: new Date('2024-01-01'), max: new Date('2024-06-30') }),
-      { nil: null }
-    ),
-    toDate: fc.option(
-      fc.date({ min: new Date('2024-07-01'), max: new Date('2024-12-31') }),
-      { nil: null }
-    ),
+    fromDate: fc.option(fc.date({ min: new Date('2024-01-01'), max: new Date('2024-06-30') }), {
+      nil: null,
+    }),
+    toDate: fc.option(fc.date({ min: new Date('2024-07-01'), max: new Date('2024-12-31') }), {
+      nil: null,
+    }),
   });
 }
 
@@ -151,19 +156,20 @@ function logMatchesFilters(
 function parseCSV(csvContent: string): string[][] {
   const lines = csvContent.split('\n');
   const rows: string[][] = [];
-  
-  for (let i = 1; i < lines.length; i++) { // Skip header row
+
+  for (let i = 1; i < lines.length; i++) {
+    // Skip header row
     const line = lines[i].trim();
     if (!line) continue;
-    
+
     // Simple CSV parsing (handles quoted fields)
     const fields: string[] = [];
     let currentField = '';
     let inQuotes = false;
-    
+
     for (let j = 0; j < line.length; j++) {
       const char = line[j];
-      
+
       if (char === '"') {
         if (inQuotes && line[j + 1] === '"') {
           // Escaped quote
@@ -181,12 +187,12 @@ function parseCSV(csvContent: string): string[][] {
         currentField += char;
       }
     }
-    
+
     // Add last field
     fields.push(currentField);
     rows.push(fields);
   }
-  
+
   return rows;
 }
 
@@ -213,7 +219,7 @@ describe('Audit Trail Export API - Property 9: Export Filter Respect', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     // Setup default mocks
     (prisma.adminSession.findUnique as any).mockResolvedValue(mockAdminSession as any);
     (prisma.team.findUnique as any).mockResolvedValue(mockTeam as any);
@@ -226,8 +232,8 @@ describe('Audit Trail Export API - Property 9: Export Filter Respect', () => {
         filterGenerator(),
         async (generatedLogs, filters) => {
           // Filter the generated logs to get expected results
-          const expectedLogs = generatedLogs.filter(log => logMatchesFilters(log, filters));
-          
+          const expectedLogs = generatedLogs.filter((log) => logMatchesFilters(log, filters));
+
           // Mock Prisma to return only the filtered logs (simulating database filtering)
           (prisma.auditLog.findMany as any).mockResolvedValue(expectedLogs as any);
 
@@ -260,10 +266,20 @@ describe('Audit Trail Export API - Property 9: Export Filter Respect', () => {
           // Verify each CSV row corresponds to a log that matches the filters
           for (const row of csvRows) {
             // CSV columns: Timestamp, User, Email, Role, Action, Field, Old Value, New Value, IP Address
-            const [timestamp, userName, userEmail, role, action, fieldName, oldValue, newValue, ipAddress] = row;
+            const [
+              timestamp,
+              userName,
+              userEmail,
+              role,
+              action,
+              fieldName,
+              oldValue,
+              newValue,
+              ipAddress,
+            ] = row;
 
             // Find matching log in expected logs
-            const matchingLog = expectedLogs.find(log => {
+            const matchingLog = expectedLogs.find((log) => {
               // Match by multiple fields to ensure uniqueness
               return (
                 log.action === action &&
@@ -296,10 +312,10 @@ describe('Audit Trail Export API - Property 9: Export Filter Respect', () => {
           // Skip test if dates are invalid
           if (filters.fromDate && isNaN(filters.fromDate.getTime())) return;
           if (filters.toDate && isNaN(filters.toDate.getTime())) return;
-          
+
           // Filter the generated logs to get expected results (same logic as GET endpoint)
-          const expectedLogs = generatedLogs.filter(log => logMatchesFilters(log, filters));
-          
+          const expectedLogs = generatedLogs.filter((log) => logMatchesFilters(log, filters));
+
           // Mock Prisma to return only the filtered logs for both endpoints
           (prisma.auditLog.findMany as any).mockResolvedValue(expectedLogs as any);
           (prisma.auditLog.count as any).mockResolvedValue(expectedLogs.length);
@@ -329,7 +345,7 @@ describe('Audit Trail Export API - Property 9: Export Filter Respect', () => {
 
           // Verify each expected log appears in CSV
           for (const expectedLog of expectedLogs) {
-            const matchingRow = csvRows.find(row => {
+            const matchingRow = csvRows.find((row) => {
               const [, userName, userEmail, , action, fieldName] = row;
               return (
                 expectedLog.action === action &&
@@ -356,12 +372,12 @@ describe('Audit Trail Export API - Property 9: Export Filter Respect', () => {
         async (generatedLogs, fromDate, toDate) => {
           // Skip test if dates are invalid
           if (isNaN(fromDate.getTime()) || isNaN(toDate.getTime())) return;
-          
+
           // Filter logs by date range
-          const expectedLogs = generatedLogs.filter(log => 
-            log.timestamp >= fromDate && log.timestamp <= toDate
+          const expectedLogs = generatedLogs.filter(
+            (log) => log.timestamp >= fromDate && log.timestamp <= toDate
           );
-          
+
           // Mock Prisma to return only the filtered logs
           (prisma.auditLog.findMany as any).mockResolvedValue(expectedLogs as any);
 
@@ -398,8 +414,8 @@ describe('Audit Trail Export API - Property 9: Export Filter Respect', () => {
         fc.constantFrom('user-1', 'user-2', 'user-3', 'user-4'),
         async (generatedLogs, userId) => {
           // Filter logs by userId
-          const expectedLogs = generatedLogs.filter(log => log.userId === userId);
-          
+          const expectedLogs = generatedLogs.filter((log) => log.userId === userId);
+
           // Mock Prisma to return only the filtered logs
           (prisma.auditLog.findMany as any).mockResolvedValue(expectedLogs as any);
 
@@ -426,8 +442,8 @@ describe('Audit Trail Export API - Property 9: Export Filter Respect', () => {
           // Verify all rows have the correct userId (by checking user details)
           for (const row of csvRows) {
             const [, userName, userEmail] = row;
-            const matchingLog = expectedLogs.find(log => 
-              log.user.name === userName && log.user.email === userEmail
+            const matchingLog = expectedLogs.find(
+              (log) => log.user.name === userName && log.user.email === userEmail
             );
             expect(matchingLog).toBeDefined();
             expect(matchingLog?.userId).toBe(userId);
@@ -442,11 +458,18 @@ describe('Audit Trail Export API - Property 9: Export Filter Respect', () => {
     await fc.assert(
       fc.asyncProperty(
         fc.array(auditLogGenerator(), { minLength: 10, maxLength: 40 }),
-        fc.constantFrom('teamName', 'member2Email', 'problemStatement', 'ideaTitle', 'college', 'hearAbout'),
+        fc.constantFrom(
+          'teamName',
+          'member2Email',
+          'problemStatement',
+          'ideaTitle',
+          'college',
+          'hearAbout'
+        ),
         async (generatedLogs, fieldName) => {
           // Filter logs by fieldName
-          const expectedLogs = generatedLogs.filter(log => log.fieldName === fieldName);
-          
+          const expectedLogs = generatedLogs.filter((log) => log.fieldName === fieldName);
+
           // Mock Prisma to return only the filtered logs
           (prisma.auditLog.findMany as any).mockResolvedValue(expectedLogs as any);
 
@@ -488,8 +511,8 @@ describe('Audit Trail Export API - Property 9: Export Filter Respect', () => {
         fc.constantFrom('CREATE', 'UPDATE', 'DELETE'),
         async (generatedLogs, action) => {
           // Filter logs by action
-          const expectedLogs = generatedLogs.filter(log => log.action === action);
-          
+          const expectedLogs = generatedLogs.filter((log) => log.action === action);
+
           // Mock Prisma to return only the filtered logs
           (prisma.auditLog.findMany as any).mockResolvedValue(expectedLogs as any);
 

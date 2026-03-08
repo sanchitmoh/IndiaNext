@@ -1,11 +1,11 @@
 // Swap Member Modal — Replace a non-leader member with a new participant
 // Enforces: leader protection, duplicate-team check, atomic swap
-"use client";
+'use client';
 
-import { useState } from "react";
-import { trpc } from "@/lib/trpc-client";
-import { X, Loader2, UserMinus, UserPlus, AlertTriangle } from "lucide-react";
-import { toast } from "sonner";
+import { useState } from 'react';
+import { trpc } from '@/lib/trpc-client';
+import { X, Loader2, UserMinus, UserPlus, AlertTriangle } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface TeamMember {
   id: string;
@@ -26,34 +26,39 @@ interface SwapMemberModalProps {
   onSuccess: () => void;
 }
 
-export function SwapMemberModal({ memberId, teamMembers, onClose, onSuccess }: SwapMemberModalProps) {
+export function SwapMemberModal({
+  memberId,
+  teamMembers,
+  onClose,
+  onSuccess,
+}: SwapMemberModalProps) {
   const member = teamMembers.find((m) => m.id === memberId);
 
   const [form, setForm] = useState({
-    newEmail: "",
-    newName: "",
-    newPhone: "",
-    newCollege: "",
-    reason: "",
+    newEmail: '',
+    newName: '',
+    newPhone: '',
+    newCollege: '',
+    reason: '',
   });
 
-  const [step, setStep] = useState<"confirm" | "details">("details");
+  const [step, setStep] = useState<'confirm' | 'details'>('details');
 
   const swapMember = trpc.logistics.swapMember.useMutation();
 
   if (!member) return null;
-  if (member.role === "LEADER") return null;
+  if (member.role === 'LEADER') return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!form.newEmail.trim()) {
-      toast.error("New member email is required");
+      toast.error('New member email is required');
       return;
     }
 
-    if (step === "details") {
-      setStep("confirm");
+    if (step === 'details') {
+      setStep('confirm');
       return;
     }
 
@@ -61,16 +66,16 @@ export function SwapMemberModal({ memberId, teamMembers, onClose, onSuccess }: S
       await swapMember.mutateAsync({
         memberId,
         newUserEmail: form.newEmail.trim().toLowerCase(),
-        newUserName: form.newName.trim() || "TBD",
+        newUserName: form.newName.trim() || 'TBD',
         newUserPhone: form.newPhone.trim() || undefined,
         newUserCollege: form.newCollege.trim() || undefined,
       });
-      toast.success("Member swapped successfully");
+      toast.success('Member swapped successfully');
       onSuccess();
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Failed to swap member";
+      const message = err instanceof Error ? err.message : 'Failed to swap member';
       toast.error(message);
-      setStep("details"); // Go back to edit
+      setStep('details'); // Go back to edit
     }
   };
 
@@ -95,7 +100,7 @@ export function SwapMemberModal({ memberId, teamMembers, onClose, onSuccess }: S
         </div>
 
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
-          {step === "details" ? (
+          {step === 'details' ? (
             <>
               {/* Current member being removed */}
               <div className="bg-red-500/5 border border-red-500/15 rounded p-3">
@@ -106,7 +111,7 @@ export function SwapMemberModal({ memberId, teamMembers, onClose, onSuccess }: S
                   </span>
                 </div>
                 <p className="text-xs font-mono text-gray-300">
-                  {member.user.name || "Unnamed"} ({member.user.email})
+                  {member.user.name || 'Unnamed'} ({member.user.email})
                 </p>
               </div>
 
@@ -241,7 +246,7 @@ export function SwapMemberModal({ memberId, teamMembers, onClose, onSuccess }: S
               <div className="flex items-center justify-end gap-2 pt-2 border-t border-white/[0.06]">
                 <button
                   type="button"
-                  onClick={() => setStep("details")}
+                  onClick={() => setStep('details')}
                   className="px-3 py-1.5 text-[10px] font-mono font-bold text-gray-400 bg-white/[0.03] border border-white/[0.06] rounded hover:bg-white/[0.05] transition-all"
                 >
                   ← BACK

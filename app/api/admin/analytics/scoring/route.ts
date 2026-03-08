@@ -22,14 +22,14 @@ async function verifyAdmin() {
 
 /**
  * GET /api/admin/analytics/scoring
- * 
+ *
  * Comprehensive scoring analytics endpoint:
  * - Overall scoring stats (teams scored, avg scores, distributions)
  * - Criterion-wise comparison across tracks
  * - Judge consistency metrics (ICC-inspired, per-judge bias)
  * - Conflict summary
  * - Score distribution histogram
- * 
+ *
  * Query params:
  * - track: "IDEA_SPRINT" | "BUILD_STORM" (optional filter)
  */
@@ -41,7 +41,10 @@ export async function GET(req: Request) {
     if (!rl.success) {
       return NextResponse.json(
         { success: false, error: 'Too many requests' },
-        { status: 429, headers: { 'Retry-After': String(Math.ceil((rl.reset - Date.now()) / 1000)) } }
+        {
+          status: 429,
+          headers: { 'Retry-After': String(Math.ceil((rl.reset - Date.now()) / 1000)) },
+        }
       );
     }
 
@@ -63,7 +66,7 @@ export async function GET(req: Request) {
     // ═══════════════════════════════════════════════════════════
     // 1. OVERALL SCORING STATS
     // ═══════════════════════════════════════════════════════════
-    
+
     const approvedTeamFilter: Record<string, unknown> = {
       deletedAt: null,
       status: 'APPROVED',
@@ -101,20 +104,22 @@ export async function GET(req: Request) {
       .map((t) => t.submission?.judgeScore)
       .filter((s): s is number => s !== null && s !== undefined);
 
-    const avgTeamScore = teamScores.length > 0
-      ? Math.round((teamScores.reduce((a, b) => a + b, 0) / teamScores.length) * 10) / 10
-      : 0;
+    const avgTeamScore =
+      teamScores.length > 0
+        ? Math.round((teamScores.reduce((a, b) => a + b, 0) / teamScores.length) * 10) / 10
+        : 0;
     const minScore = teamScores.length > 0 ? Math.min(...teamScores) : 0;
     const maxScore = teamScores.length > 0 ? Math.max(...teamScores) : 0;
-    const medianScore = teamScores.length > 0
-      ? (() => {
-          const sorted = [...teamScores].sort((a, b) => a - b);
-          const mid = Math.floor(sorted.length / 2);
-          return sorted.length % 2 !== 0
-            ? sorted[mid]
-            : Math.round(((sorted[mid - 1] + sorted[mid]) / 2) * 10) / 10;
-        })()
-      : 0;
+    const medianScore =
+      teamScores.length > 0
+        ? (() => {
+            const sorted = [...teamScores].sort((a, b) => a - b);
+            const mid = Math.floor(sorted.length / 2);
+            return sorted.length % 2 !== 0
+              ? sorted[mid]
+              : Math.round(((sorted[mid - 1] + sorted[mid]) / 2) * 10) / 10;
+          })()
+        : 0;
 
     // Score distribution histogram (0-10, 10-20, ..., 90-100)
     const scoreDistribution = Array.from({ length: 10 }, (_, i) => ({
@@ -125,7 +130,7 @@ export async function GET(req: Request) {
     // ═══════════════════════════════════════════════════════════
     // 2. CRITERION-WISE COMPARISON
     // ═══════════════════════════════════════════════════════════
-    
+
     const tracks = trackFilter ? [trackFilter] : ['IDEA_SPRINT', 'BUILD_STORM'];
     const criteria = await prisma.scoringCriterion.findMany({
       where: { track: { in: tracks as any }, isActive: true },
@@ -201,18 +206,24 @@ export async function GET(req: Request) {
     // ═══════════════════════════════════════════════════════════
     // 3. JUDGE CONSISTENCY METRICS
     // ═══════════════════════════════════════════════════════════
-    
+
     // Group all criterion scores by judge
-    const judgeStatsMap = new Map<string, {
-      judgeId: string;
-      judgeName: string;
-      teamsScored: Set<string>;
-      allWeightedScores: number[];
-      criterionScores: number[];
-    }>();
+    const judgeStatsMap = new Map<
+      string,
+      {
+        judgeId: string;
+        judgeName: string;
+        teamsScored: Set<string>;
+        allWeightedScores: number[];
+        criterionScores: number[];
+      }
+    >();
 
     // Group scores by submission+judge to calculate per-team weighted totals
-    const submissionJudgeMap = new Map<string, Map<string, { judgeName: string; weighted: number }>>();
+    const submissionJudgeMap = new Map<
+      string,
+      Map<string, { judgeName: string; weighted: number }>
+    >();
 
     for (const cs of allCriterionScores) {
       const key = cs.submissionId;
@@ -253,18 +264,22 @@ export async function GET(req: Request) {
     }
 
     // Grand mean of all weighted scores
-    const allWeightedScoresFlat = Array.from(judgeStatsMap.values()).flatMap((j) => j.allWeightedScores);
-    const grandMean = allWeightedScoresFlat.length > 0
-      ? allWeightedScoresFlat.reduce((a, b) => a + b, 0) / allWeightedScoresFlat.length
-      : 0;
+    const allWeightedScoresFlat = Array.from(judgeStatsMap.values()).flatMap(
+      (j) => j.allWeightedScores
+    );
+    const grandMean =
+      allWeightedScoresFlat.length > 0
+        ? allWeightedScoresFlat.reduce((a, b) => a + b, 0) / allWeightedScoresFlat.length
+        : 0;
 
     const judgeConsistency = Array.from(judgeStatsMap.values()).map((j) => {
       const teamsScored = j.teamsScored.size;
-      const avgScore = j.allWeightedScores.length > 0
-        ? Math.round(
-            (j.allWeightedScores.reduce((a, b) => a + b, 0) / j.allWeightedScores.length) * 10
-          ) / 10
-        : 0;
+      const avgScore =
+        j.allWeightedScores.length > 0
+          ? Math.round(
+              (j.allWeightedScores.reduce((a, b) => a + b, 0) / j.allWeightedScores.length) * 10
+            ) / 10
+          : 0;
 
       // Bias: how far this judge's average is from the grand mean
       const bias = Math.round((avgScore - grandMean) * 10) / 10;
@@ -272,10 +287,9 @@ export async function GET(req: Request) {
       // Internal consistency: std dev of this judge's scores
       let internalStdDev = 0;
       if (j.allWeightedScores.length > 1) {
-        const variance = j.allWeightedScores.reduce(
-          (sum, s) => sum + Math.pow(s - avgScore, 2),
-          0
-        ) / j.allWeightedScores.length;
+        const variance =
+          j.allWeightedScores.reduce((sum, s) => sum + Math.pow(s - avgScore, 2), 0) /
+          j.allWeightedScores.length;
         internalStdDev = Math.round(Math.sqrt(variance) * 10) / 10;
       }
 
@@ -293,8 +307,14 @@ export async function GET(req: Request) {
         leniency,
         internalStdDev,
         scoreRange: {
-          min: j.allWeightedScores.length > 0 ? Math.round(Math.min(...j.allWeightedScores) * 10) / 10 : 0,
-          max: j.allWeightedScores.length > 0 ? Math.round(Math.max(...j.allWeightedScores) * 10) / 10 : 0,
+          min:
+            j.allWeightedScores.length > 0
+              ? Math.round(Math.min(...j.allWeightedScores) * 10) / 10
+              : 0,
+          max:
+            j.allWeightedScores.length > 0
+              ? Math.round(Math.max(...j.allWeightedScores) * 10) / 10
+              : 0,
         },
       };
     });
@@ -302,7 +322,7 @@ export async function GET(req: Request) {
     // ═══════════════════════════════════════════════════════════
     // 4. CONFLICT SUMMARY
     // ═══════════════════════════════════════════════════════════
-    
+
     const CONFLICT_THRESHOLD = 15;
     let totalConflicts = 0;
     const conflictTeams: { teamName: string; teamId: string; maxDiff: number }[] = [];
@@ -345,7 +365,7 @@ export async function GET(req: Request) {
     // ═══════════════════════════════════════════════════════════
     // 5. TOP/BOTTOM TEAMS LEADERBOARD
     // ═══════════════════════════════════════════════════════════
-    
+
     const rankedTeams = teamsWithScores
       .filter((t) => t.submission?.judgeScore != null)
       .sort((a, b) => (b.submission?.judgeScore ?? 0) - (a.submission?.judgeScore ?? 0))
@@ -366,9 +386,7 @@ export async function GET(req: Request) {
           totalApproved,
           scoredTeams,
           unscoredTeams,
-          scoringProgress: totalApproved > 0
-            ? Math.round((scoredTeams / totalApproved) * 100)
-            : 0,
+          scoringProgress: totalApproved > 0 ? Math.round((scoredTeams / totalApproved) * 100) : 0,
           avgScore: avgTeamScore,
           medianScore,
           minScore,

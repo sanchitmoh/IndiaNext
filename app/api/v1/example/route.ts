@@ -1,6 +1,6 @@
 /**
  * Example API Route with All Improvements
- * 
+ *
  * This demonstrates how to use:
  * - API versioning
  * - Error handling
@@ -29,15 +29,13 @@ const ExampleSchema = z.object({
 export const POST = withErrorHandler(async (req: Request) => {
   // 1. Rate Limiting
   const rateLimit = await rateLimitByIP(req, 10, 60); // 10 requests per minute
-  
+
   if (!rateLimit.success) {
     return NextResponse.json(
-      createErrorResponse(
-        'RATE_LIMIT_EXCEEDED',
-        'Too many requests. Please try again later.',
-        { retryAfter: Math.ceil((rateLimit.reset - Date.now()) / 1000) }
-      ),
-      { 
+      createErrorResponse('RATE_LIMIT_EXCEEDED', 'Too many requests. Please try again later.', {
+        retryAfter: Math.ceil((rateLimit.reset - Date.now()) / 1000),
+      }),
+      {
         status: 429,
         headers: createRateLimitHeaders(rateLimit),
       }
@@ -46,12 +44,11 @@ export const POST = withErrorHandler(async (req: Request) => {
 
   // 2. Session Validation (if required)
   const sessionToken = await getSessionToken(SESSION_CONFIGS.user.name);
-  
+
   if (!sessionToken) {
-    return NextResponse.json(
-      createErrorResponse('UNAUTHORIZED', 'Authentication required'),
-      { status: 401 }
-    );
+    return NextResponse.json(createErrorResponse('UNAUTHORIZED', 'Authentication required'), {
+      status: 401,
+    });
   }
 
   // 3. Input Validation
@@ -74,13 +71,9 @@ export const POST = withErrorHandler(async (req: Request) => {
 
   // 5. XSS Detection
   if (containsXss(sanitizedData.message)) {
-    return NextResponse.json(
-      createErrorResponse(
-        'VALIDATION_ERROR',
-        'Invalid input detected'
-      ),
-      { status: 400 }
-    );
+    return NextResponse.json(createErrorResponse('VALIDATION_ERROR', 'Invalid input detected'), {
+      status: 400,
+    });
   }
 
   // 6. Business Logic with Caching
@@ -92,7 +85,7 @@ export const POST = withErrorHandler(async (req: Request) => {
         where: { email: sanitizedData.email },
         select: { id: true, name: true, email: true },
       });
-      
+
       return data;
     },
     { ttl: 300 } // Cache for 5 minutes
@@ -117,10 +110,9 @@ export const GET = withErrorHandler(async (req: Request) => {
   const id = searchParams.get('id');
 
   if (!id) {
-    return NextResponse.json(
-      createErrorResponse('BAD_REQUEST', 'ID parameter required'),
-      { status: 400 }
-    );
+    return NextResponse.json(createErrorResponse('BAD_REQUEST', 'ID parameter required'), {
+      status: 400,
+    });
   }
 
   // Use caching for GET requests
@@ -141,10 +133,9 @@ export const GET = withErrorHandler(async (req: Request) => {
   );
 
   if (!data) {
-    return NextResponse.json(
-      createErrorResponse('NOT_FOUND', 'Resource not found'),
-      { status: 404 }
-    );
+    return NextResponse.json(createErrorResponse('NOT_FOUND', 'Resource not found'), {
+      status: 404,
+    });
   }
 
   return NextResponse.json({

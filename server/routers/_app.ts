@@ -6,13 +6,13 @@
 // logistics  → Event-day operations: attendance, member edits, QR check-in
 // email      → Bulk email campaigns: compose, send, track (used by /admin/emails)
 //
-import { router } from "../trpc";
-import { adminRouter } from "./admin";
-import { adminTeamsRouter } from "./admin-teams";
-import { teamRouter } from "./team";
-import { authRouter } from "./auth";
-import { logisticsRouter } from "./logistics";
-import { emailRouter } from "./email";
+import { router } from '../trpc';
+import { adminRouter } from './admin';
+import { adminTeamsRouter } from './admin-teams';
+import { teamRouter } from './team';
+import { authRouter } from './auth';
+import { logisticsRouter } from './logistics';
+import { emailRouter } from './email';
 
 export const appRouter = router({
   admin: adminRouter,

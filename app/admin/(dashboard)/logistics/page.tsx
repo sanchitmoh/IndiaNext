@@ -1,10 +1,10 @@
 // Logistics Dashboard — Event-Day Operations
 // Shows APPROVED teams only with attendance tracking, QR check-in, member management
-"use client";
+'use client';
 
-import { useState, useEffect, useCallback } from "react";
-import { trpc } from "@/lib/trpc-client";
-import { useAdminRole } from "@/components/admin/AdminRoleContext";
+import { useState, useEffect, useCallback } from 'react';
+import { trpc } from '@/lib/trpc-client';
+import { useAdminRole } from '@/components/admin/AdminRoleContext';
 import {
   Search,
   RefreshCw,
@@ -20,55 +20,56 @@ import {
   Wifi,
   WifiOff,
   Lock,
-} from "lucide-react";
-import { toast } from "sonner";
-import Link from "next/link";
-import { QRScannerModal } from "@/components/admin/logistics/QRScannerModal";
-import { AttendanceStats } from "@/components/admin/logistics/AttendanceStats";
+} from 'lucide-react';
+import { toast } from 'sonner';
+import Link from 'next/link';
+import { QRScannerModal } from '@/components/admin/logistics/QRScannerModal';
+import { AttendanceStats } from '@/components/admin/logistics/AttendanceStats';
 
 const POLL_INTERVAL = 30_000; // 30s real-time sync
 
-const attendanceBadge: Record<string, { label: string; style: string; icon: typeof CheckCircle2 }> = {
-  NOT_MARKED: {
-    label: "NOT MARKED",
-    style: "bg-gray-500/10 text-gray-400 border-gray-500/20",
-    icon: Clock,
-  },
-  PRESENT: {
-    label: "PRESENT",
-    style: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-    icon: CheckCircle2,
-  },
-  ABSENT: {
-    label: "ABSENT",
-    style: "bg-red-500/10 text-red-400 border-red-500/20",
-    icon: XCircle,
-  },
-  PARTIAL: {
-    label: "PARTIAL",
-    style: "bg-amber-500/10 text-amber-400 border-amber-500/20",
-    icon: AlertTriangle,
-  },
-};
+const attendanceBadge: Record<string, { label: string; style: string; icon: typeof CheckCircle2 }> =
+  {
+    NOT_MARKED: {
+      label: 'NOT MARKED',
+      style: 'bg-gray-500/10 text-gray-400 border-gray-500/20',
+      icon: Clock,
+    },
+    PRESENT: {
+      label: 'PRESENT',
+      style: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+      icon: CheckCircle2,
+    },
+    ABSENT: {
+      label: 'ABSENT',
+      style: 'bg-red-500/10 text-red-400 border-red-500/20',
+      icon: XCircle,
+    },
+    PARTIAL: {
+      label: 'PARTIAL',
+      style: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+      icon: AlertTriangle,
+    },
+  };
 
 const trackLabels: Record<string, string> = {
-  IDEA_SPRINT: "Idea Sprint",
-  BUILD_STORM: "Build Storm",
+  IDEA_SPRINT: 'Idea Sprint',
+  BUILD_STORM: 'Build Storm',
 };
 
 const trackStyles: Record<string, string> = {
-  IDEA_SPRINT: "bg-cyan-500/10 text-cyan-400",
-  BUILD_STORM: "bg-orange-500/10 text-orange-400",
+  IDEA_SPRINT: 'bg-cyan-500/10 text-cyan-400',
+  BUILD_STORM: 'bg-orange-500/10 text-orange-400',
 };
 
 export default function LogisticsPage() {
-  const [search, setSearch] = useState("");
-  const [trackFilter, setTrackFilter] = useState("all");
-  const [attendanceFilter, setAttendanceFilter] = useState("all");
+  const [search, setSearch] = useState('');
+  const [trackFilter, setTrackFilter] = useState('all');
+  const [attendanceFilter, setAttendanceFilter] = useState('all');
   const [page, setPage] = useState(1);
   const [showQRScanner, setShowQRScanner] = useState(false);
   const [isOnline, setIsOnline] = useState(
-    typeof navigator !== "undefined" ? navigator.onLine : true
+    typeof navigator !== 'undefined' ? navigator.onLine : true
   );
 
   // Detect admin role for attendance lock override
@@ -80,27 +81,23 @@ export default function LogisticsPage() {
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
-    window.addEventListener("online", handleOnline);
-    window.addEventListener("offline", handleOffline);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
 
     // Register service worker for offline support
-    if ("serviceWorker" in navigator) {
+    if ('serviceWorker' in navigator) {
       navigator.serviceWorker
-        .register("/logistics-sw.js")
-        .catch(() => console.warn("Logistics SW registration failed"));
+        .register('/logistics-sw.js')
+        .catch(() => console.warn('Logistics SW registration failed'));
     }
 
     return () => {
-      window.removeEventListener("online", handleOnline);
-      window.removeEventListener("offline", handleOffline);
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
     };
   }, []);
 
-  const {
-    data,
-    isLoading,
-    refetch,
-  } = trpc.logistics.getApprovedTeams.useQuery(
+  const { data, isLoading, refetch } = trpc.logistics.getApprovedTeams.useQuery(
     {
       search: search || undefined,
       track: trackFilter,
@@ -113,25 +110,25 @@ export default function LogisticsPage() {
     }
   );
 
-  const { data: stats, refetch: refetchStats } =
-    trpc.logistics.getAttendanceStats.useQuery(undefined, {
+  const { data: stats, refetch: refetchStats } = trpc.logistics.getAttendanceStats.useQuery(
+    undefined,
+    {
       refetchInterval: POLL_INTERVAL,
-    });
+    }
+  );
 
   const markAttendance = trpc.logistics.markTeamAttendance.useMutation();
   const exportAttendance = trpc.logistics.exportAttendance.useMutation();
 
   const handleQuickCheckIn = useCallback(
-    async (teamId: string, attendance: "PRESENT" | "ABSENT") => {
+    async (teamId: string, attendance: 'PRESENT' | 'ABSENT') => {
       try {
         await markAttendance.mutateAsync({ teamId, attendance });
-        toast.success(
-          attendance === "PRESENT" ? "Team checked in!" : "Team marked absent"
-        );
+        toast.success(attendance === 'PRESENT' ? 'Team checked in!' : 'Team marked absent');
         refetch();
         refetchStats();
       } catch {
-        toast.error("Failed to update attendance");
+        toast.error('Failed to update attendance');
       }
     },
     [markAttendance, refetch, refetchStats]
@@ -145,19 +142,19 @@ export default function LogisticsPage() {
       });
 
       const headers = [
-        "Team Code",
-        "Team Name",
-        "Track",
-        "College",
-        "Attendance",
-        "Checked In At",
-        "Notes",
-        "Member Name",
-        "Member Email",
-        "Member Phone",
-        "Member Role",
-        "Member Present",
-        "Member Check-In",
+        'Team Code',
+        'Team Name',
+        'Track',
+        'College',
+        'Attendance',
+        'Checked In At',
+        'Notes',
+        'Member Name',
+        'Member Email',
+        'Member Phone',
+        'Member Role',
+        'Member Present',
+        'Member Check-In',
       ];
 
       const rows: string[][] = [];
@@ -167,47 +164,42 @@ export default function LogisticsPage() {
             t.shortCode,
             t.name,
             t.track,
-            t.college || "",
+            t.college || '',
             t.attendance,
-            t.checkedInAt ? new Date(t.checkedInAt).toLocaleString() : "",
-            t.attendanceNotes || "",
+            t.checkedInAt ? new Date(t.checkedInAt).toLocaleString() : '',
+            t.attendanceNotes || '',
             m.name,
             m.email,
-            m.phone || "",
+            m.phone || '',
             m.role,
-            m.isPresent ? "YES" : "NO",
-            m.checkedInAt ? new Date(m.checkedInAt).toLocaleString() : "",
+            m.isPresent ? 'YES' : 'NO',
+            m.checkedInAt ? new Date(m.checkedInAt).toLocaleString() : '',
           ]);
         }
       }
 
       const csv = [headers, ...rows]
-        .map((row) =>
-          row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(",")
-        )
-        .join("\n");
+        .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+        .join('\n');
 
-      const blob = new Blob([csv], { type: "text/csv" });
+      const blob = new Blob([csv], { type: 'text/csv' });
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
+      const a = document.createElement('a');
       a.href = url;
-      a.download = `attendance-${new Date().toISOString().split("T")[0]}.csv`;
+      a.download = `attendance-${new Date().toISOString().split('T')[0]}.csv`;
       a.click();
 
       toast.success(`Exported ${result.count} teams`);
     } catch {
-      toast.error("Failed to export attendance");
+      toast.error('Failed to export attendance');
     }
   };
 
-  const handleQRResult = useCallback(
-    (teamId: string) => {
-      setShowQRScanner(false);
-      // Navigate to team detail
-      window.location.href = `/admin/logistics/${teamId}`;
-    },
-    []
-  );
+  const handleQRResult = useCallback((teamId: string) => {
+    setShowQRScanner(false);
+    // Navigate to team detail
+    window.location.href = `/admin/logistics/${teamId}`;
+  }, []);
 
   return (
     <div className="space-y-4 md:space-y-6">
@@ -218,15 +210,10 @@ export default function LogisticsPage() {
             EVENT_DAY_LOGISTICS
           </h1>
           <p className="text-[11px] font-mono text-gray-500 mt-1">
-            {stats?.totalApproved || 0} approved teams •{" "}
-            <span className="text-emerald-400">
-              {stats?.present || 0} present
-            </span>{" "}
-            •{" "}
-            <span className="text-red-400">{stats?.absent || 0} absent</span> •{" "}
-            <span className="text-amber-400">
-              {stats?.notMarked || 0} unmarked
-            </span>
+            {stats?.totalApproved || 0} approved teams •{' '}
+            <span className="text-emerald-400">{stats?.present || 0} present</span> •{' '}
+            <span className="text-red-400">{stats?.absent || 0} absent</span> •{' '}
+            <span className="text-amber-400">{stats?.notMarked || 0} unmarked</span>
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -234,16 +221,12 @@ export default function LogisticsPage() {
           <div
             className={`flex items-center gap-1.5 px-2 py-1 rounded text-[9px] font-mono font-bold tracking-wider border ${
               isOnline
-                ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                : "bg-red-500/10 text-red-400 border-red-500/20"
+                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                : 'bg-red-500/10 text-red-400 border-red-500/20'
             }`}
           >
-            {isOnline ? (
-              <Wifi className="h-3 w-3" />
-            ) : (
-              <WifiOff className="h-3 w-3" />
-            )}
-            {isOnline ? "ONLINE" : "OFFLINE"}
+            {isOnline ? <Wifi className="h-3 w-3" /> : <WifiOff className="h-3 w-3" />}
+            {isOnline ? 'ONLINE' : 'OFFLINE'}
           </div>
 
           <button
@@ -262,7 +245,7 @@ export default function LogisticsPage() {
             disabled={isLoading}
             className="inline-flex items-center gap-2 px-3 py-1.5 text-[10px] font-mono font-bold tracking-wider text-gray-400 bg-white/[0.03] border border-white/[0.06] rounded-md hover:text-orange-400 hover:border-orange-500/20 transition-all disabled:opacity-40"
           >
-            <RefreshCw className={`h-3.5 w-3.5 ${isLoading ? "animate-spin" : ""}`} />
+            <RefreshCw className={`h-3.5 w-3.5 ${isLoading ? 'animate-spin' : ''}`} />
             REFRESH
           </button>
 
@@ -341,15 +324,13 @@ export default function LogisticsPage() {
         ) : data?.teams.length === 0 ? (
           <div className="bg-[#0A0A0A] rounded-lg border border-white/[0.06] p-12 text-center">
             <Users className="h-10 w-10 text-gray-700 mx-auto mb-3" />
-            <p className="text-xs font-mono text-gray-600 tracking-widest">
-              NO TEAMS FOUND
-            </p>
+            <p className="text-xs font-mono text-gray-600 tracking-widest">NO TEAMS FOUND</p>
           </div>
         ) : (
           data?.teams.map((team) => {
             const badge = attendanceBadge[team.attendance] || attendanceBadge.NOT_MARKED;
             const BadgeIcon = badge.icon;
-            const leader = team.members.find((m) => m.role === "LEADER");
+            const leader = team.members.find((m) => m.role === 'LEADER');
             const presentCount = team.members.filter((m) => m.isPresent).length;
 
             return (
@@ -377,7 +358,7 @@ export default function LogisticsPage() {
                         </Link>
                         <span
                           className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded ${
-                            trackStyles[team.track] || ""
+                            trackStyles[team.track] || ''
                           }`}
                         >
                           {trackLabels[team.track] || team.track}
@@ -386,7 +367,7 @@ export default function LogisticsPage() {
                       <div className="flex items-center gap-3 mt-1 text-[10px] font-mono text-gray-500">
                         {leader && (
                           <span>
-                            Lead:{" "}
+                            Lead:{' '}
                             <span className="text-gray-400">
                               {leader.user.name || leader.user.email}
                             </span>
@@ -412,7 +393,7 @@ export default function LogisticsPage() {
 
                     {/* Quick actions */}
                     {(() => {
-                      const locked = team.attendance !== "NOT_MARKED" && !canOverrideAttendance;
+                      const locked = team.attendance !== 'NOT_MARKED' && !canOverrideAttendance;
                       if (locked) {
                         return (
                           <span
@@ -426,9 +407,9 @@ export default function LogisticsPage() {
                       }
                       return (
                         <>
-                          {team.attendance !== "PRESENT" && (
+                          {team.attendance !== 'PRESENT' && (
                             <button
-                              onClick={() => handleQuickCheckIn(team.id, "PRESENT")}
+                              onClick={() => handleQuickCheckIn(team.id, 'PRESENT')}
                               disabled={markAttendance.isPending}
                               className="px-2 py-1 text-[9px] font-mono font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded hover:bg-emerald-500/20 transition-all disabled:opacity-40"
                               title="Mark as Present"
@@ -436,9 +417,9 @@ export default function LogisticsPage() {
                               CHECK IN
                             </button>
                           )}
-                          {team.attendance !== "ABSENT" && (
+                          {team.attendance !== 'ABSENT' && (
                             <button
-                              onClick={() => handleQuickCheckIn(team.id, "ABSENT")}
+                              onClick={() => handleQuickCheckIn(team.id, 'ABSENT')}
                               disabled={markAttendance.isPending}
                               className="px-2 py-1 text-[9px] font-mono font-bold text-red-400 bg-red-500/10 border border-red-500/20 rounded hover:bg-red-500/20 transition-all disabled:opacity-40"
                               title="Mark as Absent"
@@ -490,10 +471,7 @@ export default function LogisticsPage() {
 
       {/* QR Scanner Modal */}
       {showQRScanner && (
-        <QRScannerModal
-          onClose={() => setShowQRScanner(false)}
-          onResult={handleQRResult}
-        />
+        <QRScannerModal onClose={() => setShowQRScanner(false)} onResult={handleQRResult} />
       )}
     </div>
   );

@@ -1,6 +1,6 @@
 /**
  * Global Error Handler for API Routes and TRPC
- * 
+ *
  * Standardizes error responses across the application.
  */
 
@@ -120,10 +120,7 @@ export function handleTRPCError(error: TRPCError): ApiError {
 /**
  * Handle generic errors
  */
-export function handleGenericError(
-  error: unknown,
-  path?: string
-): NextResponse {
+export function handleGenericError(error: unknown, path?: string): NextResponse {
   console.error('[Error Handler]', error);
 
   // Zod validation error
@@ -154,12 +151,7 @@ export function handleGenericError(
     }
 
     if (error.message.includes('Unauthorized')) {
-      const errorResponse = createErrorResponse(
-        'UNAUTHORIZED',
-        error.message,
-        undefined,
-        path
-      );
+      const errorResponse = createErrorResponse('UNAUTHORIZED', error.message, undefined, path);
       return NextResponse.json(errorResponse, { status: 401 });
     }
 
@@ -188,9 +180,7 @@ export function handleGenericError(
 /**
  * Async error wrapper for API routes
  */
-export function withErrorHandler(
-  handler: (req: Request) => Promise<NextResponse>
-) {
+export function withErrorHandler(handler: (req: Request) => Promise<NextResponse>) {
   return async (req: Request): Promise<NextResponse> => {
     try {
       return await handler(req);

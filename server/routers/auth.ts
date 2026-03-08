@@ -2,8 +2,8 @@
 // NOTE: Initial OTP verification uses REST API (/api/send-otp, /api/verify-otp)
 // This router is for session management and profile updates
 
-import { z } from "zod";
-import { router, protectedProcedure } from "../trpc";
+import { z } from 'zod';
+import { router, protectedProcedure } from '../trpc';
 
 export const authRouter = router({
   // Get current user
@@ -38,8 +38,8 @@ export const authRouter = router({
       await ctx.prisma.activityLog.create({
         data: {
           userId: ctx.session.user.id,
-          action: "profile.updated",
-          entity: "User",
+          action: 'profile.updated',
+          entity: 'User',
           entityId: ctx.session.user.id,
           metadata: {
             updatedFields: Object.keys(input),
@@ -59,8 +59,8 @@ export const authRouter = router({
     await ctx.prisma.activityLog.create({
       data: {
         userId: ctx.session.user.id,
-        action: "user.logout",
-        entity: "User",
+        action: 'user.logout',
+        entity: 'User',
         entityId: ctx.session.user.id,
       },
     });
@@ -82,7 +82,7 @@ export const authRouter = router({
           userId: ctx.session.user.id,
           ...(input.unreadOnly ? { read: false } : {}),
         },
-        orderBy: { createdAt: "desc" },
+        orderBy: { createdAt: 'desc' },
         take: input.limit,
       });
 
@@ -98,7 +98,7 @@ export const authRouter = router({
       });
 
       if (!notification || notification.userId !== ctx.session.user.id) {
-        throw new Error("Notification not found");
+        throw new Error('Notification not found');
       }
 
       await ctx.prisma.notification.update({
@@ -149,7 +149,7 @@ export const authRouter = router({
       });
 
       if (!notification || notification.userId !== ctx.session.user.id) {
-        throw new Error("Notification not found");
+        throw new Error('Notification not found');
       }
 
       await ctx.prisma.notification.delete({
@@ -171,7 +171,7 @@ export const authRouter = router({
         where: {
           userId: ctx.session.user.id,
         },
-        orderBy: { createdAt: "desc" },
+        orderBy: { createdAt: 'desc' },
         take: input.limit,
       });
 

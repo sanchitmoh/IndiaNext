@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { Calendar, User, FileText, Filter, Search, X } from "lucide-react";
+import { useState, useEffect } from 'react';
+import { Calendar, User, FileText, Filter, Search, X } from 'lucide-react';
 
 // ── Types ──────────────────────────────────────────────────
 
@@ -10,7 +10,7 @@ interface AuditFilters {
   toDate?: string;
   userId?: string;
   fieldName?: string;
-  action?: "CREATE" | "UPDATE" | "DELETE";
+  action?: 'CREATE' | 'UPDATE' | 'DELETE';
   search?: string;
 }
 
@@ -54,7 +54,7 @@ export function AuditFilters({ teamId, filters, onChange, loading = false }: Aud
           throw new Error('Failed to load team members');
         }
       } catch (error) {
-        console.error("Failed to fetch team members:", error);
+        console.error('Failed to fetch team members:', error);
         if (error instanceof Error) {
           if (error.name === 'AbortError' || error.name === 'TimeoutError') {
             setUsersFetchError('Timeout loading members');
@@ -76,40 +76,40 @@ export function AuditFilters({ teamId, filters, onChange, loading = false }: Aud
 
   // Available field names for filtering
   const fieldNames = [
-    { value: "teamName", label: "Team Name" },
-    { value: "hearAbout", label: "How Did You Hear About Us" },
-    { value: "additionalNotes", label: "Additional Notes" },
-    { value: "member2Email", label: "Member 2 Email" },
-    { value: "member2Name", label: "Member 2 Name" },
-    { value: "member2College", label: "Member 2 College" },
-    { value: "member2Degree", label: "Member 2 Degree" },
-    { value: "member2Gender", label: "Member 2 Gender" },
-    { value: "member3Email", label: "Member 3 Email" },
-    { value: "member3Name", label: "Member 3 Name" },
-    { value: "member3College", label: "Member 3 College" },
-    { value: "member3Degree", label: "Member 3 Degree" },
-    { value: "member3Gender", label: "Member 3 Gender" },
-    { value: "member4Email", label: "Member 4 Email" },
-    { value: "member4Name", label: "Member 4 Name" },
-    { value: "member4College", label: "Member 4 College" },
-    { value: "member4Degree", label: "Member 4 Degree" },
-    { value: "member4Gender", label: "Member 4 Gender" },
-    { value: "ideaTitle", label: "Idea Title" },
-    { value: "problemStatement", label: "Problem Statement" },
-    { value: "proposedSolution", label: "Proposed Solution" },
-    { value: "targetUsers", label: "Target Users" },
-    { value: "expectedImpact", label: "Expected Impact" },
-    { value: "techStack", label: "Tech Stack" },
-    { value: "docLink", label: "Document Link" },
-    { value: "problemDesc", label: "Problem Description" },
-    { value: "githubLink", label: "GitHub Link" },
+    { value: 'teamName', label: 'Team Name' },
+    { value: 'hearAbout', label: 'How Did You Hear About Us' },
+    { value: 'additionalNotes', label: 'Additional Notes' },
+    { value: 'member2Email', label: 'Member 2 Email' },
+    { value: 'member2Name', label: 'Member 2 Name' },
+    { value: 'member2College', label: 'Member 2 College' },
+    { value: 'member2Degree', label: 'Member 2 Degree' },
+    { value: 'member2Gender', label: 'Member 2 Gender' },
+    { value: 'member3Email', label: 'Member 3 Email' },
+    { value: 'member3Name', label: 'Member 3 Name' },
+    { value: 'member3College', label: 'Member 3 College' },
+    { value: 'member3Degree', label: 'Member 3 Degree' },
+    { value: 'member3Gender', label: 'Member 3 Gender' },
+    { value: 'member4Email', label: 'Member 4 Email' },
+    { value: 'member4Name', label: 'Member 4 Name' },
+    { value: 'member4College', label: 'Member 4 College' },
+    { value: 'member4Degree', label: 'Member 4 Degree' },
+    { value: 'member4Gender', label: 'Member 4 Gender' },
+    { value: 'ideaTitle', label: 'Idea Title' },
+    { value: 'problemStatement', label: 'Problem Statement' },
+    { value: 'proposedSolution', label: 'Proposed Solution' },
+    { value: 'targetUsers', label: 'Target Users' },
+    { value: 'expectedImpact', label: 'Expected Impact' },
+    { value: 'techStack', label: 'Tech Stack' },
+    { value: 'docLink', label: 'Document Link' },
+    { value: 'problemDesc', label: 'Problem Description' },
+    { value: 'githubLink', label: 'GitHub Link' },
   ];
 
   // Action types
   const actionTypes = [
-    { value: "CREATE", label: "Created" },
-    { value: "UPDATE", label: "Updated" },
-    { value: "DELETE", label: "Deleted" },
+    { value: 'CREATE', label: 'Created' },
+    { value: 'UPDATE', label: 'Updated' },
+    { value: 'DELETE', label: 'Deleted' },
   ];
 
   // Check if any filters are active
@@ -173,9 +173,7 @@ export function AuditFilters({ teamId, filters, onChange, loading = false }: Aud
         <DateRangePicker
           fromDate={filters.fromDate}
           toDate={filters.toDate}
-          onChange={(fromDate, toDate) =>
-            onChange({ ...filters, fromDate, toDate })
-          }
+          onChange={(fromDate, toDate) => onChange({ ...filters, fromDate, toDate })}
         />
 
         {/* User Select */}
@@ -229,14 +227,14 @@ function DateRangePicker({ fromDate, toDate, onChange }: DateRangePickerProps) {
       <div className="grid grid-cols-2 gap-2">
         <input
           type="date"
-          value={fromDate || ""}
+          value={fromDate || ''}
           onChange={(e) => onChange(e.target.value || undefined, toDate)}
           placeholder="From"
           className="w-full px-2 py-1.5 text-xs font-mono bg-black/40 border border-white/[0.06] rounded text-gray-300 placeholder-gray-600 focus:outline-none focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/20 hover:border-white/[0.12] transition-colors duration-200"
         />
         <input
           type="date"
-          value={toDate || ""}
+          value={toDate || ''}
           onChange={(e) => onChange(fromDate, e.target.value || undefined)}
           placeholder="To"
           className="w-full px-2 py-1.5 text-xs font-mono bg-black/40 border border-white/[0.06] rounded text-gray-300 placeholder-gray-600 focus:outline-none focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/20 hover:border-white/[0.12] transition-colors duration-200"
@@ -261,9 +259,7 @@ function UserSelect({ value, users, loading, error, onChange }: UserSelectProps)
         <User className="h-3 w-3" />
         USER
         {loading && (
-          <span className="ml-1 text-[8px] text-orange-500 animate-pulse">
-            LOADING...
-          </span>
+          <span className="ml-1 text-[8px] text-orange-500 animate-pulse">LOADING...</span>
         )}
         {error && (
           <span className="ml-1 text-[8px] text-red-400" title={error}>
@@ -273,7 +269,7 @@ function UserSelect({ value, users, loading, error, onChange }: UserSelectProps)
       </label>
       <div className="relative">
         <select
-          value={value || ""}
+          value={value || ''}
           onChange={(e) => onChange(e.target.value || undefined)}
           disabled={loading || !!error}
           aria-label="User filter"
@@ -282,11 +278,12 @@ function UserSelect({ value, users, loading, error, onChange }: UserSelectProps)
           <option value="">
             {error ? 'Failed to load users' : loading ? 'Loading...' : 'All Users'}
           </option>
-          {!error && users.map((user) => (
-            <option key={user.id} value={user.id}>
-              {user.name} ({user.email})
-            </option>
-          ))}
+          {!error &&
+            users.map((user) => (
+              <option key={user.id} value={user.id}>
+                {user.name} ({user.email})
+              </option>
+            ))}
         </select>
         {loading && (
           <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
@@ -294,11 +291,7 @@ function UserSelect({ value, users, loading, error, onChange }: UserSelectProps)
           </div>
         )}
       </div>
-      {error && (
-        <p className="text-[9px] font-mono text-red-400 mt-1">
-          {error}
-        </p>
-      )}
+      {error && <p className="text-[9px] font-mono text-red-400 mt-1">{error}</p>}
     </div>
   );
 }
@@ -317,7 +310,7 @@ function FieldSelect({ value, fields, onChange }: FieldSelectProps) {
         FIELD
       </label>
       <select
-        value={value || ""}
+        value={value || ''}
         onChange={(e) => onChange(e.target.value || undefined)}
         aria-label="Field filter"
         className="w-full px-2 py-1.5 text-xs font-mono bg-black/40 border border-white/[0.06] rounded text-gray-300 focus:outline-none focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/20 hover:border-white/[0.12] transition-colors duration-200"
@@ -334,9 +327,9 @@ function FieldSelect({ value, fields, onChange }: FieldSelectProps) {
 }
 
 interface ActionSelectProps {
-  value?: "CREATE" | "UPDATE" | "DELETE";
+  value?: 'CREATE' | 'UPDATE' | 'DELETE';
   actions: Array<{ value: string; label: string }>;
-  onChange: (action?: "CREATE" | "UPDATE" | "DELETE") => void;
+  onChange: (action?: 'CREATE' | 'UPDATE' | 'DELETE') => void;
 }
 
 function ActionSelect({ value, actions, onChange }: ActionSelectProps) {
@@ -347,13 +340,9 @@ function ActionSelect({ value, actions, onChange }: ActionSelectProps) {
         ACTION
       </label>
       <select
-        value={value || ""}
+        value={value || ''}
         onChange={(e) =>
-          onChange(
-            e.target.value
-              ? (e.target.value as "CREATE" | "UPDATE" | "DELETE")
-              : undefined
-          )
+          onChange(e.target.value ? (e.target.value as 'CREATE' | 'UPDATE' | 'DELETE') : undefined)
         }
         aria-label="Action filter"
         className="w-full px-2 py-1.5 text-xs font-mono bg-black/40 border border-white/[0.06] rounded text-gray-300 focus:outline-none focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/20 hover:border-white/[0.12] transition-colors duration-200"
@@ -384,7 +373,7 @@ function SearchInput({ value, onChange }: SearchInputProps) {
       <div className="relative">
         <input
           type="text"
-          value={value || ""}
+          value={value || ''}
           onChange={(e) => onChange(e.target.value || undefined)}
           placeholder="Search in values..."
           className="w-full px-2 py-1.5 text-xs font-mono bg-black/40 border border-white/[0.06] rounded text-gray-300 placeholder-gray-600 focus:outline-none focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/20 hover:border-white/[0.12] transition-colors duration-200"

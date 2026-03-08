@@ -1,14 +1,9 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-import Link from "next/link";
-import Image from "next/image";
-import {
-  motion,
-  useScroll,
-  useSpring,
-  AnimatePresence,
-} from "framer-motion";
+import React, { useState } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
+import { motion, useScroll, useSpring, AnimatePresence } from 'framer-motion';
 import {
   ArrowRight,
   ArrowLeft,
@@ -34,13 +29,13 @@ import {
   Menu,
   X,
   ChevronRight,
-} from "lucide-react";
-import { fadeInUp, staggerContainer } from "@/lib/animations/variants";
+} from 'lucide-react';
+import { fadeInUp, staggerContainer } from '@/lib/animations/variants';
 
 // --- Theme Colors ---
-const CYAN = "#00CCFF";
-const ORANGE = "#FF6600";
-const GREEN = "#00FF55";
+const CYAN = '#00CCFF';
+const ORANGE = '#FF6600';
+const GREEN = '#00FF55';
 
 // ─────────────────────────────────────────────────────────────
 // Page
@@ -104,12 +99,12 @@ export default function RulesPage() {
 // Navbar (Rules page variant)
 // ─────────────────────────────────────────────────────────────
 const RULES_NAV_LINKS = [
-  { label: "./HOME", href: "/" },
-  { label: "./IDEASPRINT", href: "#ideasprint" },
-  { label: "./BUILDSTORM", href: "#buildstorm" },
-  { label: "./AI_POLICY", href: "#ai-policy" },
-  { label: "./CONDUCT", href: "#conduct" },
-  { label: "./FAQ", href: "/faq" },
+  { label: './HOME', href: '/' },
+  { label: './IDEASPRINT', href: '#ideasprint' },
+  { label: './BUILDSTORM', href: '#buildstorm' },
+  { label: './AI_POLICY', href: '#ai-policy' },
+  { label: './CONDUCT', href: '#conduct' },
+  { label: './FAQ', href: '/faq' },
 ];
 
 const RulesNavbar = () => {
@@ -122,29 +117,53 @@ const RulesNavbar = () => {
           <Link href="/" className="flex items-center gap-2 md:gap-3 group">
             <motion.div
               whileHover={{ rotate: 180, scale: 1.1 }}
-              transition={{ duration: 0.6, ease: "anticipate" }}
+              transition={{ duration: 0.6, ease: 'anticipate' }}
               className="relative w-8 h-8 md:w-10 md:h-10 flex items-center justify-center"
             >
               <div className="absolute inset-0 bg-gradient-to-tr from-orange-500 via-cyan-400 to-green-500 rounded-lg opacity-30 blur-md group-hover:opacity-60 transition-opacity" />
               <div className="relative w-full h-full border border-white/20 bg-black/60 rounded-lg flex items-center justify-center backdrop-blur-sm overflow-hidden p-1">
-                <Image src="/logo-new.png" alt="IndiaNext Logo" width={32} height={32} className="object-contain" />
+                <Image
+                  src="/logo-new.png"
+                  alt="IndiaNext Logo"
+                  width={32}
+                  height={32}
+                  className="object-contain"
+                />
               </div>
             </motion.div>
             <div className="flex flex-col">
               <span className="font-black text-lg md:text-xl tracking-tighter leading-none">
                 INDIA<span className="text-orange-500">NEXT</span>
               </span>
-              <span className="text-[0.5rem] md:text-[0.55rem] text-gray-500 tracking-[0.3em] md:tracking-[0.4em] font-mono font-bold">DEPLOYMENT_2026</span>
+              <span className="text-[0.5rem] md:text-[0.55rem] text-gray-500 tracking-[0.3em] md:tracking-[0.4em] font-mono font-bold">
+                DEPLOYMENT_2026
+              </span>
             </div>
           </Link>
 
           {/* Mobile: KES logos + hamburger */}
           <div className="flex items-center gap-3 md:hidden">
             <div className="flex items-center gap-2 sm:gap-3">
-              <Image src="/kessc-logo-Photoroom.png" alt="KES Logo" width={44} height={44} className="object-contain sm:w-[52px] sm:h-[52px]" />
-              <Image src="/KES 90 years logo in PNG format-01.png" alt="KES 90 Years" width={64} height={40} className="object-contain opacity-90 sm:w-[80px] sm:h-[48px]" />
+              <Image
+                src="/kessc-logo-Photoroom.png"
+                alt="KES Logo"
+                width={44}
+                height={44}
+                className="object-contain sm:w-[52px] sm:h-[52px]"
+              />
+              <Image
+                src="/KES 90 years logo in PNG format-01.png"
+                alt="KES 90 Years"
+                width={64}
+                height={40}
+                className="object-contain opacity-90 sm:w-[80px] sm:h-[48px]"
+              />
             </div>
-            <button onClick={() => setSidebarOpen(true)} className="w-10 h-10 flex items-center justify-center border border-white/10 rounded-sm bg-white/5 active:bg-white/10 transition-colors" aria-label="Open menu">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="w-10 h-10 flex items-center justify-center border border-white/10 rounded-sm bg-white/5 active:bg-white/10 transition-colors"
+              aria-label="Open menu"
+            >
               <Menu size={20} className="text-white" />
             </button>
           </div>
@@ -152,8 +171,12 @@ const RulesNavbar = () => {
           {/* Desktop nav */}
           <div className="hidden md:flex items-center gap-10 text-[10px] font-bold text-gray-400 font-mono tracking-widest">
             {RULES_NAV_LINKS.map((link) => (
-              <Link key={link.label} href={link.href} className="hover:text-white transition-colors relative group">
-                {link.label === "./HOME" && <ArrowLeft size={12} className="inline mr-1" />}
+              <Link
+                key={link.label}
+                href={link.href}
+                className="hover:text-white transition-colors relative group"
+              >
+                {link.label === './HOME' && <ArrowLeft size={12} className="inline mr-1" />}
                 {link.label}
                 <span className="absolute -bottom-1 left-0 w-0 h-px bg-orange-500 transition-all group-hover:w-full" />
               </Link>
@@ -164,12 +187,25 @@ const RulesNavbar = () => {
             >
               <div className="absolute inset-0 w-full h-full bg-[#020202] translate-y-[101%] group-hover:translate-y-0 transition-transform duration-300 ease-out" />
               <span className="relative z-10 flex items-center gap-2 text-[10px] tracking-widest uppercase italic">
-                REGISTER <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                REGISTER{' '}
+                <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
               </span>
             </Link>
             <div className="flex items-center gap-5 ml-2 pl-6 border-l border-white/10 group/kes cursor-pointer pointer-events-auto">
-              <Image src="/kessc-logo-Photoroom.png" alt="KES Logo" width={72} height={72} className="object-contain group-hover/kes:-translate-y-1 transition-transform duration-300 opacity-100" />
-              <Image src="/KES 90 years logo in PNG format-01.png" alt="KES 90 Years" width={112} height={64} className="object-contain opacity-90 group-hover/kes:opacity-100 transition-opacity" />
+              <Image
+                src="/kessc-logo-Photoroom.png"
+                alt="KES Logo"
+                width={72}
+                height={72}
+                className="object-contain group-hover/kes:-translate-y-1 transition-transform duration-300 opacity-100"
+              />
+              <Image
+                src="/KES 90 years logo in PNG format-01.png"
+                alt="KES 90 Years"
+                width={112}
+                height={64}
+                className="object-contain opacity-90 group-hover/kes:opacity-100 transition-opacity"
+              />
             </div>
           </div>
         </div>
@@ -179,38 +215,96 @@ const RulesNavbar = () => {
       <AnimatePresence>
         {sidebarOpen && (
           <>
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }} className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm md:hidden" onClick={() => setSidebarOpen(false)} />
-            <motion.div initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }} transition={{ type: "spring", damping: 30, stiffness: 300 }} className="fixed top-0 right-0 bottom-0 w-72 z-[70] bg-[#050505] border-l border-white/10 md:hidden flex flex-col">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm md:hidden"
+              onClick={() => setSidebarOpen(false)}
+            />
+            <motion.div
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+              className="fixed top-0 right-0 bottom-0 w-72 z-[70] bg-[#050505] border-l border-white/10 md:hidden flex flex-col"
+            >
               <div className="flex items-center justify-between px-5 h-16 border-b border-white/5">
-                <span className="font-mono text-[10px] font-black tracking-[0.5em] text-gray-500 uppercase">NAVIGATION</span>
-                <button onClick={() => setSidebarOpen(false)} className="w-9 h-9 flex items-center justify-center border border-white/10 rounded-sm bg-white/5 active:bg-white/10 transition-colors" aria-label="Close menu">
+                <span className="font-mono text-[10px] font-black tracking-[0.5em] text-gray-500 uppercase">
+                  NAVIGATION
+                </span>
+                <button
+                  onClick={() => setSidebarOpen(false)}
+                  className="w-9 h-9 flex items-center justify-center border border-white/10 rounded-sm bg-white/5 active:bg-white/10 transition-colors"
+                  aria-label="Close menu"
+                >
                   <X size={18} className="text-white" />
                 </button>
               </div>
               <div className="flex-1 overflow-y-auto py-6 px-5">
                 <div className="flex flex-col gap-1">
                   {RULES_NAV_LINKS.map((link, i) => (
-                    <motion.div key={link.label} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}>
-                      <Link href={link.href} onClick={() => setSidebarOpen(false)} className="flex items-center gap-3 px-4 py-3.5 text-gray-400 hover:text-white hover:bg-white/5 transition-all rounded-sm group">
-                        <span className="w-6 text-[10px] font-mono font-black text-gray-500 group-hover:text-orange-500 transition-colors">{String(i + 1).padStart(2, "0")}</span>
-                        <span className="font-mono text-xs font-bold tracking-[0.3em] uppercase">{link.label}</span>
-                        <ChevronRight size={14} className="ml-auto text-gray-600 group-hover:text-orange-500 transition-colors" />
+                    <motion.div
+                      key={link.label}
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.05 }}
+                    >
+                      <Link
+                        href={link.href}
+                        onClick={() => setSidebarOpen(false)}
+                        className="flex items-center gap-3 px-4 py-3.5 text-gray-400 hover:text-white hover:bg-white/5 transition-all rounded-sm group"
+                      >
+                        <span className="w-6 text-[10px] font-mono font-black text-gray-500 group-hover:text-orange-500 transition-colors">
+                          {String(i + 1).padStart(2, '0')}
+                        </span>
+                        <span className="font-mono text-xs font-bold tracking-[0.3em] uppercase">
+                          {link.label}
+                        </span>
+                        <ChevronRight
+                          size={14}
+                          className="ml-auto text-gray-600 group-hover:text-orange-500 transition-colors"
+                        />
                       </Link>
                     </motion.div>
                   ))}
                 </div>
-                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="mt-6 px-4">
-                  <Link href="/register" onClick={() => setSidebarOpen(false)} className="flex items-center justify-center gap-2 w-full py-3 bg-orange-500 text-black font-mono text-xs font-black tracking-widest uppercase rounded-sm active:scale-95 transition-transform shadow-[0_0_20px_rgba(249,115,22,0.3)]">
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="mt-6 px-4"
+                >
+                  <Link
+                    href="/register"
+                    onClick={() => setSidebarOpen(false)}
+                    className="flex items-center justify-center gap-2 w-full py-3 bg-orange-500 text-black font-mono text-xs font-black tracking-widest uppercase rounded-sm active:scale-95 transition-transform shadow-[0_0_20px_rgba(249,115,22,0.3)]"
+                  >
                     REGISTER <ArrowRight size={14} />
                   </Link>
                 </motion.div>
               </div>
               <div className="px-5 py-6 border-t border-white/5">
                 <div className="flex items-center justify-center gap-4 mb-4">
-                  <Image src="/kessc-logo-Photoroom.png" alt="KES Logo" width={48} height={48} className="object-contain opacity-100" />
-                  <Image src="/KES 90 years logo in PNG format-01.png" alt="KES 90 Years" width={80} height={44} className="object-contain opacity-90" />
+                  <Image
+                    src="/kessc-logo-Photoroom.png"
+                    alt="KES Logo"
+                    width={48}
+                    height={48}
+                    className="object-contain opacity-100"
+                  />
+                  <Image
+                    src="/KES 90 years logo in PNG format-01.png"
+                    alt="KES 90 Years"
+                    width={80}
+                    height={44}
+                    className="object-contain opacity-90"
+                  />
                 </div>
-                <p className="text-center font-mono text-[8px] text-gray-500 tracking-[0.3em] uppercase font-bold">K.E.S. SHROFF COLLEGE</p>
+                <p className="text-center font-mono text-[8px] text-gray-500 tracking-[0.3em] uppercase font-bold">
+                  K.E.S. SHROFF COLLEGE
+                </p>
               </div>
             </motion.div>
           </>
@@ -234,7 +328,10 @@ const RulesHero = () => (
       className="text-center relative z-20 max-w-5xl mx-auto"
     >
       {/* Badge */}
-      <motion.div variants={fadeInUp} className="inline-flex items-center gap-3 px-5 py-2 border border-orange-500/20 bg-orange-500/5 rounded-full mb-10 backdrop-blur-sm">
+      <motion.div
+        variants={fadeInUp}
+        className="inline-flex items-center gap-3 px-5 py-2 border border-orange-500/20 bg-orange-500/5 rounded-full mb-10 backdrop-blur-sm"
+      >
         <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
         <span className="font-mono text-[9px] text-orange-400 tracking-[0.5em] font-black uppercase">
           Official Rulebook v1.0
@@ -242,23 +339,33 @@ const RulesHero = () => (
       </motion.div>
 
       {/* Title */}
-      <motion.h1 variants={fadeInUp} className="text-4xl sm:text-6xl md:text-[10rem] font-black leading-[0.8] tracking-tighter uppercase italic mb-6">
+      <motion.h1
+        variants={fadeInUp}
+        className="text-4xl sm:text-6xl md:text-[10rem] font-black leading-[0.8] tracking-tighter uppercase italic mb-6"
+      >
         <span className="block text-transparent bg-clip-text bg-gradient-to-br from-orange-500 via-white to-cyan-400 drop-shadow-[0_0_40px_rgba(255,100,0,0.4)]">
           RULES
         </span>
       </motion.h1>
 
-      <motion.p variants={fadeInUp} className="text-gray-400 text-base sm:text-lg md:text-xl font-bold tracking-tight max-w-2xl mx-auto mb-8">
-        INDIANEXT: FutureProof India Hackathon — the complete mission parameters, engagement rules, and operational protocol.
+      <motion.p
+        variants={fadeInUp}
+        className="text-gray-400 text-base sm:text-lg md:text-xl font-bold tracking-tight max-w-2xl mx-auto mb-8"
+      >
+        INDIANEXT: FutureProof India Hackathon — the complete mission parameters, engagement rules,
+        and operational protocol.
       </motion.p>
 
       {/* Quick Nav Cards */}
-      <motion.div variants={fadeInUp} className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 max-w-3xl mx-auto mt-8 md:mt-12">
+      <motion.div
+        variants={fadeInUp}
+        className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 max-w-3xl mx-auto mt-8 md:mt-12"
+      >
         {[
-          { icon: <Lightbulb size={20} />, label: "IdeaSprint", href: "#ideasprint", color: GREEN },
-          { icon: <Zap size={20} />, label: "BuildStorm", href: "#buildstorm", color: ORANGE },
-          { icon: <Bot size={20} />, label: "AI Policy", href: "#ai-policy", color: CYAN },
-          { icon: <Shield size={20} />, label: "Conduct", href: "#conduct", color: "#f59e0b" },
+          { icon: <Lightbulb size={20} />, label: 'IdeaSprint', href: '#ideasprint', color: GREEN },
+          { icon: <Zap size={20} />, label: 'BuildStorm', href: '#buildstorm', color: ORANGE },
+          { icon: <Bot size={20} />, label: 'AI Policy', href: '#ai-policy', color: CYAN },
+          { icon: <Shield size={20} />, label: 'Conduct', href: '#conduct', color: '#f59e0b' },
         ].map((item, i) => (
           <Link key={i} href={item.href}>
             <motion.div
@@ -298,15 +405,23 @@ const SectionHeader = ({ number, title, subtitle, accent, icon }: SectionHeaderP
     className="mb-10 md:mb-16 text-center"
   >
     <div className="inline-flex items-center gap-3 mb-6">
-      <div className="text-2xl" style={{ color: accent }}>{icon}</div>
-      <span className="font-mono text-[10px] font-black tracking-[0.5em] uppercase" style={{ color: accent }}>
+      <div className="text-2xl" style={{ color: accent }}>
+        {icon}
+      </div>
+      <span
+        className="font-mono text-[10px] font-black tracking-[0.5em] uppercase"
+        style={{ color: accent }}
+      >
         SECTION_{number}
       </span>
     </div>
     <h2 className="text-3xl sm:text-5xl md:text-8xl font-black uppercase tracking-tighter italic leading-[0.85] mb-4">
       {title}
     </h2>
-    <div className="flex items-center justify-center gap-2 sm:gap-4 font-mono text-[8px] sm:text-[10px] tracking-[0.3em] sm:tracking-[0.5em] font-black uppercase" style={{ color: accent }}>
+    <div
+      className="flex items-center justify-center gap-2 sm:gap-4 font-mono text-[8px] sm:text-[10px] tracking-[0.3em] sm:tracking-[0.5em] font-black uppercase"
+      style={{ color: accent }}
+    >
       <div className="w-12 h-px" style={{ backgroundColor: `${accent}50` }} />
       {subtitle}
       <div className="w-12 h-px" style={{ backgroundColor: `${accent}50` }} />
@@ -329,12 +444,15 @@ const RuleCard = ({ index, text, accent }: RuleCardProps) => (
     whileHover={{ x: 8 }}
     className="flex items-start gap-5 p-5 border border-white/5 bg-white/[0.02] rounded-sm hover:border-white/10 transition-all group relative overflow-hidden"
   >
-    <div className="absolute top-0 left-0 w-1 h-0 group-hover:h-full transition-all duration-300" style={{ backgroundColor: accent }} />
+    <div
+      className="absolute top-0 left-0 w-1 h-0 group-hover:h-full transition-all duration-300"
+      style={{ backgroundColor: accent }}
+    />
     <div
       className="flex-shrink-0 w-8 h-8 rounded-sm flex items-center justify-center text-xs font-black font-mono border"
       style={{ borderColor: `${accent}40`, color: accent, backgroundColor: `${accent}10` }}
     >
-      {String(index + 1).padStart(2, "0")}
+      {String(index + 1).padStart(2, '0')}
     </div>
     <p className="text-gray-300 text-sm leading-relaxed font-medium">{text}</p>
   </motion.div>
@@ -356,8 +474,14 @@ const EvalCard = ({ icon, title, accent, index }: EvalCardProps) => (
     whileHover={{ y: -6, scale: 1.02 }}
     className="p-6 border border-white/10 bg-[#050505] rounded-sm hover:border-white/20 transition-all text-center relative overflow-hidden group"
   >
-    <div className="absolute top-0 left-0 right-0 h-px group-hover:bg-gradient-to-r from-transparent to-transparent transition-all" style={{ backgroundImage: `linear-gradient(to right, transparent, ${accent}, transparent)` }} />
-    <div className="mx-auto mb-4 transition-transform group-hover:scale-110" style={{ color: accent }}>
+    <div
+      className="absolute top-0 left-0 right-0 h-px group-hover:bg-gradient-to-r from-transparent to-transparent transition-all"
+      style={{ backgroundImage: `linear-gradient(to right, transparent, ${accent}, transparent)` }}
+    />
+    <div
+      className="mx-auto mb-4 transition-transform group-hover:scale-110"
+      style={{ color: accent }}
+    >
       {icon}
     </div>
     <p className="text-[11px] font-mono font-black tracking-[0.2em] uppercase text-gray-400 group-hover:text-white transition-colors">
@@ -371,10 +495,10 @@ const EvalCard = ({ icon, title, accent, index }: EvalCardProps) => (
 // ─────────────────────────────────────────────────────────────
 const GeneralRulesSection = () => {
   const generalRules = [
-    "Team Size: Teams must consist of 2 to 4 members. Cross-specialization (e.g., a mix of developers and designers) is highly encouraged.",
-    "Originality: All code and assets must be created during the 24-hour window. Using third-party APIs, open-source libraries, and frameworks is permitted, provided they are publicly available.",
-    "Conduct: We maintain a zero-tolerance policy for plagiarism, harassment, or unsportsmanlike behavior.",
-    "Hardware: Participants must bring their own laptops, chargers, and any specific hardware (microcontrollers, sensors, etc.) required for their project.",
+    'Team Size: Teams must consist of 2 to 4 members. Cross-specialization (e.g., a mix of developers and designers) is highly encouraged.',
+    'Originality: All code and assets must be created during the 24-hour window. Using third-party APIs, open-source libraries, and frameworks is permitted, provided they are publicly available.',
+    'Conduct: We maintain a zero-tolerance policy for plagiarism, harassment, or unsportsmanlike behavior.',
+    'Hardware: Participants must bring their own laptops, chargers, and any specific hardware (microcontrollers, sensors, etc.) required for their project.',
   ];
 
   return (
@@ -400,8 +524,8 @@ const GeneralRulesSection = () => {
             🛠️ UNIVERSAL_PROTOCOL
           </h3>
           <p className="text-gray-300 leading-relaxed text-base">
-            These foundational rules apply to all participants across both IdeaSprint and BuildStorm tracks.
-            Adherence to these guidelines is mandatory for all teams.
+            These foundational rules apply to all participants across both IdeaSprint and BuildStorm
+            tracks. Adherence to these guidelines is mandatory for all teams.
           </p>
         </motion.div>
 
@@ -426,30 +550,37 @@ const GeneralRulesSection = () => {
 // ─────────────────────────────────────────────────────────────
 const IdeaSprintSection = () => {
   const rules = [
-    "Focus: Bringing a pre-planned concept to life.",
-    "Fresh Repositories: All teams must initialize a new GitHub/GitLab repository at the official start time. No commits made before the start time are allowed.",
+    'Focus: Bringing a pre-planned concept to life.',
+    'Fresh Repositories: All teams must initialize a new GitHub/GitLab repository at the official start time. No commits made before the start time are allowed.',
     "The 'Working Prototype' Rule: While the idea is conceived beforehand, the actual code, UI/UX design, and integration must happen on-site.",
     "Prior Work: Participants may bring 'Wireframes' or 'System Architecture' diagrams, but zero lines of functional code can be pre-written.",
-    "Submission: Final submission must include a link to the repository and a brief README explaining the problem the idea solves.",
+    'Submission: Final submission must include a link to the repository and a brief README explaining the problem the idea solves.',
   ];
 
   const submissions = [
-    { icon: <FileText size={20} />, label: "Idea Deck", detail: "Max 10 slides" },
-    { icon: <Video size={20} />, label: "Pitch Video", detail: "3 minutes max" },
-    { icon: <Layout size={20} />, label: "Prototype", detail: "Figma / Wireframe / Demo / POC Code" },
+    { icon: <FileText size={20} />, label: 'Idea Deck', detail: 'Max 10 slides' },
+    { icon: <Video size={20} />, label: 'Pitch Video', detail: '3 minutes max' },
+    {
+      icon: <Layout size={20} />,
+      label: 'Prototype',
+      detail: 'Figma / Wireframe / Demo / POC Code',
+    },
   ];
 
   const evalCriteria = [
-    { icon: <Sparkles size={24} />, title: "Creativity & Innovation" },
-    { icon: <Target size={24} />, title: "Problem Relevance" },
-    { icon: <Globe size={24} />, title: "Social Impact" },
-    { icon: <Brain size={24} />, title: "Feasibility & Scalability" },
-    { icon: <Code size={24} />, title: "Prototype Quality" },
-    { icon: <Presentation size={24} />, title: "Presentation" },
+    { icon: <Sparkles size={24} />, title: 'Creativity & Innovation' },
+    { icon: <Target size={24} />, title: 'Problem Relevance' },
+    { icon: <Globe size={24} />, title: 'Social Impact' },
+    { icon: <Brain size={24} />, title: 'Feasibility & Scalability' },
+    { icon: <Code size={24} />, title: 'Prototype Quality' },
+    { icon: <Presentation size={24} />, title: 'Presentation' },
   ];
 
   return (
-    <section id="ideasprint" className="py-16 md:py-32 relative z-10 bg-black border-t border-white/5">
+    <section
+      id="ideasprint"
+      className="py-16 md:py-32 relative z-10 bg-black border-t border-white/5"
+    >
       <div className="max-w-5xl mx-auto px-4 md:px-6">
         <SectionHeader
           number="02"
@@ -467,20 +598,23 @@ const IdeaSprintSection = () => {
           className="mb-16 p-8 border border-white/10 bg-white/[0.02] rounded-sm relative overflow-hidden"
         >
           <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-green-500/50 to-transparent" />
-          <h3 className="font-mono text-[10px] font-black tracking-[0.5em] uppercase mb-4" style={{ color: GREEN }}>
+          <h3
+            className="font-mono text-[10px] font-black tracking-[0.5em] uppercase mb-4"
+            style={{ color: GREEN }}
+          >
             💡 TRACK_FOCUS
           </h3>
           <p className="text-gray-300 leading-relaxed text-base">
-            Bringing a pre-planned concept to life. Participants must conceptualize, design, and present an innovative solution 
-            addressing a real-world problem. Teams are expected to submit a prototype or proof-of-concept that demonstrates 
-            the feasibility of their idea.
+            Bringing a pre-planned concept to life. Participants must conceptualize, design, and
+            present an innovative solution addressing a real-world problem. Teams are expected to
+            submit a prototype or proof-of-concept that demonstrates the feasibility of their idea.
           </p>
         </motion.div>
 
         {/* Rules */}
         <div className="mb-16">
           <h3 className="font-mono text-[10px] font-black tracking-[0.5em] uppercase mb-6 text-gray-400">
-             ENGAGEMENT_RULES
+            ENGAGEMENT_RULES
           </h3>
           <div className="flex flex-col gap-3">
             {rules.map((rule, i) => (
@@ -492,7 +626,7 @@ const IdeaSprintSection = () => {
         {/* Submission Requirements */}
         <div className="mb-16">
           <h3 className="font-mono text-[10px] font-black tracking-[0.5em] uppercase mb-6 text-gray-400">
-             SUBMISSION_REQUIREMENTS
+            SUBMISSION_REQUIREMENTS
           </h3>
           <div className="grid md:grid-cols-3 gap-4">
             {submissions.map((item, i) => (
@@ -509,7 +643,9 @@ const IdeaSprintSection = () => {
                   {item.icon}
                 </div>
                 <p className="text-white font-black text-lg mb-1">{item.label}</p>
-                <p className="text-[10px] font-mono text-gray-400 tracking-widest uppercase">{item.detail}</p>
+                <p className="text-[10px] font-mono text-gray-400 tracking-widest uppercase">
+                  {item.detail}
+                </p>
               </motion.div>
             ))}
           </div>
@@ -536,25 +672,28 @@ const IdeaSprintSection = () => {
 // ─────────────────────────────────────────────────────────────
 const BuildStormSection = () => {
   const rules = [
-    "Focus: Rapid innovation and adaptability.",
-    "The Reveal: The specific problem statements will be released exactly at the start of the 24-hour countdown. No hints will be provided beforehand.",
-    "Track Selection: Teams must choose one of the provided statements within the first 60 minutes of the event.",
+    'Focus: Rapid innovation and adaptability.',
+    'The Reveal: The specific problem statements will be released exactly at the start of the 24-hour countdown. No hints will be provided beforehand.',
+    'Track Selection: Teams must choose one of the provided statements within the first 60 minutes of the event.',
     "Fair Play: Since the problem is unknown, any 'pre-built' niche modules are prohibited. Only general-purpose boilerplate (authentication templates, CSS frameworks) is allowed.",
-    "Judging Weight: In this track, alignment with the specific constraints of the problem carries more weight than visual polish.",
+    'Judging Weight: In this track, alignment with the specific constraints of the problem carries more weight than visual polish.',
   ];
 
   const evalCriteria = [
-    { icon: <Brain size={24} />, title: "Problem Understanding" },
-    { icon: <Code size={24} />, title: "Technical Implementation" },
-    { icon: <CheckCircle2 size={24} />, title: "Functionality & Demo" },
-    { icon: <Target size={24} />, title: "Practical Feasibility" },
-    { icon: <Layout size={24} />, title: "UX & Design" },
-    { icon: <Sparkles size={24} />, title: "Innovation & Scalability" },
-    { icon: <Presentation size={24} />, title: "Final Presentation" },
+    { icon: <Brain size={24} />, title: 'Problem Understanding' },
+    { icon: <Code size={24} />, title: 'Technical Implementation' },
+    { icon: <CheckCircle2 size={24} />, title: 'Functionality & Demo' },
+    { icon: <Target size={24} />, title: 'Practical Feasibility' },
+    { icon: <Layout size={24} />, title: 'UX & Design' },
+    { icon: <Sparkles size={24} />, title: 'Innovation & Scalability' },
+    { icon: <Presentation size={24} />, title: 'Final Presentation' },
   ];
 
   return (
-    <section id="buildstorm" className="py-16 md:py-32 relative z-10 bg-[#020202] border-t border-white/5">
+    <section
+      id="buildstorm"
+      className="py-16 md:py-32 relative z-10 bg-[#020202] border-t border-white/5"
+    >
       <div className="max-w-5xl mx-auto px-4 md:px-6">
         <SectionHeader
           number="03"
@@ -572,12 +711,16 @@ const BuildStormSection = () => {
           className="mb-16 p-8 border border-white/10 bg-white/[0.02] rounded-sm relative overflow-hidden"
         >
           <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-orange-500/50 to-transparent" />
-          <h3 className="font-mono text-[10px] font-black tracking-[0.5em] uppercase mb-4" style={{ color: ORANGE }}>
+          <h3
+            className="font-mono text-[10px] font-black tracking-[0.5em] uppercase mb-4"
+            style={{ color: ORANGE }}
+          >
             🧩 TRACK_FOCUS
           </h3>
           <p className="text-gray-300 leading-relaxed text-base">
-            Rapid innovation and adaptability. Participants must design and develop a working Minimum Viable Product (MVP) 
-            within 24 hours based on a problem statement revealed at the start of the event.
+            Rapid innovation and adaptability. Participants must design and develop a working
+            Minimum Viable Product (MVP) within 24 hours based on a problem statement revealed at
+            the start of the event.
           </p>
         </motion.div>
 
@@ -600,7 +743,7 @@ const BuildStormSection = () => {
         {/* Rules */}
         <div className="mb-16">
           <h3 className="font-mono text-[10px] font-black tracking-[0.5em] uppercase mb-6 text-gray-400">
-             ENGAGEMENT_RULES
+            ENGAGEMENT_RULES
           </h3>
           <div className="flex flex-col gap-3">
             {rules.map((rule, i) => (
@@ -630,24 +773,27 @@ const BuildStormSection = () => {
 // ─────────────────────────────────────────────────────────────
 const AIUsagePolicySection = () => {
   const allowed = [
-    "Code suggestions and autocompletion",
-    "Debugging assistance and error resolution",
-    "Documentation writing and formatting",
-    "UI/UX ideas and design inspiration",
-    "Research & concept validation",
+    'Code suggestions and autocompletion',
+    'Debugging assistance and error resolution',
+    'Documentation writing and formatting',
+    'UI/UX ideas and design inspiration',
+    'Research & concept validation',
   ];
 
   const restrictions = [
-    "AI-generated content must be understood by the participant.",
-    "Blind copy-pasting without understanding may result in penalties.",
-    "Submitting a fully AI-generated or pre-built project is strictly prohibited.",
-    "All final integration, implementation, and deployment must be done by the team.",
-    "Judges may ask technical questions to verify authorship.",
-    "Failure to justify your solution may lead to score reduction or disqualification.",
+    'AI-generated content must be understood by the participant.',
+    'Blind copy-pasting without understanding may result in penalties.',
+    'Submitting a fully AI-generated or pre-built project is strictly prohibited.',
+    'All final integration, implementation, and deployment must be done by the team.',
+    'Judges may ask technical questions to verify authorship.',
+    'Failure to justify your solution may lead to score reduction or disqualification.',
   ];
 
   return (
-    <section id="ai-policy" className="py-16 md:py-32 relative z-10 bg-black border-t border-white/5">
+    <section
+      id="ai-policy"
+      className="py-16 md:py-32 relative z-10 bg-black border-t border-white/5"
+    >
       <div className="max-w-5xl mx-auto px-4 md:px-6">
         <SectionHeader
           number="04"
@@ -667,7 +813,8 @@ const AIUsagePolicySection = () => {
           <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent" />
           <p className="text-gray-300 leading-relaxed text-base">
             AI tools are <strong className="text-cyan-400">permitted</strong> but must be used
-            <strong className="text-cyan-400"> responsibly</strong>. Tools include ChatGPT, GitHub Copilot, Gemini, and others.
+            <strong className="text-cyan-400"> responsibly</strong>. Tools include ChatGPT, GitHub
+            Copilot, Gemini, and others.
           </p>
         </motion.div>
 
@@ -679,7 +826,10 @@ const AIUsagePolicySection = () => {
             viewport={{ once: true }}
             className="p-8 border border-green-500/20 bg-green-500/[0.03] rounded-sm"
           >
-            <h3 className="flex items-center gap-3 font-mono text-[10px] font-black tracking-[0.5em] uppercase mb-6" style={{ color: GREEN }}>
+            <h3
+              className="flex items-center gap-3 font-mono text-[10px] font-black tracking-[0.5em] uppercase mb-6"
+              style={{ color: GREEN }}
+            >
               <CheckCircle2 size={18} /> ALLOWED_USES
             </h3>
             <div className="flex flex-col gap-3">
@@ -736,30 +886,33 @@ const AIUsagePolicySection = () => {
 // ─────────────────────────────────────────────────────────────
 const CodeOfConductSection = () => {
   const mustDo = [
-    "Maintain respectful communication at all times.",
-    "Avoid harassment, discrimination, or offensive behavior.",
-    "Follow instructions provided by the organizing committee.",
-    "Refrain from cheating, plagiarism, or unethical practices.",
-    "Respect intellectual property rights.",
-    "Avoid disruptive or malicious technical activities.",
+    'Maintain respectful communication at all times.',
+    'Avoid harassment, discrimination, or offensive behavior.',
+    'Follow instructions provided by the organizing committee.',
+    'Refrain from cheating, plagiarism, or unethical practices.',
+    'Respect intellectual property rights.',
+    'Avoid disruptive or malicious technical activities.',
   ];
 
   const prohibited = [
-    "Using pre-built complete projects.",
+    'Using pre-built complete projects.',
     "Tampering with other teams' work.",
-    "Offensive or abusive communication.",
-    "Spamming, hacking, or network misuse.",
-    "Impersonation or false identity.",
+    'Offensive or abusive communication.',
+    'Spamming, hacking, or network misuse.',
+    'Impersonation or false identity.',
   ];
 
   const penalties = [
-    { icon: <AlertTriangle size={20} />, label: "Score Deduction", color: "#f59e0b" },
-    { icon: <XCircle size={20} />, label: "Immediate Disqualification", color: "#ef4444" },
-    { icon: <Ban size={20} />, label: "Ban from Future Events", color: "#dc2626" },
+    { icon: <AlertTriangle size={20} />, label: 'Score Deduction', color: '#f59e0b' },
+    { icon: <XCircle size={20} />, label: 'Immediate Disqualification', color: '#ef4444' },
+    { icon: <Ban size={20} />, label: 'Ban from Future Events', color: '#dc2626' },
   ];
 
   return (
-    <section id="conduct" className="py-16 md:py-32 relative z-10 bg-[#020202] border-t border-white/5">
+    <section
+      id="conduct"
+      className="py-16 md:py-32 relative z-10 bg-[#020202] border-t border-white/5"
+    >
       <div className="max-w-5xl mx-auto px-4 md:px-6">
         <SectionHeader
           number="05"
@@ -779,7 +932,8 @@ const CodeOfConductSection = () => {
           <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-amber-500/50 to-transparent" />
           <p className="text-gray-300 leading-relaxed text-base">
             All participants, mentors, judges, and organizers are expected to maintain
-            <strong className="text-amber-400"> professionalism</strong> and <strong className="text-amber-400">respect</strong> throughout the event.
+            <strong className="text-amber-400"> professionalism</strong> and{' '}
+            <strong className="text-amber-400">respect</strong> throughout the event.
           </p>
         </motion.div>
 
@@ -791,7 +945,10 @@ const CodeOfConductSection = () => {
             viewport={{ once: true }}
             className="p-8 border border-green-500/20 bg-green-500/[0.03] rounded-sm"
           >
-            <h3 className="flex items-center gap-3 font-mono text-[10px] font-black tracking-[0.5em] uppercase mb-6" style={{ color: GREEN }}>
+            <h3
+              className="flex items-center gap-3 font-mono text-[10px] font-black tracking-[0.5em] uppercase mb-6"
+              style={{ color: GREEN }}
+            >
               <CheckCircle2 size={18} /> PARTICIPANTS_MUST
             </h3>
             <div className="flex flex-col gap-3">
@@ -888,8 +1045,9 @@ const FinalAuthoritySection = () => (
           <div className="w-8 h-px bg-amber-500/30" />
         </div>
         <p className="text-gray-300 leading-relaxed text-base max-w-xl mx-auto">
-          The decision of the organizing committee and judges will be <strong className="text-amber-400">final and binding</strong> in
-          all matters related to evaluation, disputes, and eligibility.
+          The decision of the organizing committee and judges will be{' '}
+          <strong className="text-amber-400">final and binding</strong> in all matters related to
+          evaluation, disputes, and eligibility.
         </p>
       </motion.div>
     </div>
@@ -926,7 +1084,8 @@ const FooterCTA = () => (
             >
               <div className="absolute inset-0 w-full h-full bg-[#020202] translate-y-[101%] group-hover:translate-y-0 transition-transform duration-300 ease-out" />
               <span className="relative z-10 flex items-center gap-3 text-sm tracking-widest uppercase italic">
-                REGISTER NOW <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                REGISTER NOW{' '}
+                <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
               </span>
             </Link>
 

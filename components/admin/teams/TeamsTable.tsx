@@ -1,15 +1,7 @@
-"use client";
+'use client';
 
-import { useRouter } from "next/navigation";
-import {
-  Eye,
-  ChevronLeft,
-  ChevronRight,
-  MessageSquare,
-  Tag,
-  Crown,
-  Users,
-} from "lucide-react";
+import { useRouter } from 'next/navigation';
+import { Eye, ChevronLeft, ChevronRight, MessageSquare, Tag, Crown, Users } from 'lucide-react';
 
 interface TeamMember {
   id: string;
@@ -66,22 +58,22 @@ interface TeamsTableProps {
 }
 
 const statusStyles: Record<string, string> = {
-  PENDING: "bg-amber-500/10 text-amber-400 border-amber-500/20",
-  UNDER_REVIEW: "bg-cyan-500/10 text-cyan-400 border-cyan-500/20",
-  APPROVED: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-  REJECTED: "bg-red-500/10 text-red-400 border-red-500/20",
-  WAITLISTED: "bg-orange-500/10 text-orange-400 border-orange-500/20",
-  WITHDRAWN: "bg-gray-500/10 text-gray-400 border-gray-500/20",
+  PENDING: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+  UNDER_REVIEW: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20',
+  APPROVED: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+  REJECTED: 'bg-red-500/10 text-red-400 border-red-500/20',
+  WAITLISTED: 'bg-orange-500/10 text-orange-400 border-orange-500/20',
+  WITHDRAWN: 'bg-gray-500/10 text-gray-400 border-gray-500/20',
 };
 
 const trackStyles: Record<string, string> = {
-  IDEA_SPRINT: "bg-cyan-500/10 text-cyan-400",
-  BUILD_STORM: "bg-orange-500/10 text-orange-400",
+  IDEA_SPRINT: 'bg-cyan-500/10 text-cyan-400',
+  BUILD_STORM: 'bg-orange-500/10 text-orange-400',
 };
 
 const trackLabels: Record<string, string> = {
-  IDEA_SPRINT: "Idea Sprint",
-  BUILD_STORM: "Build Storm",
+  IDEA_SPRINT: 'Idea Sprint',
+  BUILD_STORM: 'Build Storm',
 };
 
 export function TeamsTable({
@@ -160,12 +152,12 @@ export function TeamsTable({
         ) : (
           <div className="divide-y divide-white/[0.03]">
             {teams.map((team) => {
-              const leader = team.members.find((m) => m.role === "LEADER");
+              const leader = team.members.find((m) => m.role === 'LEADER');
               return (
                 <div
                   key={team.id}
                   className={`px-4 py-3.5 transition-colors ${
-                    selectedTeams.includes(team.id) ? "bg-orange-500/[0.04]" : ""
+                    selectedTeams.includes(team.id) ? 'bg-orange-500/[0.04]' : ''
                   }`}
                 >
                   <div className="flex items-start gap-3">
@@ -192,10 +184,10 @@ export function TeamsTable({
                         </span>
                         <span
                           className={`inline-flex text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border shrink-0 ${
-                            statusStyles[team.status] || "bg-white/[0.03] text-gray-400"
+                            statusStyles[team.status] || 'bg-white/[0.03] text-gray-400'
                           }`}
                         >
-                          {team.status.replace("_", " ")}
+                          {team.status.replace('_', ' ')}
                         </span>
                       </div>
                       {/* Leader */}
@@ -215,7 +207,7 @@ export function TeamsTable({
                       <div className="flex items-center gap-3 flex-wrap text-[10px] font-mono text-gray-500">
                         <span
                           className={`inline-flex font-bold px-1.5 py-0.5 rounded ${
-                            trackStyles[team.track] || "bg-white/[0.03] text-gray-400"
+                            trackStyles[team.track] || 'bg-white/[0.03] text-gray-400'
                           }`}
                         >
                           {trackLabels[team.track] || team.track}
@@ -225,9 +217,9 @@ export function TeamsTable({
                           {team.members.length}
                         </span>
                         <span>
-                          {new Date(team.createdAt).toLocaleDateString("en-US", {
-                            month: "short",
-                            day: "numeric",
+                          {new Date(team.createdAt).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
                           })}
                         </span>
                         {team._count.comments > 0 && (
@@ -284,10 +276,7 @@ export function TeamsTable({
                     type="checkbox"
                     title="Select all teams"
                     aria-label="Select all teams"
-                    checked={
-                      teams.length > 0 &&
-                      selectedTeams.length === teams.length
-                    }
+                    checked={teams.length > 0 && selectedTeams.length === teams.length}
                     onChange={toggleAll}
                     className="rounded border-gray-600 bg-transparent text-orange-500 focus:ring-orange-500/50"
                   />
@@ -328,26 +317,17 @@ export function TeamsTable({
               </tr>
             ) : (
               teams.map((team) => {
-                const leader = team.members.find(
-                  (m) => m.role === "LEADER"
-                );
+                const leader = team.members.find((m) => m.role === 'LEADER');
                 return (
                   <tr
                     key={team.id}
                     className={`hover:bg-white/[0.02] transition-colors cursor-pointer ${
-                      selectedTeams.includes(team.id)
-                        ? "bg-orange-500/[0.04]"
-                        : ""
+                      selectedTeams.includes(team.id) ? 'bg-orange-500/[0.04]' : ''
                     }`}
-                    onClick={() =>
-                      router.push(`/admin/teams/${team.id}`)
-                    }
+                    onClick={() => router.push(`/admin/teams/${team.id}`)}
                   >
                     {!readOnly && (
-                      <td
-                        className="px-4 py-3"
-                        onClick={(e) => e.stopPropagation()}
-                      >
+                      <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                         <input
                           type="checkbox"
                           title={`Select team ${team.name}`}
@@ -360,9 +340,7 @@ export function TeamsTable({
                     )}
                     <td className="px-4 py-3">
                       <div>
-                        <div className="text-sm font-medium text-gray-200">
-                          {team.name}
-                        </div>
+                        <div className="text-sm font-medium text-gray-200">{team.name}</div>
                         <div className="flex items-center gap-1.5 mt-0.5">
                           {leader ? (
                             <>
@@ -398,8 +376,7 @@ export function TeamsTable({
                     <td className="px-4 py-3">
                       <span
                         className={`inline-flex text-[10px] font-mono font-bold px-2 py-0.5 rounded ${
-                          trackStyles[team.track] ||
-                          "bg-white/[0.03] text-gray-400"
+                          trackStyles[team.track] || 'bg-white/[0.03] text-gray-400'
                         }`}
                       >
                         {trackLabels[team.track] || team.track}
@@ -408,16 +385,15 @@ export function TeamsTable({
                     <td className="px-4 py-3">
                       <span
                         className={`inline-flex text-[10px] font-mono font-bold px-2 py-0.5 rounded border ${
-                          statusStyles[team.status] ||
-                          "bg-white/[0.03] text-gray-400"
+                          statusStyles[team.status] || 'bg-white/[0.03] text-gray-400'
                         }`}
                       >
-                        {team.status.replace("_", " ")}
+                        {team.status.replace('_', ' ')}
                       </span>
                     </td>
                     <td className="px-4 py-3">
                       <span className="text-xs font-mono text-gray-400 max-w-[200px] truncate block">
-                        {team.college || "—"}
+                        {team.college || '—'}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-center">
@@ -428,20 +404,14 @@ export function TeamsTable({
                     </td>
                     <td className="px-4 py-3">
                       <span className="text-[11px] font-mono text-gray-500">
-                        {new Date(team.createdAt).toLocaleDateString(
-                          "en-US",
-                          {
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                          }
-                        )}
+                        {new Date(team.createdAt).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                        })}
                       </span>
                     </td>
-                    <td
-                      className="px-4 py-3 text-right"
-                      onClick={(e) => e.stopPropagation()}
-                    >
+                    <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center justify-end gap-2">
                         {team._count.comments > 0 && (
                           <span className="flex items-center gap-0.5 text-[10px] font-mono text-gray-600">
@@ -450,9 +420,7 @@ export function TeamsTable({
                           </span>
                         )}
                         <button
-                          onClick={() =>
-                            router.push(`/admin/teams/${team.id}`)
-                          }
+                          onClick={() => router.push(`/admin/teams/${team.id}`)}
                           className="p-1.5 text-gray-600 hover:text-orange-400 hover:bg-orange-500/5 rounded-md transition-all"
                           title="View team details"
                         >
@@ -472,7 +440,7 @@ export function TeamsTable({
       {totalPages > 1 && (
         <div className="flex flex-col sm:flex-row items-center justify-between gap-2 px-4 py-3 border-t border-white/[0.06]">
           <div className="text-[11px] font-mono text-gray-500">
-            Showing {(currentPage - 1) * pageSize + 1} -{" "}
+            Showing {(currentPage - 1) * pageSize + 1} -{' '}
             {Math.min(currentPage * pageSize, totalCount)} of {totalCount}
           </div>
           <div className="flex items-center gap-1">
@@ -485,36 +453,33 @@ export function TeamsTable({
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
-            {Array.from(
-              { length: Math.min(totalPages, 5) },
-              (_, i) => {
-                let page: number;
-                if (totalPages <= 5) {
-                  page = i + 1;
-                } else if (currentPage <= 3) {
-                  page = i + 1;
-                } else if (currentPage >= totalPages - 2) {
-                  page = totalPages - 4 + i;
-                } else {
-                  page = currentPage - 2 + i;
-                }
-                return (
-                  <button
-                    key={page}
-                    type="button"
-                    onClick={() => onPageChange(page)}
-                    title={`Go to page ${page}`}
-                    className={`w-7 h-7 text-[11px] font-mono rounded-md transition-all ${
-                      page === currentPage
-                        ? "bg-orange-500/15 text-orange-400 border border-orange-500/20"
-                        : "text-gray-500 hover:bg-white/[0.03] hover:text-gray-300"
-                    }`}
-                  >
-                    {page}
-                  </button>
-                );
+            {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+              let page: number;
+              if (totalPages <= 5) {
+                page = i + 1;
+              } else if (currentPage <= 3) {
+                page = i + 1;
+              } else if (currentPage >= totalPages - 2) {
+                page = totalPages - 4 + i;
+              } else {
+                page = currentPage - 2 + i;
               }
-            )}
+              return (
+                <button
+                  key={page}
+                  type="button"
+                  onClick={() => onPageChange(page)}
+                  title={`Go to page ${page}`}
+                  className={`w-7 h-7 text-[11px] font-mono rounded-md transition-all ${
+                    page === currentPage
+                      ? 'bg-orange-500/15 text-orange-400 border border-orange-500/20'
+                      : 'text-gray-500 hover:bg-white/[0.03] hover:text-gray-300'
+                  }`}
+                >
+                  {page}
+                </button>
+              );
+            })}
             <button
               type="button"
               onClick={() => onPageChange(currentPage + 1)}

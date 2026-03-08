@@ -1,6 +1,6 @@
 /**
  * PageTransition Component
- * 
+ *
  * Wrapper component for smooth page transitions in Next.js App Router.
  * Supports fade, slide, and scale variants.
  */
@@ -43,10 +43,9 @@ export const PageTransition: React.FC<PageTransitionProps> = ({
   duration,
 }) => {
   const { config, reducedMotion } = useAnimationContext();
-  
-  const transitionDuration = duration !== undefined 
-    ? duration / 1000 
-    : config.duration.normal / 1000;
+
+  const transitionDuration =
+    duration !== undefined ? duration / 1000 : config.duration.normal / 1000;
 
   const selectedVariant = variants[variant];
 

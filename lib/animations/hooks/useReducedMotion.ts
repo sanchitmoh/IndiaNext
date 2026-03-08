@@ -1,6 +1,6 @@
 /**
  * useReducedMotion Hook
- * 
+ *
  * Detects user's motion preference and returns a boolean flag.
  * Respects the prefers-reduced-motion media query.
  */

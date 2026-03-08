@@ -1,11 +1,11 @@
 /**
  * Cross-Browser Tests: Admin Audit Trail
- * 
+ *
  * These tests validate that the audit trail feature works correctly
  * across Chrome, Firefox, Safari, and Edge browsers.
- * 
+ *
  * Run with: npx playwright test tests/cross-browser/audit-trail.spec.ts
- * 
+ *
  * Requirements: NFR-4 (Usability)
  */
 
@@ -31,7 +31,6 @@ async function waitForPageLoad(page: Page) {
 }
 
 test.describe('Audit Trail - Cross-Browser Compatibility', () => {
-  
   test.beforeEach(async ({ page }) => {
     // Setup: Login as admin (adjust based on your auth flow)
     // This is a placeholder - implement actual login flow
@@ -41,14 +40,17 @@ test.describe('Audit Trail - Cross-Browser Compatibility', () => {
     // await page.click('button[type="submit"]');
   });
 
-  test('should render audit trail page correctly in @browserName', async ({ page, browserName }) => {
+  test('should render audit trail page correctly in @browserName', async ({
+    page,
+    browserName,
+  }) => {
     test.info().annotations.push({
       type: 'browser',
       description: browserName,
     });
 
     const { teamId } = await setupTestData(page);
-    
+
     // Navigate to audit trail page
     await page.goto(`/admin/teams/${teamId}/audit`);
     await waitForPageLoad(page);
@@ -149,7 +151,9 @@ test.describe('Audit Trail - Cross-Browser Compatibility', () => {
 
     // Look for pagination controls
     const nextButton = page.locator('button:has-text("Next"), button[aria-label*="Next"]').first();
-    const prevButton = page.locator('button:has-text("Previous"), button[aria-label*="Previous"]').first();
+    const prevButton = page
+      .locator('button:has-text("Previous"), button[aria-label*="Previous"]')
+      .first();
 
     if (await nextButton.isVisible()) {
       // Click next if enabled
@@ -188,7 +192,9 @@ test.describe('Audit Trail - Cross-Browser Compatibility', () => {
     await waitForPageLoad(page);
 
     // Find export button
-    const exportButton = page.locator('button:has-text("Export"), [data-testid="export-button"]').first();
+    const exportButton = page
+      .locator('button:has-text("Export"), [data-testid="export-button"]')
+      .first();
 
     if (await exportButton.isVisible()) {
       // Setup download listener
@@ -231,13 +237,13 @@ test.describe('Audit Trail - Cross-Browser Compatibility', () => {
 
     // Wait for error message to appear
     const errorMessage = page.locator('[role="alert"], .error, .alert').first();
-    
+
     // Give it some time to appear
     await page.waitForTimeout(2000);
 
     // Check if error is visible
     const isVisible = await errorMessage.isVisible().catch(() => false);
-    
+
     if (isVisible) {
       console.log(`✅ ${browserName}: Error state displays correctly`);
     } else {
@@ -262,18 +268,20 @@ test.describe('Audit Trail - Cross-Browser Compatibility', () => {
     await page.goto(`/admin/teams/${teamId}/audit`);
 
     // Check for loading indicators (skeleton, spinner, etc.)
-    const loadingIndicator = page.locator('[data-testid="skeleton"], .skeleton, .loading, .spinner').first();
-    
+    const loadingIndicator = page
+      .locator('[data-testid="skeleton"], .skeleton, .loading, .spinner')
+      .first();
+
     // Loading state should appear briefly
     const hasLoadingState = await loadingIndicator.isVisible().catch(() => false);
-    
+
     if (hasLoadingState) {
       console.log(`✅ ${browserName}: Loading state displays`);
     }
 
     // Wait for content to load
     await waitForPageLoad(page);
-    
+
     // Verify loading state is gone
     const stillLoading = await loadingIndicator.isVisible().catch(() => false);
     expect(stillLoading).toBe(false);
@@ -297,7 +305,7 @@ test.describe('Audit Trail - Cross-Browser Compatibility', () => {
     // Verify page renders without horizontal scroll
     const bodyWidth = await page.evaluate(() => document.body.scrollWidth);
     const viewportWidth = await page.evaluate(() => window.innerWidth);
-    
+
     expect(bodyWidth).toBeLessThanOrEqual(viewportWidth + 1); // Allow 1px tolerance
 
     // Verify key elements are visible
@@ -323,7 +331,7 @@ test.describe('Audit Trail - Cross-Browser Compatibility', () => {
     // Tab through interactive elements
     await page.keyboard.press('Tab');
     await page.waitForTimeout(100);
-    
+
     // Verify focus is visible (check for focus-visible or focus styles)
     const focusedElement = await page.evaluate(() => {
       const el = document.activeElement;
@@ -427,9 +435,12 @@ test.describe('Chrome-specific tests', () => {
 
     // Chrome-specific performance metrics
     const metrics = await page.evaluate(() => {
-      const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
+      const navigation = performance.getEntriesByType(
+        'navigation'
+      )[0] as PerformanceNavigationTiming;
       return {
-        domContentLoaded: navigation.domContentLoadedEventEnd - navigation.domContentLoadedEventStart,
+        domContentLoaded:
+          navigation.domContentLoadedEventEnd - navigation.domContentLoadedEventStart,
         loadComplete: navigation.loadEventEnd - navigation.loadEventStart,
       };
     });

@@ -1,6 +1,6 @@
 /**
  * Redis Caching Layer
- * 
+ *
  * Provides caching utilities for frequent queries like stats, leaderboards, etc.
  * Uses Upstash Redis with automatic fallback to in-memory cache.
  */
@@ -13,9 +13,9 @@ let _redis: Redis | null = null;
 
 function getRedis(): Redis | null {
   if (_redis) return _redis;
-  
+
   const { UPSTASH_REDIS_URL, UPSTASH_REDIS_TOKEN } = process.env;
-  
+
   if (UPSTASH_REDIS_URL && UPSTASH_REDIS_TOKEN) {
     _redis = new Redis({
       url: UPSTASH_REDIS_URL,
@@ -25,7 +25,7 @@ function getRedis(): Redis | null {
   } else {
     console.warn('[Cache] Redis not configured, using in-memory fallback');
   }
-  
+
   return _redis;
 }
 
@@ -55,14 +55,17 @@ function evictIfNeeded() {
 
 // Cleanup expired entries every 5 minutes
 if (typeof setInterval !== 'undefined') {
-  setInterval(() => {
-    const now = Date.now();
-    for (const [key, entry] of memoryCache.entries()) {
-      if (entry.expiresAt < now) {
-        memoryCache.delete(key);
+  setInterval(
+    () => {
+      const now = Date.now();
+      for (const [key, entry] of memoryCache.entries()) {
+        if (entry.expiresAt < now) {
+          memoryCache.delete(key);
+        }
       }
-    }
-  }, 5 * 60 * 1000);
+    },
+    5 * 60 * 1000
+  );
 }
 
 // ─── Cache Operations ──────────────────────────────────────────────────────────
@@ -77,15 +80,12 @@ export interface CacheOptions {
 /**
  * Get value from cache
  */
-export async function cacheGet<T>(
-  key: string,
-  options: CacheOptions = {}
-): Promise<T | null> {
+export async function cacheGet<T>(key: string, options: CacheOptions = {}): Promise<T | null> {
   const { namespace = 'cache' } = options;
   const fullKey = `${namespace}:${key}`;
-  
+
   const redis = getRedis();
-  
+
   if (redis) {
     try {
       const value = await redis.get<T>(fullKey);
@@ -97,14 +97,14 @@ export async function cacheGet<T>(
       console.error('[Cache] Redis GET error:', error);
     }
   }
-  
+
   // Fallback to memory
   const entry = memoryCache.get(fullKey) as CacheEntry<T> | undefined;
   if (entry && entry.expiresAt > Date.now()) {
     console.log(`[Cache] Memory HIT: ${fullKey}`);
     return entry.value;
   }
-  
+
   console.log(`[Cache] MISS: ${fullKey}`);
   return null;
 }
@@ -119,9 +119,9 @@ export async function cacheSet<T>(
 ): Promise<void> {
   const { ttl = 300, namespace = 'cache' } = options; // Default 5 minutes
   const fullKey = `${namespace}:${key}`;
-  
+
   const redis = getRedis();
-  
+
   if (redis) {
     try {
       await redis.set(fullKey, value, { ex: ttl });
@@ -131,7 +131,7 @@ export async function cacheSet<T>(
       console.error('[Cache] Redis SET error:', error);
     }
   }
-  
+
   // Fallback to memory
   memoryCache.set(fullKey, {
     value,
@@ -144,15 +144,12 @@ export async function cacheSet<T>(
 /**
  * Delete value from cache
  */
-export async function cacheDelete(
-  key: string,
-  options: CacheOptions = {}
-): Promise<void> {
+export async function cacheDelete(key: string, options: CacheOptions = {}): Promise<void> {
   const { namespace = 'cache' } = options;
   const fullKey = `${namespace}:${key}`;
-  
+
   const redis = getRedis();
-  
+
   if (redis) {
     try {
       await redis.del(fullKey);
@@ -162,7 +159,7 @@ export async function cacheDelete(
       console.error('[Cache] Redis DELETE error:', error);
     }
   }
-  
+
   // Fallback to memory
   memoryCache.delete(fullKey);
   console.log(`[Cache] Memory DELETE: ${fullKey}`);
@@ -177,16 +174,19 @@ export async function cacheDeletePattern(
 ): Promise<void> {
   const { namespace = 'cache' } = options;
   const fullPattern = `${namespace}:${pattern}`;
-  
+
   const redis = getRedis();
-  
+
   if (redis) {
     try {
       // ✅ SECURITY FIX (M-6): Use SCAN instead of KEYS to avoid blocking Redis
       const keysToDelete: string[] = [];
       let cursor = '0';
       do {
-        const result: [string, string[]] = await redis.scan(Number(cursor), { match: fullPattern, count: 100 });
+        const result: [string, string[]] = await redis.scan(Number(cursor), {
+          match: fullPattern,
+          count: 100,
+        });
         cursor = String(result[0]);
         keysToDelete.push(...result[1]);
       } while (cursor !== '0');
@@ -200,7 +200,7 @@ export async function cacheDeletePattern(
       console.error('[Cache] Redis DELETE PATTERN error:', error);
     }
   }
-  
+
   // Fallback to memory
   const regex = new RegExp(fullPattern.replace('*', '.*'));
   let count = 0;
@@ -226,11 +226,11 @@ export async function cacheGetOrSet<T>(
   if (cached !== null) {
     return cached;
   }
-  
+
   // Fetch and cache
   const value = await fetcher();
   await cacheSet(key, value, options);
-  
+
   return value;
 }
 
@@ -263,11 +263,11 @@ export const CacheKeys = {
   trackDistribution: () => 'dashboard:track-distribution',
   topColleges: () => 'dashboard:top-colleges',
   recentActivity: () => 'dashboard:recent-activity',
-  
+
   // Teams
   teamsList: (filters: string) => `teams:list:${filters}`,
   teamDetail: (id: string) => `team:${id}`,
-  
+
   // Analytics
   analyticsOverview: () => 'analytics:overview',
   analyticsTimeline: (range: string) => `analytics:timeline:${range}`,

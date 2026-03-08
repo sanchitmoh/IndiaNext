@@ -1,9 +1,9 @@
 /**
  * Property-Based Test for Audit Trail Case-Insensitive Search
- * 
+ *
  * Feature: admin-audit-trail, Property 6: Case-Insensitive Search
  * **Validates: Requirements US-5.1, US-5.2, US-5.3, US-5.5**
- * 
+ *
  * This test verifies that search functionality is case-insensitive and searches
  * across all relevant fields (oldValue, newValue, user name, user email, fieldName).
  * Tests that different case variations (lower, upper, mixed) return the same results.
@@ -119,32 +119,32 @@ function auditLogGenerator() {
  */
 function logContainsSearchTerm(log: any, searchTerm: string): boolean {
   const lowerSearchTerm = searchTerm.toLowerCase();
-  
+
   // Search in oldValue
   if (log.oldValue && log.oldValue.toLowerCase().includes(lowerSearchTerm)) {
     return true;
   }
-  
+
   // Search in newValue
   if (log.newValue && log.newValue.toLowerCase().includes(lowerSearchTerm)) {
     return true;
   }
-  
+
   // Search in user name
   if (log.user.name && log.user.name.toLowerCase().includes(lowerSearchTerm)) {
     return true;
   }
-  
+
   // Search in user email
   if (log.user.email && log.user.email.toLowerCase().includes(lowerSearchTerm)) {
     return true;
   }
-  
+
   // Search in fieldName
   if (log.fieldName && log.fieldName.toLowerCase().includes(lowerSearchTerm)) {
     return true;
   }
-  
+
   return false;
 }
 
@@ -171,7 +171,7 @@ describe('Audit Trail API - Property 6: Case-Insensitive Search', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     // Setup default mocks
     (prisma.adminSession.findUnique as any).mockResolvedValue(mockAdminSession as any);
     (prisma.team.findUnique as any).mockResolvedValue(mockTeam as any);
@@ -184,7 +184,7 @@ describe('Audit Trail API - Property 6: Case-Insensitive Search', () => {
         fc.constantFrom('innovation', 'john', 'example', 'mobile', 'mit', 'team'),
         async (generatedLogs, searchTerm) => {
           // Filter logs that contain the search term (case-insensitive)
-          const matchingLogs = generatedLogs.filter(log => 
+          const matchingLogs = generatedLogs.filter((log) =>
             logContainsSearchTerm(log, searchTerm)
           );
 
@@ -247,8 +247,8 @@ describe('Audit Trail API - Property 6: Case-Insensitive Search', () => {
         fc.constantFrom('innovation', 'mobile', 'climate'),
         async (generatedLogs, searchTerm) => {
           // Filter logs where oldValue contains the search term
-          const matchingLogs = generatedLogs.filter(log => 
-            log.oldValue && log.oldValue.toLowerCase().includes(searchTerm.toLowerCase())
+          const matchingLogs = generatedLogs.filter(
+            (log) => log.oldValue && log.oldValue.toLowerCase().includes(searchTerm.toLowerCase())
           );
 
           // Sort by timestamp descending
@@ -290,8 +290,8 @@ describe('Audit Trail API - Property 6: Case-Insensitive Search', () => {
         fc.constantFrom('squad', 'platform', 'healthcare'),
         async (generatedLogs, searchTerm) => {
           // Filter logs where newValue contains the search term
-          const matchingLogs = generatedLogs.filter(log => 
-            log.newValue && log.newValue.toLowerCase().includes(searchTerm.toLowerCase())
+          const matchingLogs = generatedLogs.filter(
+            (log) => log.newValue && log.newValue.toLowerCase().includes(searchTerm.toLowerCase())
           );
 
           // Sort by timestamp descending
@@ -334,8 +334,8 @@ describe('Audit Trail API - Property 6: Case-Insensitive Search', () => {
         fc.constantFrom('john', 'jane', 'alice', 'bob'),
         async (generatedLogs, searchTerm) => {
           // Filter logs where user name contains the search term
-          const matchingLogs = generatedLogs.filter(log => 
-            log.user.name && log.user.name.toLowerCase().includes(searchTerm.toLowerCase())
+          const matchingLogs = generatedLogs.filter(
+            (log) => log.user.name && log.user.name.toLowerCase().includes(searchTerm.toLowerCase())
           );
 
           // Sort by timestamp descending
@@ -375,8 +375,9 @@ describe('Audit Trail API - Property 6: Case-Insensitive Search', () => {
         fc.constantFrom('example', 'john', 'jane', 'alice'),
         async (generatedLogs, searchTerm) => {
           // Filter logs where user email contains the search term
-          const matchingLogs = generatedLogs.filter(log => 
-            log.user.email && log.user.email.toLowerCase().includes(searchTerm.toLowerCase())
+          const matchingLogs = generatedLogs.filter(
+            (log) =>
+              log.user.email && log.user.email.toLowerCase().includes(searchTerm.toLowerCase())
           );
 
           // Sort by timestamp descending
@@ -416,8 +417,8 @@ describe('Audit Trail API - Property 6: Case-Insensitive Search', () => {
         fc.constantFrom('team', 'email', 'problem', 'idea'),
         async (generatedLogs, searchTerm) => {
           // Filter logs where fieldName contains the search term
-          const matchingLogs = generatedLogs.filter(log => 
-            log.fieldName && log.fieldName.toLowerCase().includes(searchTerm.toLowerCase())
+          const matchingLogs = generatedLogs.filter(
+            (log) => log.fieldName && log.fieldName.toLowerCase().includes(searchTerm.toLowerCase())
           );
 
           // Sort by timestamp descending
@@ -429,10 +430,11 @@ describe('Audit Trail API - Property 6: Case-Insensitive Search', () => {
           (prisma.auditLog.count as any).mockResolvedValue(sortedLogs.length);
 
           // Search with mixed case
-          const mixedCase = searchTerm.split('').map((c, i) => 
-            i % 2 === 0 ? c.toUpperCase() : c.toLowerCase()
-          ).join('');
-          
+          const mixedCase = searchTerm
+            .split('')
+            .map((c, i) => (i % 2 === 0 ? c.toUpperCase() : c.toLowerCase()))
+            .join('');
+
           const req = new Request(
             `http://localhost/api/admin/teams/${testTeamId}/audit?search=${mixedCase}`
           );
@@ -461,7 +463,7 @@ describe('Audit Trail API - Property 6: Case-Insensitive Search', () => {
         fc.constantFrom('innovation', 'john', 'example', 'team', 'mobile'),
         async (generatedLogs, searchTerm) => {
           // Filter logs that contain the search term in ANY searchable field
-          const matchingLogs = generatedLogs.filter(log => 
+          const matchingLogs = generatedLogs.filter((log) =>
             logContainsSearchTerm(log, searchTerm)
           );
 
@@ -487,21 +489,22 @@ describe('Audit Trail API - Property 6: Case-Insensitive Search', () => {
 
           // Verify every returned log contains the search term in at least one field
           for (const log of fetchedLogs) {
-            const containsInOldValue = log.oldValue && 
-              log.oldValue.toLowerCase().includes(searchTerm.toLowerCase());
-            const containsInNewValue = log.newValue && 
-              log.newValue.toLowerCase().includes(searchTerm.toLowerCase());
-            const containsInUserName = log.user.name && 
-              log.user.name.toLowerCase().includes(searchTerm.toLowerCase());
-            const containsInUserEmail = log.user.email && 
-              log.user.email.toLowerCase().includes(searchTerm.toLowerCase());
-            const containsInFieldName = log.fieldName && 
-              log.fieldName.toLowerCase().includes(searchTerm.toLowerCase());
+            const containsInOldValue =
+              log.oldValue && log.oldValue.toLowerCase().includes(searchTerm.toLowerCase());
+            const containsInNewValue =
+              log.newValue && log.newValue.toLowerCase().includes(searchTerm.toLowerCase());
+            const containsInUserName =
+              log.user.name && log.user.name.toLowerCase().includes(searchTerm.toLowerCase());
+            const containsInUserEmail =
+              log.user.email && log.user.email.toLowerCase().includes(searchTerm.toLowerCase());
+            const containsInFieldName =
+              log.fieldName && log.fieldName.toLowerCase().includes(searchTerm.toLowerCase());
 
-            const containsInAtLeastOneField = containsInOldValue || 
-              containsInNewValue || 
-              containsInUserName || 
-              containsInUserEmail || 
+            const containsInAtLeastOneField =
+              containsInOldValue ||
+              containsInNewValue ||
+              containsInUserName ||
+              containsInUserEmail ||
               containsInFieldName;
 
             expect(containsInAtLeastOneField).toBe(true);
@@ -519,7 +522,7 @@ describe('Audit Trail API - Property 6: Case-Insensitive Search', () => {
         async (generatedLogs) => {
           // Use a search term that definitely won't match
           const nonMatchingSearchTerm = 'ZZZZNONEXISTENT999';
-          
+
           // Empty results
           const matchingLogs: any[] = [];
 

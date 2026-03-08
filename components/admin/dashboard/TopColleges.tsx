@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { Building2 } from "lucide-react";
+import { Building2 } from 'lucide-react';
 
 interface CollegeData {
   college: string | null;
@@ -12,8 +12,7 @@ interface TopCollegesProps {
 }
 
 export function TopColleges({ data }: TopCollegesProps) {
-  const maxCount =
-    data.length > 0 ? Math.max(...data.map((d) => d._count)) : 0;
+  const maxCount = data.length > 0 ? Math.max(...data.map((d) => d._count)) : 0;
 
   return (
     <div className="bg-[#0A0A0A] rounded-lg border border-white/[0.06] p-4 md:p-6">
@@ -32,12 +31,12 @@ export function TopColleges({ data }: TopCollegesProps) {
           {data.slice(0, 8).map((item, index) => (
             <div key={index} className="flex items-center gap-3">
               <span className="text-[10px] font-mono text-gray-600 w-5 text-right font-bold">
-                {String(index + 1).padStart(2, "0")}
+                {String(index + 1).padStart(2, '0')}
               </span>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-xs font-mono text-gray-300 truncate">
-                    {item.college || "Unknown"}
+                    {item.college || 'Unknown'}
                   </span>
                   <span className="text-xs font-mono font-bold text-orange-400 ml-2">
                     {item._count}

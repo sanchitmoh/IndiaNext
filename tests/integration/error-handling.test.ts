@@ -38,10 +38,7 @@ describe('handleGenericError', () => {
   });
 
   it('should return 401 for Unauthorized errors', async () => {
-    const res = handleGenericError(
-      new Error('Unauthorized'),
-      '/api/admin/login'
-    );
+    const res = handleGenericError(new Error('Unauthorized'), '/api/admin/login');
     const body = await res.json();
 
     expect(res.status).toBe(401);
@@ -78,10 +75,7 @@ describe('handleGenericError', () => {
   it('should not leak error details in production', async () => {
     vi.stubEnv('NODE_ENV', 'production');
 
-    const res = handleGenericError(
-      new Error('sensitive database details'),
-      '/api/test'
-    );
+    const res = handleGenericError(new Error('sensitive database details'), '/api/test');
     const body = await res.json();
 
     expect(body.message).not.toContain('sensitive database details');

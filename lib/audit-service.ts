@@ -25,12 +25,12 @@ function serializeValue(value: any): string | null {
   if (value === null || value === undefined) {
     return null;
   }
-  
+
   // If it's already a string, return as-is
   if (typeof value === 'string') {
     return value;
   }
-  
+
   // For complex values (objects, arrays), serialize to JSON
   return JSON.stringify(value);
 }
@@ -39,10 +39,10 @@ export class AuditService {
   /**
    * Captures changes between old and new registration data
    * Creates audit log entries for each changed field
-   * 
+   *
    * @param params - Parameters including teamId, userId, sessionId, oldData, newData, ipAddress, userAgent
    * @returns submissionId - Unique identifier grouping all changes from this edit session
-   * 
+   *
    * Process:
    * 1. Generate unique submissionId for grouping changes
    * 2. Use DiffEngine to identify changed fields
@@ -51,22 +51,14 @@ export class AuditService {
    * 5. Return submissionId for transaction coordination
    */
   async captureChanges(params: CaptureChangesParams): Promise<string> {
-    const {
-      teamId,
-      userId,
-      sessionId,
-      oldData,
-      newData,
-      ipAddress,
-      userAgent,
-    } = params;
-    
+    const { teamId, userId, sessionId, oldData, newData, ipAddress, userAgent } = params;
+
     // Generate unique submissionId for grouping all changes from this edit session
     const submissionId = randomUUID();
-    
+
     // Use DiffEngine to identify changed fields
     const changes: FieldChange[] = diffEngine.diff(oldData, newData);
-    
+
     // Create audit log entry for each change
     const auditLogEntries = changes.map((change) => ({
       teamId,
@@ -80,14 +72,14 @@ export class AuditService {
       ipAddress,
       userAgent,
     }));
-    
+
     // Batch create all audit log entries
     if (auditLogEntries.length > 0) {
       await prisma.auditLog.createMany({
         data: auditLogEntries,
       });
     }
-    
+
     // Return submissionId for transaction coordination
     return submissionId;
   }

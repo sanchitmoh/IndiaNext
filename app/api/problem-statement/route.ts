@@ -9,7 +9,7 @@ const CACHE_TTL = 10; // 10 seconds
  * GET /api/problem-statement
  *
  * Returns distribution statistics for all active problem statements.
- * 
+ *
  * Round-robin distribution:
  * - Shows all available problems
  * - Each user gets assigned to the problem with least load
@@ -76,13 +76,14 @@ export async function GET() {
     );
 
     // Check if all problems are full
-    const allFull = problemsWithLoad.every(p => p._slotsRemaining <= 0);
+    const allFull = problemsWithLoad.every((p) => p._slotsRemaining <= 0);
 
     if (allFull) {
       const response = {
         success: true,
         data: null,
-        message: 'All problem statements have been filled. Registration for BuildStorm is currently closed.',
+        message:
+          'All problem statements have been filled. Registration for BuildStorm is currently closed.',
         allFilled: true,
       };
 
@@ -94,17 +95,15 @@ export async function GET() {
 
     // Find the problem with least load (for display purposes)
     const leastLoadedProblem = problemsWithLoad
-      .filter(p => p._slotsRemaining > 0)
-      .reduce((min, current) => 
-        current._totalCommitted < min._totalCommitted ? current : min
-      );
+      .filter((p) => p._slotsRemaining > 0)
+      .reduce((min, current) => (current._totalCommitted < min._totalCommitted ? current : min));
 
     const response = {
       success: true,
       data: {
         distributionStrategy: 'round-robin',
         // ✅ SECURITY FIX: Strip internal capacity data from public response
-        problems: problemsWithLoad.map(p => ({
+        problems: problemsWithLoad.map((p) => ({
           id: p.id,
           order: p.order,
           title: p.title,
@@ -129,13 +128,16 @@ export async function GET() {
     for (const problem of problemsWithLoad) {
       const utilization = parseFloat(problem._utilizationRate);
       if (utilization >= 90 && problem._slotsRemaining > 0) {
-        await notifyAdminsAlmostFull({
-          id: problem.id,
-          title: problem.title,
-          submissionCount: problem._totalCommitted,
-          maxSubmissions: problem._maxSubmissions,
-          order: problem.order,
-        }, utilization);
+        await notifyAdminsAlmostFull(
+          {
+            id: problem.id,
+            title: problem.title,
+            submissionCount: problem._totalCommitted,
+            maxSubmissions: problem._maxSubmissions,
+            order: problem.order,
+          },
+          utilization
+        );
       }
     }
 
@@ -168,7 +170,8 @@ async function notifyAdminsAllFilled() {
           userId: admin.id,
           type: 'SYSTEM',
           title: '🚨 All Problem Statements Filled',
-          message: 'All problem statement slots have been exhausted. BuildStorm registration is now closed.',
+          message:
+            'All problem statement slots have been exhausted. BuildStorm registration is now closed.',
           link: '/admin/problem-statements',
         },
       });
@@ -184,7 +187,13 @@ async function notifyAdminsAllFilled() {
  * Notify admins when a problem is almost full (90%+)
  */
 async function notifyAdminsAlmostFull(
-  problem: { id: string; title: string; submissionCount: number; maxSubmissions: number; order: number }, 
+  problem: {
+    id: string;
+    title: string;
+    submissionCount: number;
+    maxSubmissions: number;
+    order: number;
+  },
   utilizationRate: number
 ) {
   try {
@@ -221,7 +230,9 @@ async function notifyAdminsAlmostFull(
       });
     }
 
-    console.log(`[ProblemStatement] Notified ${admins.length} admins that Problem #${problem.order} is ${utilizationRate.toFixed(1)}% full`);
+    console.log(
+      `[ProblemStatement] Notified ${admins.length} admins that Problem #${problem.order} is ${utilizationRate.toFixed(1)}% full`
+    );
   } catch (error) {
     console.error('[ProblemStatement] Failed to notify admins about almost full:', error);
   }

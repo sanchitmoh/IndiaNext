@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { 
-  FileQuestion, 
-  Plus, 
-  Edit2, 
-  Trash2, 
-  Power, 
+import { useState, useEffect } from 'react';
+import {
+  FileQuestion,
+  Plus,
+  Edit2,
+  Trash2,
+  Power,
   PowerOff,
   GripVertical,
   Users,
@@ -16,7 +16,7 @@ import {
   TrendingUp,
   X,
   Save,
-} from "lucide-react";
+} from 'lucide-react';
 
 interface ProblemStatement {
   id: string;
@@ -39,18 +39,18 @@ export default function ProblemStatementsPage() {
   const [problems, setProblems] = useState<ProblemStatement[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Modal states
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedProblem, setSelectedProblem] = useState<ProblemStatement | null>(null);
-  
+
   // Form states
   const [formData, setFormData] = useState({
-    title: "",
-    objective: "",
-    description: "",
+    title: '',
+    objective: '',
+    description: '',
     maxSubmissions: 30,
     order: 1,
     isActive: true,
@@ -64,16 +64,16 @@ export default function ProblemStatementsPage() {
   const fetchProblems = async () => {
     try {
       setLoading(true);
-      const res = await fetch("/api/admin/problem-statements");
+      const res = await fetch('/api/admin/problem-statements');
       const data = await res.json();
 
       if (data.success) {
         setProblems(data.data);
       } else {
-        setError(data.error || "Failed to fetch problems");
+        setError(data.error || 'Failed to fetch problems');
       }
     } catch (_err) {
-      setError("Network error");
+      setError('Network error');
     } finally {
       setLoading(false);
     }
@@ -81,9 +81,9 @@ export default function ProblemStatementsPage() {
 
   const toggleActive = async (id: string, currentState: boolean) => {
     try {
-      const res = await fetch("/api/admin/problem-statements/toggle", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const res = await fetch('/api/admin/problem-statements/toggle', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id, isActive: !currentState }),
       });
 
@@ -91,19 +91,19 @@ export default function ProblemStatementsPage() {
       if (data.success) {
         fetchProblems();
       } else {
-        alert(data.error || "Failed to toggle");
+        alert(data.error || 'Failed to toggle');
       }
     } catch (_err) {
-      alert("Network error");
+      alert('Network error');
     }
   };
 
   const openCreateModal = () => {
-    const nextOrder = problems.length > 0 ? Math.max(...problems.map(p => p.order)) + 1 : 1;
+    const nextOrder = problems.length > 0 ? Math.max(...problems.map((p) => p.order)) + 1 : 1;
     setFormData({
-      title: "",
-      objective: "",
-      description: "",
+      title: '',
+      objective: '',
+      description: '',
       maxSubmissions: 30,
       order: nextOrder,
       isActive: true,
@@ -116,7 +116,7 @@ export default function ProblemStatementsPage() {
     setFormData({
       title: problem.title,
       objective: problem.objective,
-      description: problem.description || "",
+      description: problem.description || '',
       maxSubmissions: problem.maxSubmissions,
       order: problem.order,
       isActive: problem.isActive,
@@ -131,15 +131,15 @@ export default function ProblemStatementsPage() {
 
   const handleCreate = async () => {
     if (!formData.title || !formData.objective) {
-      alert("Title and objective are required");
+      alert('Title and objective are required');
       return;
     }
 
     setSubmitting(true);
     try {
-      const res = await fetch("/api/admin/problem-statements", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const res = await fetch('/api/admin/problem-statements', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
 
@@ -148,10 +148,10 @@ export default function ProblemStatementsPage() {
         setShowCreateModal(false);
         fetchProblems();
       } else {
-        alert(data.error || data.message || "Failed to create problem");
+        alert(data.error || data.message || 'Failed to create problem');
       }
     } catch (_err) {
-      alert("Network error");
+      alert('Network error');
     } finally {
       setSubmitting(false);
     }
@@ -159,15 +159,15 @@ export default function ProblemStatementsPage() {
 
   const handleUpdate = async () => {
     if (!selectedProblem || !formData.title || !formData.objective) {
-      alert("Title and objective are required");
+      alert('Title and objective are required');
       return;
     }
 
     setSubmitting(true);
     try {
-      const res = await fetch("/api/admin/problem-statements", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+      const res = await fetch('/api/admin/problem-statements', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: selectedProblem.id, ...formData }),
       });
 
@@ -176,10 +176,10 @@ export default function ProblemStatementsPage() {
         setShowEditModal(false);
         fetchProblems();
       } else {
-        alert(data.error || data.message || "Failed to update problem");
+        alert(data.error || data.message || 'Failed to update problem');
       }
     } catch (_err) {
-      alert("Network error");
+      alert('Network error');
     } finally {
       setSubmitting(false);
     }
@@ -191,7 +191,7 @@ export default function ProblemStatementsPage() {
     setSubmitting(true);
     try {
       const res = await fetch(`/api/admin/problem-statements?id=${selectedProblem.id}`, {
-        method: "DELETE",
+        method: 'DELETE',
       });
 
       const data = await res.json();
@@ -200,13 +200,13 @@ export default function ProblemStatementsPage() {
         setSelectedProblem(null);
         fetchProblems();
       } else {
-        const errorMsg = data.message || data.error || "Failed to delete problem";
+        const errorMsg = data.message || data.error || 'Failed to delete problem';
         alert(`Delete failed: ${errorMsg}`);
-        console.error("[Delete Problem]", data);
+        console.error('[Delete Problem]', data);
       }
     } catch (err) {
-      console.error("[Delete Problem] Network error:", err);
-      alert("Network error: Could not reach the server. Please try again.");
+      console.error('[Delete Problem] Network error:', err);
+      alert('Network error: Could not reach the server. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -234,10 +234,10 @@ export default function ProblemStatementsPage() {
     );
   }
 
-  const currentProblem = problems.find(p => p.isCurrent);
+  const currentProblem = problems.find((p) => p.isCurrent);
   const totalSlots = problems.reduce((sum, p) => sum + p.maxSubmissions, 0);
   const usedSlots = problems.reduce((sum, p) => sum + p.submissionCount, 0);
-  const overallUtilization = totalSlots > 0 ? ((usedSlots / totalSlots) * 100).toFixed(1) : "0.0";
+  const overallUtilization = totalSlots > 0 ? ((usedSlots / totalSlots) * 100).toFixed(1) : '0.0';
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white p-6">
@@ -245,9 +245,7 @@ export default function ProblemStatementsPage() {
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
           <FileQuestion className="w-8 h-8 text-orange-500" />
-          <h1 className="text-3xl font-black tracking-tight">
-            PROBLEM STATEMENTS
-          </h1>
+          <h1 className="text-3xl font-black tracking-tight">PROBLEM STATEMENTS</h1>
         </div>
         <p className="text-sm text-gray-500 font-mono">
           Manage BuildStorm problem rotation and capacity
@@ -263,7 +261,7 @@ export default function ProblemStatementsPage() {
           </div>
           <div className="text-2xl font-bold">{problems.length}</div>
           <div className="text-xs text-gray-600 mt-1">
-            {problems.filter(p => p.isActive).length} active
+            {problems.filter((p) => p.isActive).length} active
           </div>
         </div>
 
@@ -285,7 +283,7 @@ export default function ProblemStatementsPage() {
           </div>
           <div className="text-2xl font-bold">{overallUtilization}%</div>
           <div className="w-full bg-white/[0.05] rounded-full h-1.5 mt-2">
-            <div 
+            <div
               className="bg-orange-500 h-1.5 rounded-full transition-all"
               style={{ width: `${overallUtilization}%` }}
             />
@@ -298,10 +296,10 @@ export default function ProblemStatementsPage() {
             <span className="text-xs text-gray-500 font-mono uppercase">Current Problem</span>
           </div>
           <div className="text-sm font-bold truncate">
-            {currentProblem ? `#${currentProblem.order} ${currentProblem.title}` : "None"}
+            {currentProblem ? `#${currentProblem.order} ${currentProblem.title}` : 'None'}
           </div>
           <div className="text-xs text-gray-600 mt-1">
-            {currentProblem ? `${currentProblem.slotsRemaining} slots left` : "No active problem"}
+            {currentProblem ? `${currentProblem.slotsRemaining} slots left` : 'No active problem'}
           </div>
         </div>
       </div>
@@ -323,18 +321,22 @@ export default function ProblemStatementsPage() {
               <p className="text-sm text-gray-400 mb-4">{currentProblem.objective}</p>
               <div className="flex items-center gap-6 text-sm">
                 <div>
-                  <span className="text-gray-500">Submissions:</span>{" "}
+                  <span className="text-gray-500">Submissions:</span>{' '}
                   <span className="font-bold text-white">
                     {currentProblem.submissionCount}/{currentProblem.maxSubmissions}
                   </span>
                 </div>
                 <div>
-                  <span className="text-gray-500">Active Reservations:</span>{" "}
-                  <span className="font-bold text-cyan-400">{currentProblem.activeReservations}</span>
+                  <span className="text-gray-500">Active Reservations:</span>{' '}
+                  <span className="font-bold text-cyan-400">
+                    {currentProblem.activeReservations}
+                  </span>
                 </div>
                 <div>
-                  <span className="text-gray-500">Utilization:</span>{" "}
-                  <span className="font-bold text-orange-400">{currentProblem.utilizationRate}%</span>
+                  <span className="text-gray-500">Utilization:</span>{' '}
+                  <span className="font-bold text-orange-400">
+                    {currentProblem.utilizationRate}%
+                  </span>
                 </div>
               </div>
             </div>
@@ -347,7 +349,7 @@ export default function ProblemStatementsPage() {
         <div className="p-4 border-b border-white/[0.06]">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-bold">All Problem Statements</h2>
-            <button 
+            <button
               onClick={openCreateModal}
               className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold rounded-md transition-colors"
             >
@@ -362,22 +364,28 @@ export default function ProblemStatementsPage() {
             <div
               key={problem.id}
               className={`p-4 hover:bg-white/[0.02] transition-colors ${
-                problem.isCurrent ? "bg-orange-500/5" : ""
+                problem.isCurrent ? 'bg-orange-500/5' : ''
               }`}
             >
               <div className="flex items-start gap-4">
                 {/* Drag Handle */}
-                <button type="button" className="mt-1 text-gray-600 hover:text-gray-400 cursor-grab active:cursor-grabbing" title="Drag to reorder">
+                <button
+                  type="button"
+                  className="mt-1 text-gray-600 hover:text-gray-400 cursor-grab active:cursor-grabbing"
+                  title="Drag to reorder"
+                >
                   <GripVertical className="w-5 h-5" />
                 </button>
 
                 {/* Order Badge */}
                 <div className="flex-shrink-0">
-                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm ${
-                    problem.isCurrent 
-                      ? "bg-orange-500 text-white" 
-                      : "bg-white/[0.05] text-gray-400"
-                  }`}>
+                  <div
+                    className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm ${
+                      problem.isCurrent
+                        ? 'bg-orange-500 text-white'
+                        : 'bg-white/[0.05] text-gray-400'
+                    }`}
+                  >
                     #{problem.order}
                   </div>
                 </div>
@@ -408,24 +416,32 @@ export default function ProblemStatementsPage() {
                         onClick={() => toggleActive(problem.id, problem.isActive)}
                         className={`p-2 rounded-md transition-colors ${
                           problem.isActive
-                            ? "text-green-400 hover:bg-green-500/10"
-                            : "text-gray-500 hover:bg-gray-500/10"
+                            ? 'text-green-400 hover:bg-green-500/10'
+                            : 'text-gray-500 hover:bg-gray-500/10'
                         }`}
-                        title={problem.isActive ? "Deactivate" : "Activate"}
+                        title={problem.isActive ? 'Deactivate' : 'Activate'}
                       >
-                        {problem.isActive ? <Power className="w-4 h-4" /> : <PowerOff className="w-4 h-4" />}
+                        {problem.isActive ? (
+                          <Power className="w-4 h-4" />
+                        ) : (
+                          <PowerOff className="w-4 h-4" />
+                        )}
                       </button>
-                      <button 
+                      <button
                         onClick={() => openEditModal(problem)}
                         className="p-2 text-cyan-400 hover:bg-cyan-500/10 rounded-md transition-colors"
                         title="Edit"
                       >
                         <Edit2 className="w-4 h-4" />
                       </button>
-                      <button 
+                      <button
                         onClick={() => openDeleteModal(problem)}
                         className="p-2 text-red-400 hover:bg-red-500/10 rounded-md transition-colors disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent"
-                        title={problem.submissionCount > 0 ? `Cannot delete: ${problem.submissionCount} submission(s)` : "Delete"}
+                        title={
+                          problem.submissionCount > 0
+                            ? `Cannot delete: ${problem.submissionCount} submission(s)`
+                            : 'Delete'
+                        }
                         disabled={problem.submissionCount > 0}
                       >
                         <Trash2 className="w-4 h-4" />
@@ -457,13 +473,13 @@ export default function ProblemStatementsPage() {
                   {/* Progress Bar */}
                   <div className="mt-3">
                     <div className="w-full bg-white/[0.05] rounded-full h-1.5">
-                      <div 
+                      <div
                         className={`h-1.5 rounded-full transition-all ${
-                          parseFloat(problem.utilizationRate) >= 90 
-                            ? "bg-red-500" 
-                            : parseFloat(problem.utilizationRate) >= 70 
-                            ? "bg-orange-500" 
-                            : "bg-green-500"
+                          parseFloat(problem.utilizationRate) >= 90
+                            ? 'bg-red-500'
+                            : parseFloat(problem.utilizationRate) >= 70
+                              ? 'bg-orange-500'
+                              : 'bg-green-500'
                         }`}
                         style={{ width: `${problem.utilizationRate}%` }}
                       />
@@ -501,7 +517,9 @@ export default function ProblemStatementsPage() {
                 <input
                   type="number"
                   value={formData.order}
-                  onChange={(e) => setFormData({ ...formData, order: parseInt(e.target.value) || 1 })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, order: parseInt(e.target.value) || 1 })
+                  }
                   className="w-full px-4 py-2 bg-black/40 border border-white/[0.1] rounded-md text-white focus:outline-none focus:border-orange-500/50"
                   min="1"
                   title="Order number for the problem statement"
@@ -532,7 +550,9 @@ export default function ProblemStatementsPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-mono text-gray-400 mb-2">DESCRIPTION (Optional)</label>
+                <label className="block text-sm font-mono text-gray-400 mb-2">
+                  DESCRIPTION (Optional)
+                </label>
                 <textarea
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -543,11 +563,15 @@ export default function ProblemStatementsPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-mono text-gray-400 mb-2">MAX SUBMISSIONS</label>
+                <label className="block text-sm font-mono text-gray-400 mb-2">
+                  MAX SUBMISSIONS
+                </label>
                 <input
                   type="number"
                   value={formData.maxSubmissions}
-                  onChange={(e) => setFormData({ ...formData, maxSubmissions: parseInt(e.target.value) || 30 })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, maxSubmissions: parseInt(e.target.value) || 30 })
+                  }
                   className="w-full px-4 py-2 bg-black/40 border border-white/[0.1] rounded-md text-white focus:outline-none focus:border-orange-500/50"
                   min="1"
                   max="100"
@@ -583,7 +607,7 @@ export default function ProblemStatementsPage() {
                 className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-mono font-bold rounded-md transition-colors disabled:opacity-50"
               >
                 <Save className="w-4 h-4" />
-                {submitting ? "CREATING..." : "CREATE"}
+                {submitting ? 'CREATING...' : 'CREATE'}
               </button>
             </div>
           </div>
@@ -614,7 +638,9 @@ export default function ProblemStatementsPage() {
                 <input
                   type="number"
                   value={formData.order}
-                  onChange={(e) => setFormData({ ...formData, order: parseInt(e.target.value) || 1 })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, order: parseInt(e.target.value) || 1 })
+                  }
                   className="w-full px-4 py-2 bg-black/40 border border-white/[0.1] rounded-md text-white focus:outline-none focus:border-cyan-500/50"
                   min="1"
                   title="Order number for the problem statement"
@@ -644,7 +670,9 @@ export default function ProblemStatementsPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-mono text-gray-400 mb-2">DESCRIPTION (Optional)</label>
+                <label className="block text-sm font-mono text-gray-400 mb-2">
+                  DESCRIPTION (Optional)
+                </label>
                 <textarea
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -655,11 +683,15 @@ export default function ProblemStatementsPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-mono text-gray-400 mb-2">MAX SUBMISSIONS</label>
+                <label className="block text-sm font-mono text-gray-400 mb-2">
+                  MAX SUBMISSIONS
+                </label>
                 <input
                   type="number"
                   value={formData.maxSubmissions}
-                  onChange={(e) => setFormData({ ...formData, maxSubmissions: parseInt(e.target.value) || 30 })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, maxSubmissions: parseInt(e.target.value) || 30 })
+                  }
                   className="w-full px-4 py-2 bg-black/40 border border-white/[0.1] rounded-md text-white focus:outline-none focus:border-cyan-500/50"
                   min="1"
                   max="100"
@@ -698,7 +730,7 @@ export default function ProblemStatementsPage() {
                 className="flex items-center gap-2 px-4 py-2 bg-cyan-500 hover:bg-cyan-600 text-white text-sm font-mono font-bold rounded-md transition-colors disabled:opacity-50"
               >
                 <Save className="w-4 h-4" />
-                {submitting ? "UPDATING..." : "UPDATE"}
+                {submitting ? 'UPDATING...' : 'UPDATE'}
               </button>
             </div>
           </div>
@@ -725,19 +757,19 @@ export default function ProblemStatementsPage() {
                   #{selectedProblem.order} {selectedProblem.title}
                 </p>
                 <p className="text-xs text-gray-400">
-                  {selectedProblem.submissionCount} submissions · {selectedProblem.activeReservations} active reservations
+                  {selectedProblem.submissionCount} submissions ·{' '}
+                  {selectedProblem.activeReservations} active reservations
                 </p>
               </div>
               {selectedProblem.submissionCount > 0 ? (
                 <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-md p-3">
                   <p className="text-xs text-yellow-400 font-mono">
-                    ⚠️ Cannot delete: This problem has {selectedProblem.submissionCount} submission(s)
+                    ⚠️ Cannot delete: This problem has {selectedProblem.submissionCount}{' '}
+                    submission(s)
                   </p>
                 </div>
               ) : (
-                <p className="text-sm text-gray-500 font-mono">
-                  This action cannot be undone.
-                </p>
+                <p className="text-sm text-gray-500 font-mono">This action cannot be undone.</p>
               )}
             </div>
 
@@ -755,7 +787,7 @@ export default function ProblemStatementsPage() {
                 className="flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-sm font-mono font-bold rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Trash2 className="w-4 h-4" />
-                {submitting ? "DELETING..." : "DELETE"}
+                {submitting ? 'DELETING...' : 'DELETE'}
               </button>
             </div>
           </div>

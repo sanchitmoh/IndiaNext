@@ -1,7 +1,7 @@
 // AttendanceStats — Stats cards for logistics dashboard
-"use client";
+'use client';
 
-import { CheckCircle2, XCircle, Clock, AlertTriangle, Users, BarChart3 } from "lucide-react";
+import { CheckCircle2, XCircle, Clock, AlertTriangle, Users, BarChart3 } from 'lucide-react';
 
 interface StatsData {
   totalApproved: number;
@@ -17,53 +17,68 @@ interface StatsData {
 export function AttendanceStats({ stats }: { stats: StatsData }) {
   const cards = [
     {
-      label: "TOTAL TEAMS",
+      label: 'TOTAL TEAMS',
       value: stats.totalApproved,
       icon: Users,
-      color: "text-gray-300",
-      bgColor: "bg-white/[0.03]",
-      borderColor: "border-white/[0.06]",
+      color: 'text-gray-300',
+      bgColor: 'bg-white/[0.03]',
+      borderColor: 'border-white/[0.06]',
     },
     {
-      label: "PRESENT",
+      label: 'PRESENT',
       value: stats.present,
       icon: CheckCircle2,
-      color: "text-emerald-400",
-      bgColor: "bg-emerald-500/5",
-      borderColor: "border-emerald-500/15",
+      color: 'text-emerald-400',
+      bgColor: 'bg-emerald-500/5',
+      borderColor: 'border-emerald-500/15',
     },
     {
-      label: "ABSENT",
+      label: 'ABSENT',
       value: stats.absent,
       icon: XCircle,
-      color: "text-red-400",
-      bgColor: "bg-red-500/5",
-      borderColor: "border-red-500/15",
+      color: 'text-red-400',
+      bgColor: 'bg-red-500/5',
+      borderColor: 'border-red-500/15',
     },
     {
-      label: "PARTIAL",
+      label: 'PARTIAL',
       value: stats.partial,
       icon: AlertTriangle,
-      color: "text-amber-400",
-      bgColor: "bg-amber-500/5",
-      borderColor: "border-amber-500/15",
+      color: 'text-amber-400',
+      bgColor: 'bg-amber-500/5',
+      borderColor: 'border-amber-500/15',
     },
     {
-      label: "UNMARKED",
+      label: 'UNMARKED',
       value: stats.notMarked,
       icon: Clock,
-      color: "text-gray-400",
-      bgColor: "bg-white/[0.02]",
-      borderColor: "border-white/[0.06]",
+      color: 'text-gray-400',
+      bgColor: 'bg-white/[0.02]',
+      borderColor: 'border-white/[0.06]',
     },
     {
-      label: "ATTENDANCE",
+      label: 'ATTENDANCE',
       value: `${stats.attendanceRate}%`,
       subValue: `${stats.membersPresent}/${stats.totalMembers} members`,
       icon: BarChart3,
-      color: stats.attendanceRate >= 80 ? "text-emerald-400" : stats.attendanceRate >= 50 ? "text-amber-400" : "text-red-400",
-      bgColor: stats.attendanceRate >= 80 ? "bg-emerald-500/5" : stats.attendanceRate >= 50 ? "bg-amber-500/5" : "bg-red-500/5",
-      borderColor: stats.attendanceRate >= 80 ? "border-emerald-500/15" : stats.attendanceRate >= 50 ? "border-amber-500/15" : "border-red-500/15",
+      color:
+        stats.attendanceRate >= 80
+          ? 'text-emerald-400'
+          : stats.attendanceRate >= 50
+            ? 'text-amber-400'
+            : 'text-red-400',
+      bgColor:
+        stats.attendanceRate >= 80
+          ? 'bg-emerald-500/5'
+          : stats.attendanceRate >= 50
+            ? 'bg-amber-500/5'
+            : 'bg-red-500/5',
+      borderColor:
+        stats.attendanceRate >= 80
+          ? 'border-emerald-500/15'
+          : stats.attendanceRate >= 50
+            ? 'border-amber-500/15'
+            : 'border-red-500/15',
     },
   ];
 
@@ -82,13 +97,9 @@ export function AttendanceStats({ stats }: { stats: StatsData }) {
                 {card.label}
               </span>
             </div>
-            <p className={`text-xl font-mono font-bold ${card.color}`}>
-              {card.value}
-            </p>
-            {"subValue" in card && card.subValue && (
-              <p className="text-[8px] font-mono text-gray-600 mt-0.5">
-                {card.subValue}
-              </p>
+            <p className={`text-xl font-mono font-bold ${card.color}`}>{card.value}</p>
+            {'subValue' in card && card.subValue && (
+              <p className="text-[8px] font-mono text-gray-600 mt-0.5">{card.subValue}</p>
             )}
           </div>
         );

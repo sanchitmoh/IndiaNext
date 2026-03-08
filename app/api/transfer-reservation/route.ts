@@ -8,7 +8,7 @@ const RESERVATION_DURATION_AUTH = 24 * 60 * 60 * 1000; // 24 hours for authentic
 
 /**
  * POST /api/transfer-reservation
- * 
+ *
  * Transfers an anonymous reservation to an authenticated session.
  * Called after email verification to link the problem reservation
  * to the user's authenticated session.
@@ -20,7 +20,7 @@ export async function POST(req: Request) {
     if (!rl.success) {
       return NextResponse.json(
         { success: false, message: 'Too many requests. Please try again later.' },
-        { status: 429, headers: createRateLimitHeaders(rl) },
+        { status: 429, headers: createRateLimitHeaders(rl) }
       );
     }
 
@@ -65,7 +65,7 @@ export async function POST(req: Request) {
     if (anonymousId.length > 60 || !ANON_ID_REGEX.test(anonymousId)) {
       return NextResponse.json(
         { success: false, message: 'Invalid anonymous identifier format.' },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -116,7 +116,9 @@ export async function POST(req: Request) {
       },
     });
 
-    console.log(`[TransferReservation] Transferred reservation from ${anonymousId} to ${sessionId}`);
+    console.log(
+      `[TransferReservation] Transferred reservation from ${anonymousId} to ${sessionId}`
+    );
 
     return NextResponse.json({
       success: true,

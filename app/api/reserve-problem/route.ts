@@ -20,7 +20,7 @@ const ANON_RATE_LIMIT = { limit: 5, window: 60 }; // 5 per minute per IP
 
 /**
  * POST /api/reserve-problem
- * 
+ *
  * True round-robin problem assignment with rotating tiebreaker:
  * - Each user gets a DIFFERENT problem
  * - Distributes teams evenly across all problems
@@ -52,10 +52,13 @@ export async function POST(req: Request) {
     // Validate anonymousId format if provided
     if (anonymousId) {
       if (anonymousId.length > ANON_ID_MAX_LENGTH || !ANON_ID_REGEX.test(anonymousId)) {
-        return NextResponse.json({
-          success: false,
-          message: 'Invalid anonymous identifier format.',
-        }, { status: 400 });
+        return NextResponse.json(
+          {
+            success: false,
+            message: 'Invalid anonymous identifier format.',
+          },
+          { status: 400 }
+        );
       }
     }
 
@@ -74,10 +77,13 @@ export async function POST(req: Request) {
     });
 
     if (!reservationId) {
-      return NextResponse.json({ 
-        success: false, 
-        message: 'Session identifier required. Please provide sessionId or anonymousId.' 
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'Session identifier required. Please provide sessionId or anonymousId.',
+        },
+        { status: 400 }
+      );
     }
 
     // Tighter rate limiting for anonymous (unauthenticated) reservations
@@ -86,7 +92,7 @@ export async function POST(req: Request) {
       if (!rl.success) {
         return NextResponse.json(
           { success: false, message: 'Too many reservation attempts. Please try again later.' },
-          { status: 429, headers: createRateLimitHeaders(rl) },
+          { status: 429, headers: createRateLimitHeaders(rl) }
         );
       }
     } else {
@@ -95,7 +101,7 @@ export async function POST(req: Request) {
       if (!rl.success) {
         return NextResponse.json(
           { success: false, message: 'Too many reservation attempts. Please try again later.' },
-          { status: 429, headers: createRateLimitHeaders(rl) },
+          { status: 429, headers: createRateLimitHeaders(rl) }
         );
       }
     }
@@ -113,7 +119,10 @@ export async function POST(req: Request) {
           // Anonymous reservations: delete immediately on expiry
           { expiresAt: { lt: new Date() }, sessionId: { startsWith: 'anon_' } },
           // Authenticated reservations: delete only after grace period
-          { expiresAt: { lt: new Date(Date.now() - gracePeriod) }, sessionId: { not: { startsWith: 'anon_' } } },
+          {
+            expiresAt: { lt: new Date(Date.now() - gracePeriod) },
+            sessionId: { not: { startsWith: 'anon_' } },
+          },
         ],
       },
     });
@@ -142,7 +151,9 @@ export async function POST(req: Request) {
           },
         });
 
-        console.log(`[ReserveProblem] Revived expired reservation for authenticated session ${reservationId} → Problem "${existingReservation.problemStatement.title}"`);
+        console.log(
+          `[ReserveProblem] Revived expired reservation for authenticated session ${reservationId} → Problem "${existingReservation.problemStatement.title}"`
+        );
 
         return NextResponse.json({
           success: true,
@@ -160,11 +171,14 @@ export async function POST(req: Request) {
 
       // Check if extension limit reached
       if (existingReservation.extensionCount >= maxExtensions) {
-        return NextResponse.json({
-          success: false,
-          error: 'EXTENSION_LIMIT_REACHED',
-          message: `You have reached the maximum number of extensions (${maxExtensions}). Please complete your registration.`,
-        }, { status: 429 });
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'EXTENSION_LIMIT_REACHED',
+            message: `You have reached the maximum number of extensions (${maxExtensions}). Please complete your registration.`,
+          },
+          { status: 429 }
+        );
       }
 
       // Extend the expiry since user is still active
@@ -176,7 +190,9 @@ export async function POST(req: Request) {
         },
       });
 
-      console.log(`[ReserveProblem] Extended reservation for session ${reservationId} (extension #${existingReservation.extensionCount + 1})`);
+      console.log(
+        `[ReserveProblem] Extended reservation for session ${reservationId} (extension #${existingReservation.extensionCount + 1})`
+      );
 
       return NextResponse.json({
         success: true,
@@ -212,7 +228,7 @@ export async function POST(req: Request) {
       _count: { id: true },
     });
     const reservationCountMap = new Map(
-      reservationCounts.map(r => [r.problemStatementId, r._count.id])
+      reservationCounts.map((r) => [r.problemStatementId, r._count.id])
     );
 
     const problemsWithLoad = availableProblems.map((problem) => {
@@ -227,11 +243,11 @@ export async function POST(req: Request) {
     });
 
     // Filter problems that still have capacity
-    let availableWithCapacity = problemsWithLoad.filter(p => p.hasCapacity);
+    let availableWithCapacity = problemsWithLoad.filter((p) => p.hasCapacity);
 
     if (availableWithCapacity.length === 0) {
       // Check if we can expand capacity from 30 to 50 slots per problem
-      const canExpand = availableProblems.some(p => p.maxSubmissions < 50);
+      const canExpand = availableProblems.some((p) => p.maxSubmissions < 50);
 
       if (canExpand) {
         // Expand maxSubmissions for all active problems to 50
@@ -242,10 +258,12 @@ export async function POST(req: Request) {
         console.log('[ReserveProblem] Expanded capacity to 50 slots per problem');
 
         // Recalculate with expanded capacity
-        availableWithCapacity = problemsWithLoad.map(p => ({
-          ...p,
-          hasCapacity: p.totalCommitted < 50,
-        })).filter(p => p.hasCapacity);
+        availableWithCapacity = problemsWithLoad
+          .map((p) => ({
+            ...p,
+            hasCapacity: p.totalCommitted < 50,
+          }))
+          .filter((p) => p.hasCapacity);
       }
 
       if (availableWithCapacity.length === 0) {
@@ -263,27 +281,38 @@ export async function POST(req: Request) {
     const selectedProblem = await selectWithRotatingTiebreaker(availableWithCapacity);
 
     // 5. Create the reservation inside a SHORT transaction (only the critical write)
-    const newReservation = await prisma.$transaction(async (tx) => {
-      return tx.problemReservation.create({
-        data: {
-          sessionId: reservationId,
-          problemStatementId: selectedProblem.id,
-          expiresAt: new Date(Date.now() + reservationDuration),
-          extensionCount: 0,
-        },
-        include: { problemStatement: true },
-      });
-    }, {
-      timeout: 15000,
-    });
+    const newReservation = await prisma.$transaction(
+      async (tx) => {
+        return tx.problemReservation.create({
+          data: {
+            sessionId: reservationId,
+            problemStatementId: selectedProblem.id,
+            expiresAt: new Date(Date.now() + reservationDuration),
+            extensionCount: 0,
+          },
+          include: { problemStatement: true },
+        });
+      },
+      {
+        timeout: 15000,
+      }
+    );
 
-    console.log(`[ReserveProblem] Round-robin assignment - Session ${reservationId} → Problem #${selectedProblem.order}: "${selectedProblem.title}" (Load: ${selectedProblem.totalCommitted + 1}/${selectedProblem.maxSubmissions})`);
+    console.log(
+      `[ReserveProblem] Round-robin assignment - Session ${reservationId} → Problem #${selectedProblem.order}: "${selectedProblem.title}" (Load: ${selectedProblem.totalCommitted + 1}/${selectedProblem.maxSubmissions})`
+    );
 
     // ✅ SECURITY FIX (L-13): Await fire-and-forget ops to surface errors; wrap in try/catch
     if (!selectedProblem.isCurrent) {
       try {
-        await prisma.problemStatement.updateMany({ where: { isCurrent: true }, data: { isCurrent: false } });
-        await prisma.problemStatement.update({ where: { id: selectedProblem.id }, data: { isCurrent: true } });
+        await prisma.problemStatement.updateMany({
+          where: { isCurrent: true },
+          data: { isCurrent: false },
+        });
+        await prisma.problemStatement.update({
+          where: { id: selectedProblem.id },
+          data: { isCurrent: true },
+        });
       } catch (err) {
         console.error('[ReserveProblem] isCurrent update failed:', err);
       }
@@ -315,10 +344,12 @@ export async function POST(req: Request) {
       allFilled: false,
       extended: false,
     });
-
   } catch (error) {
     console.error('[ReserveProblem] Error:', error);
-    return NextResponse.json({ success: false, message: 'Failed to reserve problem slot.' }, { status: 500 });
+    return NextResponse.json(
+      { success: false, message: 'Failed to reserve problem slot.' },
+      { status: 500 }
+    );
   }
 }
 
@@ -333,12 +364,12 @@ export async function POST(req: Request) {
  * This ensures that when problems 1-10 all have load=3, consecutive
  * reservations go to #1, #2, #3, ... #10, #1, ... instead of always #1.
  */
-async function selectWithRotatingTiebreaker<
-  T extends { order: number; totalCommitted: number }
->(candidates: T[]): Promise<T> {
+async function selectWithRotatingTiebreaker<T extends { order: number; totalCommitted: number }>(
+  candidates: T[]
+): Promise<T> {
   // Step 1: Find minimum load
-  const minLoad = Math.min(...candidates.map(p => p.totalCommitted));
-  const tied = candidates.filter(p => p.totalCommitted === minLoad);
+  const minLoad = Math.min(...candidates.map((p) => p.totalCommitted));
+  const tied = candidates.filter((p) => p.totalCommitted === minLoad);
 
   // If only one candidate at minimum load, no tiebreaker needed
   if (tied.length === 1) {
@@ -358,7 +389,7 @@ async function selectWithRotatingTiebreaker<
   // Step 3: Sort tied candidates by order, then pick the first one
   // whose order is strictly greater than lastOrder (wrap around)
   const sorted = tied.sort((a, b) => a.order - b.order);
-  const next = sorted.find(p => p.order > lastOrder) || sorted[0];
+  const next = sorted.find((p) => p.order > lastOrder) || sorted[0];
 
   // Step 4: Store new last-assigned order (TTL 1 hour, auto-cleanup)
   try {

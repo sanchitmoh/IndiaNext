@@ -1,35 +1,33 @@
 // Admin Dashboard Home Page
-"use client";
+'use client';
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { trpc } from "@/lib/trpc-client";
-import { useAdminRole } from "@/components/admin/AdminRoleContext";
-import { StatsCards } from "@/components/admin/dashboard/StatsCards";
-import { RegistrationChart } from "@/components/admin/dashboard/RegistrationChart";
-import { RecentActivity } from "@/components/admin/dashboard/RecentActivity";
-import { TopColleges } from "@/components/admin/dashboard/TopColleges";
-import { TrackDistribution } from "@/components/admin/dashboard/TrackDistribution";
-import { SkeletonCard } from "@/components/animations";
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { trpc } from '@/lib/trpc-client';
+import { useAdminRole } from '@/components/admin/AdminRoleContext';
+import { StatsCards } from '@/components/admin/dashboard/StatsCards';
+import { RegistrationChart } from '@/components/admin/dashboard/RegistrationChart';
+import { RecentActivity } from '@/components/admin/dashboard/RecentActivity';
+import { TopColleges } from '@/components/admin/dashboard/TopColleges';
+import { TrackDistribution } from '@/components/admin/dashboard/TrackDistribution';
+import { SkeletonCard } from '@/components/animations';
 
 export default function AdminDashboard() {
   const router = useRouter();
   const { role } = useAdminRole();
-  const { data: stats, isLoading: statsLoading } =
-    trpc.admin.getStats.useQuery();
-  const { data: analytics, isLoading: analyticsLoading } =
-    trpc.admin.getAnalytics.useQuery();
+  const { data: stats, isLoading: statsLoading } = trpc.admin.getStats.useQuery();
+  const { data: analytics, isLoading: analyticsLoading } = trpc.admin.getAnalytics.useQuery();
 
   // Redirect judges to teams page, logistics to logistics page
   useEffect(() => {
     // ✅ SECURITY FIX: Use React Context instead of DOM attribute
-    if (role === "LOGISTICS") {
-      router.replace("/admin/logistics");
+    if (role === 'LOGISTICS') {
+      router.replace('/admin/logistics');
       return;
     }
     // If stats query fails with permission error, redirect (judge fallback)
     if (!statsLoading && !stats) {
-      router.push("/admin/teams");
+      router.push('/admin/teams');
     }
   }, [stats, statsLoading, router, role]);
 
@@ -57,10 +55,12 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {analytics && (
           <RegistrationChart
-            data={analytics.registrationTrends.map((item: { date: string | Date; count: number }) => ({
-              date: String(item.date),
-              count: item.count,
-            }))}
+            data={analytics.registrationTrends.map(
+              (item: { date: string | Date; count: number }) => ({
+                date: String(item.date),
+                count: item.count,
+              })
+            )}
           />
         )}
         {analytics && <TrackDistribution data={analytics.trackComparison} />}

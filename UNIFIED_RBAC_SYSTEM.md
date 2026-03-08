@@ -3,6 +3,7 @@
 ## Problem Solved
 
 Previously, there were two separate, conflicting RBAC permission systems:
+
 1. `lib/rbac.ts` - Used by tRPC middleware
 2. `lib/auth-admin.ts` - Used by REST API routes
 
@@ -56,6 +57,7 @@ This created maintenance issues where updating permissions in one file wouldn't 
 ## Permission Naming Conventions
 
 ### auth-admin.ts (Source of Truth)
+
 Uses **UPPER_SNAKE_CASE** for consistency with database conventions:
 
 ```typescript
@@ -69,6 +71,7 @@ export const PERMISSIONS = {
 ```
 
 ### tRPC Middleware (Backward Compatible)
+
 Uses **camelCase** for JavaScript convention:
 
 ```typescript
@@ -77,14 +80,15 @@ export const canEditTeams = adminProcedure.use(requirePermission('editTeams'));
 ```
 
 ### Permission Mapping
+
 `lib/rbac.ts` provides automatic mapping:
 
 ```typescript
 export const TRPC_PERMISSION_MAP: Record<string, AuthPermission> = {
-  'viewTeams': 'VIEW_ALL_TEAMS',
-  'editTeams': 'EDIT_TEAMS',
-  'deleteTeams': 'DELETE_TEAMS',
-  'exportTeams': 'EXPORT_DATA',
+  viewTeams: 'VIEW_ALL_TEAMS',
+  editTeams: 'EDIT_TEAMS',
+  deleteTeams: 'DELETE_TEAMS',
+  exportTeams: 'EXPORT_DATA',
   // ... more mappings
 };
 ```
@@ -107,7 +111,7 @@ export const adminRouter = router({
       // Permission already checked by middleware
       // ctx.admin is guaranteed to exist
     }),
-    
+
   deleteTeam: canDeleteTeams
     .input(z.object({ teamId: z.string() }))
     .mutation(async ({ ctx, input }) => {
@@ -126,10 +130,10 @@ import { requirePermission } from '@/lib/auth-admin';
 export async function POST(req: Request) {
   // Check permission and get session in one call
   const session = await requirePermission('EDIT_TEAMS');
-  
+
   // session.user.role is guaranteed to have EDIT_TEAMS permission
   const { teamId } = await req.json();
-  
+
   // ... update team
 }
 ```
@@ -144,7 +148,7 @@ import { hasPermission } from '@/lib/rbac';
 function TeamActions({ userRole }: { userRole: UserRole }) {
   const canEdit = hasPermission(userRole, 'EDIT_TEAMS');
   const canDelete = hasPermission(userRole, 'DELETE_TEAMS');
-  
+
   return (
     <>
       {canEdit && <EditButton />}
@@ -170,28 +174,28 @@ if (hasMinimumRole(userRole, 'ADMIN')) {
 
 ## Complete Permission Matrix
 
-| Permission | PARTICIPANT | ORGANIZER | JUDGE | LOGISTICS | ADMIN | SUPER_ADMIN |
-|-----------|-------------|-----------|-------|-----------|-------|-------------|
-| VIEW_OWN_TEAM | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| VIEW_ALL_TEAMS | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| VIEW_SUBMISSIONS | ❌ | ✅ | ✅ | ❌ | ✅ | ✅ |
-| VIEW_ANALYTICS | ❌ | ✅ | ✅ | ❌ | ✅ | ✅ |
-| VIEW_AUDIT_LOGS | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ |
-| APPROVE_TEAMS | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ |
-| REJECT_TEAMS | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ |
-| EDIT_TEAMS | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ |
-| DELETE_TEAMS | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
-| SEND_EMAILS | ❌ | ✅ | ❌ | ❌ | ✅ | ✅ |
-| ADD_COMMENTS | ❌ | ✅ | ✅ | ❌ | ✅ | ✅ |
-| SCORE_TEAMS | ❌ | ❌ | ✅ | ❌ | ✅ | ✅ |
-| EXPORT_DATA | ❌ | ✅ | ✅ | ❌ | ✅ | ✅ |
-| MANAGE_USERS | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
-| ASSIGN_ROLES | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
-| EDIT_TEAM_MEMBERS | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
-| SWAP_TEAM_MEMBERS | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
-| MARK_ATTENDANCE | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
-| VIEW_ATTENDANCE | ❌ | ✅ | ❌ | ✅ | ✅ | ✅ |
-| EXPORT_ATTENDANCE | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
+| Permission        | PARTICIPANT | ORGANIZER | JUDGE | LOGISTICS | ADMIN | SUPER_ADMIN |
+| ----------------- | ----------- | --------- | ----- | --------- | ----- | ----------- |
+| VIEW_OWN_TEAM     | ✅          | ✅        | ✅    | ✅        | ✅    | ✅          |
+| VIEW_ALL_TEAMS    | ❌          | ✅        | ✅    | ✅        | ✅    | ✅          |
+| VIEW_SUBMISSIONS  | ❌          | ✅        | ✅    | ❌        | ✅    | ✅          |
+| VIEW_ANALYTICS    | ❌          | ✅        | ✅    | ❌        | ✅    | ✅          |
+| VIEW_AUDIT_LOGS   | ❌          | ❌        | ❌    | ❌        | ✅    | ✅          |
+| APPROVE_TEAMS     | ❌          | ❌        | ❌    | ❌        | ✅    | ✅          |
+| REJECT_TEAMS      | ❌          | ❌        | ❌    | ❌        | ✅    | ✅          |
+| EDIT_TEAMS        | ❌          | ❌        | ❌    | ❌        | ✅    | ✅          |
+| DELETE_TEAMS      | ❌          | ❌        | ❌    | ❌        | ❌    | ✅          |
+| SEND_EMAILS       | ❌          | ✅        | ❌    | ❌        | ✅    | ✅          |
+| ADD_COMMENTS      | ❌          | ✅        | ✅    | ❌        | ✅    | ✅          |
+| SCORE_TEAMS       | ❌          | ❌        | ✅    | ❌        | ✅    | ✅          |
+| EXPORT_DATA       | ❌          | ✅        | ✅    | ❌        | ✅    | ✅          |
+| MANAGE_USERS      | ❌          | ❌        | ❌    | ❌        | ❌    | ✅          |
+| ASSIGN_ROLES      | ❌          | ❌        | ❌    | ❌        | ❌    | ✅          |
+| EDIT_TEAM_MEMBERS | ❌          | ❌        | ❌    | ✅        | ✅    | ✅          |
+| SWAP_TEAM_MEMBERS | ❌          | ❌        | ❌    | ✅        | ✅    | ✅          |
+| MARK_ATTENDANCE   | ❌          | ❌        | ❌    | ✅        | ✅    | ✅          |
+| VIEW_ATTENDANCE   | ❌          | ✅        | ❌    | ✅        | ✅    | ✅          |
+| EXPORT_ATTENDANCE | ❌          | ❌        | ❌    | ✅        | ✅    | ✅          |
 
 ---
 
@@ -221,7 +225,7 @@ PARTICIPANT (0)  ← Lowest authority
 // lib/auth-admin.ts
 export const PERMISSIONS = {
   // ... existing permissions
-  
+
   // New permission
   MANAGE_SPONSORS: ['ORGANIZER', 'ADMIN', 'SUPER_ADMIN'],
 } as const;
@@ -233,8 +237,8 @@ export const PERMISSIONS = {
 // lib/rbac.ts
 export const TRPC_PERMISSION_MAP: Record<string, AuthPermission> = {
   // ... existing mappings
-  
-  'manageSponsors': 'MANAGE_SPONSORS',
+
+  manageSponsors: 'MANAGE_SPONSORS',
 };
 ```
 
@@ -307,12 +311,12 @@ describe('Unified RBAC', () => {
     expect(hasPermission('ADMIN', 'EDIT_TEAMS')).toBe(true);
     expect(hasPermission('JUDGE', 'EDIT_TEAMS')).toBe(false);
   });
-  
+
   it('should check permissions using camelCase (mapped)', () => {
     expect(checkPermission('ADMIN', 'editTeams')).toBe(true);
     expect(checkPermission('JUDGE', 'editTeams')).toBe(false);
   });
-  
+
   it('should handle both naming conventions', () => {
     const role = 'ADMIN';
     expect(checkPermission(role, 'EDIT_TEAMS')).toBe(true);
@@ -327,16 +331,14 @@ describe('Unified RBAC', () => {
 describe('tRPC Middleware', () => {
   it('should block unauthorized access', async () => {
     const caller = createCaller({ admin: { role: 'JUDGE' } });
-    
-    await expect(caller.deleteTeam({ teamId: '123' }))
-      .rejects.toThrow('Insufficient permissions');
+
+    await expect(caller.deleteTeam({ teamId: '123' })).rejects.toThrow('Insufficient permissions');
   });
-  
+
   it('should allow authorized access', async () => {
     const caller = createCaller({ admin: { role: 'SUPER_ADMIN' } });
-    
-    await expect(caller.deleteTeam({ teamId: '123' }))
-      .resolves.toBeDefined();
+
+    await expect(caller.deleteTeam({ teamId: '123' })).resolves.toBeDefined();
   });
 });
 ```

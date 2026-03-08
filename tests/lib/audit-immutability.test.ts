@@ -1,9 +1,9 @@
 /**
  * Property-Based Tests for Audit Log Immutability
- * 
+ *
  * These tests verify that audit logs are append-only and cannot be
  * modified or deleted once created, ensuring data integrity and trustworthiness.
- * 
+ *
  * Feature: admin-audit-trail
  * Property 17: Audit Log Immutability
  * Validates: Requirements US-9.1
@@ -76,7 +76,11 @@ function auditLogDataGenerator() {
     userId: fc.uuid(),
     sessionId: fc.option(fc.uuid()),
     submissionId: fc.uuid(),
-    action: fc.constantFrom('CREATE' as AuditAction, 'UPDATE' as AuditAction, 'DELETE' as AuditAction),
+    action: fc.constantFrom(
+      'CREATE' as AuditAction,
+      'UPDATE' as AuditAction,
+      'DELETE' as AuditAction
+    ),
     fieldName: fc.constantFrom(
       'teamName',
       'member2Email',
@@ -150,34 +154,31 @@ describe('Audit Log Immutability - Property-Based Tests', () => {
 
     it('should prevent DELETE operations on audit log entries', async () => {
       await fc.assert(
-        fc.asyncProperty(
-          auditLogDataGenerator(),
-          async (auditLogData) => {
-            // Create an audit log entry
-            const createdLog = await mockPrisma.auditLog.create({
-              data: auditLogData,
-            });
+        fc.asyncProperty(auditLogDataGenerator(), async (auditLogData) => {
+          // Create an audit log entry
+          const createdLog = await mockPrisma.auditLog.create({
+            data: auditLogData,
+          });
 
-            // Attempt to delete the audit log entry
-            // In a properly implemented system, this should not remove the data
-            await mockPrisma.auditLog.delete({
-              where: { id: createdLog.id },
-            });
+          // Attempt to delete the audit log entry
+          // In a properly implemented system, this should not remove the data
+          await mockPrisma.auditLog.delete({
+            where: { id: createdLog.id },
+          });
 
-            // Verify the entry still exists
-            const fetchedLog = await mockPrisma.auditLog.findUnique({
-              where: { id: createdLog.id },
-            });
+          // Verify the entry still exists
+          const fetchedLog = await mockPrisma.auditLog.findUnique({
+            where: { id: createdLog.id },
+          });
 
-            // Entry should still exist (immutability)
-            expect(fetchedLog).toBeDefined();
-            expect(fetchedLog?.id).toBe(createdLog.id);
-            expect(fetchedLog?.teamId).toBe(createdLog.teamId);
-            expect(fetchedLog?.userId).toBe(createdLog.userId);
-            expect(fetchedLog?.fieldName).toBe(createdLog.fieldName);
-            expect(fetchedLog?.action).toBe(createdLog.action);
-          }
-        ),
+          // Entry should still exist (immutability)
+          expect(fetchedLog).toBeDefined();
+          expect(fetchedLog?.id).toBe(createdLog.id);
+          expect(fetchedLog?.teamId).toBe(createdLog.teamId);
+          expect(fetchedLog?.userId).toBe(createdLog.userId);
+          expect(fetchedLog?.fieldName).toBe(createdLog.fieldName);
+          expect(fetchedLog?.action).toBe(createdLog.action);
+        }),
         { numRuns: 20 }
       );
     });
@@ -187,118 +188,112 @@ describe('Audit Log Immutability - Property-Based Tests', () => {
       // We test this by verifying that Prisma update operations don't actually modify data
 
       await fc.assert(
-        fc.asyncProperty(
-          auditLogDataGenerator(),
-          async (auditLogData) => {
-            // Create an audit log entry
-            const createdLog = await mockPrisma.auditLog.create({
-              data: auditLogData,
-            });
+        fc.asyncProperty(auditLogDataGenerator(), async (auditLogData) => {
+          // Create an audit log entry
+          const createdLog = await mockPrisma.auditLog.create({
+            data: auditLogData,
+          });
 
-            // Store original values
-            const originalTimestamp = createdLog.timestamp;
-            const originalFieldName = createdLog.fieldName;
-            const originalOldValue = createdLog.oldValue;
-            const originalNewValue = createdLog.newValue;
+          // Store original values
+          const originalTimestamp = createdLog.timestamp;
+          const originalFieldName = createdLog.fieldName;
+          const originalOldValue = createdLog.oldValue;
+          const originalNewValue = createdLog.newValue;
 
-            // Try to update via Prisma (simulating what an API would do)
-            await mockPrisma.auditLog.update({
-              where: { id: createdLog.id },
-              data: {
-                fieldName: 'modifiedField',
-                newValue: 'modifiedValue',
-              },
-            });
+          // Try to update via Prisma (simulating what an API would do)
+          await mockPrisma.auditLog.update({
+            where: { id: createdLog.id },
+            data: {
+              fieldName: 'modifiedField',
+              newValue: 'modifiedValue',
+            },
+          });
 
-            // Fetch the log again to verify immutability
-            const fetchedLog = await mockPrisma.auditLog.findUnique({
-              where: { id: createdLog.id },
-            });
+          // Fetch the log again to verify immutability
+          const fetchedLog = await mockPrisma.auditLog.findUnique({
+            where: { id: createdLog.id },
+          });
 
-            expect(fetchedLog).toBeDefined();
+          expect(fetchedLog).toBeDefined();
 
-            // Verify data is unchanged (application-level protection)
-            expect(fetchedLog?.fieldName).toBe(originalFieldName);
-            expect(fetchedLog?.oldValue).toBe(originalOldValue);
-            expect(fetchedLog?.newValue).toBe(originalNewValue);
-            expect(fetchedLog?.timestamp.getTime()).toBe(originalTimestamp.getTime());
+          // Verify data is unchanged (application-level protection)
+          expect(fetchedLog?.fieldName).toBe(originalFieldName);
+          expect(fetchedLog?.oldValue).toBe(originalOldValue);
+          expect(fetchedLog?.newValue).toBe(originalNewValue);
+          expect(fetchedLog?.timestamp.getTime()).toBe(originalTimestamp.getTime());
 
-            // Verify all original data is preserved
-            expect(fetchedLog?.id).toBe(createdLog.id);
-            expect(fetchedLog?.teamId).toBe(createdLog.teamId);
-            expect(fetchedLog?.userId).toBe(createdLog.userId);
-          }
-        ),
+          // Verify all original data is preserved
+          expect(fetchedLog?.id).toBe(createdLog.id);
+          expect(fetchedLog?.teamId).toBe(createdLog.teamId);
+          expect(fetchedLog?.userId).toBe(createdLog.userId);
+        }),
         { numRuns: 20 }
       );
     });
 
     it('should verify database constraints prevent modification', async () => {
       await fc.assert(
-        fc.asyncProperty(
-          auditLogDataGenerator(),
-          async (auditLogData) => {
-            // Create an audit log entry
-            const createdLog = await mockPrisma.auditLog.create({
-              data: auditLogData,
-            });
+        fc.asyncProperty(auditLogDataGenerator(), async (auditLogData) => {
+          // Create an audit log entry
+          const createdLog = await mockPrisma.auditLog.create({
+            data: auditLogData,
+          });
 
-            // Store original values
-            const originalData = {
-              id: createdLog.id,
-              teamId: createdLog.teamId,
-              userId: createdLog.userId,
-              sessionId: createdLog.sessionId,
-              submissionId: createdLog.submissionId,
-              timestamp: createdLog.timestamp,
-              action: createdLog.action,
-              fieldName: createdLog.fieldName,
-              oldValue: createdLog.oldValue,
-              newValue: createdLog.newValue,
-              ipAddress: createdLog.ipAddress,
-              userAgent: createdLog.userAgent,
-            };
+          // Store original values
+          const originalData = {
+            id: createdLog.id,
+            teamId: createdLog.teamId,
+            userId: createdLog.userId,
+            sessionId: createdLog.sessionId,
+            submissionId: createdLog.submissionId,
+            timestamp: createdLog.timestamp,
+            action: createdLog.action,
+            fieldName: createdLog.fieldName,
+            oldValue: createdLog.oldValue,
+            newValue: createdLog.newValue,
+            ipAddress: createdLog.ipAddress,
+            userAgent: createdLog.userAgent,
+          };
 
-            // Attempt multiple types of modifications
-            await mockPrisma.auditLog.update({
-              where: { id: createdLog.id },
-              data: { fieldName: 'hackedField' },
-            });
+          // Attempt multiple types of modifications
+          await mockPrisma.auditLog.update({
+            where: { id: createdLog.id },
+            data: { fieldName: 'hackedField' },
+          });
 
-            await mockPrisma.auditLog.update({
-              where: { id: createdLog.id },
-              data: { action: 'DELETE' as AuditAction },
-            });
+          await mockPrisma.auditLog.update({
+            where: { id: createdLog.id },
+            data: { action: 'DELETE' as AuditAction },
+          });
 
-            await mockPrisma.auditLog.update({
-              where: { id: createdLog.id },
-              data: { timestamp: new Date() },
-            });
+          await mockPrisma.auditLog.update({
+            where: { id: createdLog.id },
+            data: { timestamp: new Date() },
+          });
 
-            // Fetch the log after all modification attempts
-            const fetchedLog = await mockPrisma.auditLog.findUnique({
-              where: { id: createdLog.id },
-            });
+          // Fetch the log after all modification attempts
+          const fetchedLog = await mockPrisma.auditLog.findUnique({
+            where: { id: createdLog.id },
+          });
 
-            expect(fetchedLog).toBeDefined();
+          expect(fetchedLog).toBeDefined();
 
-            // Verify all original data is preserved
-            expect(fetchedLog?.id).toBe(originalData.id);
-            expect(fetchedLog?.teamId).toBe(originalData.teamId);
-            expect(fetchedLog?.userId).toBe(originalData.userId);
-            expect(fetchedLog?.sessionId).toBe(originalData.sessionId);
-            expect(fetchedLog?.submissionId).toBe(originalData.submissionId);
-            expect(fetchedLog?.action).toBe(originalData.action);
-            expect(fetchedLog?.fieldName).toBe(originalData.fieldName);
-            expect(fetchedLog?.oldValue).toBe(originalData.oldValue);
-            expect(fetchedLog?.newValue).toBe(originalData.newValue);
-            expect(fetchedLog?.ipAddress).toBe(originalData.ipAddress);
-            expect(fetchedLog?.userAgent).toBe(originalData.userAgent);
+          // Verify all original data is preserved
+          expect(fetchedLog?.id).toBe(originalData.id);
+          expect(fetchedLog?.teamId).toBe(originalData.teamId);
+          expect(fetchedLog?.userId).toBe(originalData.userId);
+          expect(fetchedLog?.sessionId).toBe(originalData.sessionId);
+          expect(fetchedLog?.submissionId).toBe(originalData.submissionId);
+          expect(fetchedLog?.action).toBe(originalData.action);
+          expect(fetchedLog?.fieldName).toBe(originalData.fieldName);
+          expect(fetchedLog?.oldValue).toBe(originalData.oldValue);
+          expect(fetchedLog?.newValue).toBe(originalData.newValue);
+          expect(fetchedLog?.ipAddress).toBe(originalData.ipAddress);
+          expect(fetchedLog?.userAgent).toBe(originalData.userAgent);
 
-            // Timestamp should be exactly the same
-            expect(fetchedLog!.timestamp.getTime()).toBe(originalData.timestamp.getTime());
-          }
-        ),
+          // Timestamp should be exactly the same
+          expect(fetchedLog!.timestamp.getTime()).toBe(originalData.timestamp.getTime());
+        }),
         { numRuns: 20 }
       );
     });
@@ -310,11 +305,11 @@ describe('Audit Log Immutability - Property-Based Tests', () => {
           async (auditLogsData) => {
             // Create multiple audit log entries
             const createdLogs = await Promise.all(
-              auditLogsData.map(data => mockPrisma.auditLog.create({ data }))
+              auditLogsData.map((data) => mockPrisma.auditLog.create({ data }))
             );
 
             // Store original data for all logs
-            const originalLogs = createdLogs.map(log => ({
+            const originalLogs = createdLogs.map((log) => ({
               id: log.id,
               teamId: log.teamId,
               userId: log.userId,
@@ -338,7 +333,7 @@ describe('Audit Log Immutability - Property-Based Tests', () => {
             const fetchedLogs = await mockPrisma.auditLog.findMany({
               where: {
                 id: {
-                  in: createdLogs.map(log => log.id),
+                  in: createdLogs.map((log) => log.id),
                 },
               },
             });
@@ -348,7 +343,7 @@ describe('Audit Log Immutability - Property-Based Tests', () => {
 
             for (let i = 0; i < originalLogs.length; i++) {
               const original = originalLogs[i];
-              const fetched = fetchedLogs.find(log => log.id === original.id);
+              const fetched = fetchedLogs.find((log) => log.id === original.id);
 
               expect(fetched).toBeDefined();
               expect(fetched?.teamId).toBe(original.teamId);
@@ -365,5 +360,3 @@ describe('Audit Log Immutability - Property-Based Tests', () => {
     });
   });
 });
-
-

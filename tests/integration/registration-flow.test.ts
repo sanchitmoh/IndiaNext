@@ -7,26 +7,14 @@
 
 import { describe, it, expect } from 'vitest';
 import { z } from 'zod';
-import {
-  sanitizeObject,
-  containsXss,
-  containsSqlInjection,
-} from '@/lib/input-sanitizer';
+import { sanitizeObject, containsXss, containsSqlInjection } from '@/lib/input-sanitizer';
 
 // Mirrors the schema in app/api/verify-otp/route.ts
 const VerifyOtpSchema = z.object({
   email: z.string().email('Invalid email format'),
-  otp: z
-    .string()
-    .length(6, 'OTP must be 6 digits')
-    .regex(/^\d+$/, 'OTP must contain only numbers'),
+  otp: z.string().length(6, 'OTP must be 6 digits').regex(/^\d+$/, 'OTP must contain only numbers'),
   purpose: z
-    .enum([
-      'REGISTRATION',
-      'LOGIN',
-      'PASSWORD_RESET',
-      'EMAIL_VERIFICATION',
-    ])
+    .enum(['REGISTRATION', 'LOGIN', 'PASSWORD_RESET', 'EMAIL_VERIFICATION'])
     .default('REGISTRATION'),
 });
 
@@ -34,12 +22,7 @@ const VerifyOtpSchema = z.object({
 const SendOtpSchema = z.object({
   email: z.string().email('Invalid email format'),
   purpose: z
-    .enum([
-      'REGISTRATION',
-      'LOGIN',
-      'PASSWORD_RESET',
-      'EMAIL_VERIFICATION',
-    ])
+    .enum(['REGISTRATION', 'LOGIN', 'PASSWORD_RESET', 'EMAIL_VERIFICATION'])
     .default('REGISTRATION'),
   track: z.enum(['IDEA_SPRINT', 'BUILD_STORM']).optional(),
 });
@@ -121,12 +104,7 @@ describe('Registration Flow Validation', () => {
     });
 
     it('should accept all valid purposes', () => {
-      const purposes = [
-        'REGISTRATION',
-        'LOGIN',
-        'PASSWORD_RESET',
-        'EMAIL_VERIFICATION',
-      ];
+      const purposes = ['REGISTRATION', 'LOGIN', 'PASSWORD_RESET', 'EMAIL_VERIFICATION'];
 
       for (const purpose of purposes) {
         const result = VerifyOtpSchema.safeParse({

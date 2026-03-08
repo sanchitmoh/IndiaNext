@@ -1,6 +1,6 @@
 /**
  * Tests for GET /api/admin/teams/[teamId]/audit endpoint
- * 
+ *
  * Validates:
  * - Admin authentication and authorization
  * - Query parameter parsing and validation

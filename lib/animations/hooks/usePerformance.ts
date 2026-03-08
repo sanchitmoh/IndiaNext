@@ -1,6 +1,6 @@
 /**
  * usePerformance Hook
- * 
+ *
  * Hook for monitoring animation performance metrics.
  * Tracks FPS, frame times, and dropped frames.
  */
@@ -59,14 +59,11 @@ export const usePerformance = (): UsePerformanceReturn => {
 
       // Calculate metrics
       const frameTimes = frameTimesRef.current;
-      const averageFrameTime =
-        frameTimes.reduce((sum, time) => sum + time, 0) / frameTimes.length;
+      const averageFrameTime = frameTimes.reduce((sum, time) => sum + time, 0) / frameTimes.length;
       const minFrameTime = Math.min(...frameTimes);
       const maxFrameTime = Math.max(...frameTimes);
       const fps = Math.round(1000 / averageFrameTime);
-      const droppedFrames = frameTimes.filter(
-        (time) => time > TARGET_FRAME_TIME * 1.5
-      ).length;
+      const droppedFrames = frameTimes.filter((time) => time > TARGET_FRAME_TIME * 1.5).length;
 
       setMetrics({
         fps,

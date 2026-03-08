@@ -1,6 +1,6 @@
 /**
  * Health Check Endpoint
- * 
+ *
  * Used by CI/CD and monitoring systems to verify application health
  */
 
@@ -36,7 +36,7 @@ export async function GET(req: Request) {
   if (!rl.success) {
     return NextResponse.json(
       { status: 'rate_limited', message: 'Too many requests' },
-      { status: 429, headers: createRateLimitHeaders(rl) },
+      { status: 429, headers: createRateLimitHeaders(rl) }
     );
   }
 
@@ -71,7 +71,7 @@ export async function GET(req: Request) {
   // Check Redis (using singleton)
   try {
     const redis = getRedis();
-    
+
     if (redis) {
       const redisStart = Date.now();
       await redis.ping();

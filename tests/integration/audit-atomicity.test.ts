@@ -1,9 +1,9 @@
 /**
  * Property-Based Test: Audit Logging Atomicity
- * 
+ *
  * Feature: admin-audit-trail, Property 15: Audit Logging Atomicity
  * Validates: Requirements US-8.4
- * 
+ *
  * This test verifies that audit logs are only created when the registration
  * update succeeds. If the transaction fails, no audit logs should be persisted.
  * This ensures data consistency and integrity.
@@ -36,25 +36,26 @@ vi.mock('@/lib/prisma', () => ({
 }));
 
 // Generator for registration data
-const registrationDataGenerator = () => fc.record({
-  teamName: fc.string({ minLength: 2, maxLength: 50 }),
-  hearAbout: fc.option(fc.string({ maxLength: 200 })),
-  additionalNotes: fc.option(fc.string({ maxLength: 500 })),
-  member2Email: fc.option(fc.emailAddress()),
-  member2Name: fc.option(fc.string({ minLength: 2, maxLength: 50 })),
-  member2College: fc.option(fc.string({ minLength: 2, maxLength: 100 })),
-  member2Degree: fc.option(fc.string({ minLength: 2, maxLength: 50 })),
-  member2Gender: fc.option(fc.constantFrom('Male', 'Female', 'Other', '')),
-  ideaTitle: fc.option(fc.string({ maxLength: 100 })),
-  problemStatement: fc.option(fc.string({ maxLength: 1000 })),
-  proposedSolution: fc.option(fc.string({ maxLength: 1000 })),
-  targetUsers: fc.option(fc.string({ maxLength: 500 })),
-  expectedImpact: fc.option(fc.string({ maxLength: 500 })),
-  techStack: fc.option(fc.string({ maxLength: 200 })),
-  docLink: fc.option(fc.webUrl()),
-  problemDesc: fc.option(fc.string({ maxLength: 1000 })),
-  githubLink: fc.option(fc.webUrl()),
-});
+const registrationDataGenerator = () =>
+  fc.record({
+    teamName: fc.string({ minLength: 2, maxLength: 50 }),
+    hearAbout: fc.option(fc.string({ maxLength: 200 })),
+    additionalNotes: fc.option(fc.string({ maxLength: 500 })),
+    member2Email: fc.option(fc.emailAddress()),
+    member2Name: fc.option(fc.string({ minLength: 2, maxLength: 50 })),
+    member2College: fc.option(fc.string({ minLength: 2, maxLength: 100 })),
+    member2Degree: fc.option(fc.string({ minLength: 2, maxLength: 50 })),
+    member2Gender: fc.option(fc.constantFrom('Male', 'Female', 'Other', '')),
+    ideaTitle: fc.option(fc.string({ maxLength: 100 })),
+    problemStatement: fc.option(fc.string({ maxLength: 1000 })),
+    proposedSolution: fc.option(fc.string({ maxLength: 1000 })),
+    targetUsers: fc.option(fc.string({ maxLength: 500 })),
+    expectedImpact: fc.option(fc.string({ maxLength: 500 })),
+    techStack: fc.option(fc.string({ maxLength: 200 })),
+    docLink: fc.option(fc.webUrl()),
+    problemDesc: fc.option(fc.string({ maxLength: 1000 })),
+    githubLink: fc.option(fc.webUrl()),
+  });
 
 describe('Audit Logging Atomicity - Property-Based Tests', () => {
   beforeEach(() => {
@@ -75,7 +76,7 @@ describe('Audit Logging Atomicity - Property-Based Tests', () => {
             // Track what operations were attempted
             const auditLogsCreated: any[] = [];
             const teamUpdated = { called: false };
-            
+
             // Mock transaction that fails after creating audit logs
             mockPrisma.$transaction.mockImplementationOnce(async (fn: any) => {
               // Create a mock transaction client
@@ -100,7 +101,7 @@ describe('Audit Logging Atomicity - Property-Based Tests', () => {
                   create: vi.fn(),
                 },
               };
-              
+
               // Execute the transaction function
               await fn(mockTx);
             });
@@ -110,10 +111,10 @@ describe('Audit Logging Atomicity - Property-Based Tests', () => {
               await mockPrisma.$transaction(async (tx: any) => {
                 const { diffEngine } = await import('@/lib/diff-engine');
                 const { randomUUID } = await import('crypto');
-                
+
                 const submissionId = randomUUID();
                 const changes = diffEngine.diff(oldData, newData);
-                
+
                 // Create audit log entries
                 for (const change of changes) {
                   await tx.auditLog.create({
@@ -124,36 +125,38 @@ describe('Audit Logging Atomicity - Property-Based Tests', () => {
                       submissionId,
                       action: change.action,
                       fieldName: change.fieldName,
-                      oldValue: change.oldValue === null || change.oldValue === undefined
-                        ? null
-                        : typeof change.oldValue === 'string'
-                          ? change.oldValue
-                          : JSON.stringify(change.oldValue),
-                      newValue: change.newValue === null || change.newValue === undefined
-                        ? null
-                        : typeof change.newValue === 'string'
-                          ? change.newValue
-                          : JSON.stringify(change.newValue),
+                      oldValue:
+                        change.oldValue === null || change.oldValue === undefined
+                          ? null
+                          : typeof change.oldValue === 'string'
+                            ? change.oldValue
+                            : JSON.stringify(change.oldValue),
+                      newValue:
+                        change.newValue === null || change.newValue === undefined
+                          ? null
+                          : typeof change.newValue === 'string'
+                            ? change.newValue
+                            : JSON.stringify(change.newValue),
                       ipAddress: '127.0.0.1',
                       userAgent: 'test-agent',
                     },
                   });
                 }
-                
+
                 // Update team (this will fail)
                 await tx.team.update({
                   where: { id: teamId },
                   data: { name: newData.teamName || 'Test' },
                 });
               });
-              
+
               // Should not reach here
               expect(true).toBe(false);
             } catch (error) {
               // Transaction failed as expected
               expect(error).toBeDefined();
             }
-            
+
             // Verify atomicity: audit logs were created during transaction
             // but should not be persisted because transaction failed
             // In a real scenario, the database would rollback these changes
@@ -181,7 +184,7 @@ describe('Audit Logging Atomicity - Property-Based Tests', () => {
             let auditLogCreateCount = 0;
             let teamUpdateCalled = false;
             let activityLogCreateCalled = false;
-            
+
             // Mock transaction that tracks all operations
             mockPrisma.$transaction.mockImplementationOnce(async (fn: any) => {
               const mockTx = {
@@ -218,7 +221,7 @@ describe('Audit Logging Atomicity - Property-Based Tests', () => {
                   create: vi.fn(async () => ({ id: 'user-id' })),
                 },
               };
-              
+
               await fn(mockTx);
             });
 
@@ -227,10 +230,10 @@ describe('Audit Logging Atomicity - Property-Based Tests', () => {
               await mockPrisma.$transaction(async (tx: any) => {
                 const { diffEngine } = await import('@/lib/diff-engine');
                 const { randomUUID } = await import('crypto');
-                
+
                 const submissionId = randomUUID();
                 const changes = diffEngine.diff(oldData, newData);
-                
+
                 // Create audit logs
                 for (const change of changes) {
                   await tx.auditLog.create({
@@ -241,26 +244,32 @@ describe('Audit Logging Atomicity - Property-Based Tests', () => {
                       submissionId,
                       action: change.action,
                       fieldName: change.fieldName,
-                      oldValue: typeof change.oldValue === 'string' ? change.oldValue : JSON.stringify(change.oldValue),
-                      newValue: typeof change.newValue === 'string' ? change.newValue : JSON.stringify(change.newValue),
+                      oldValue:
+                        typeof change.oldValue === 'string'
+                          ? change.oldValue
+                          : JSON.stringify(change.oldValue),
+                      newValue:
+                        typeof change.newValue === 'string'
+                          ? change.newValue
+                          : JSON.stringify(change.newValue),
                       ipAddress: '127.0.0.1',
                       userAgent: 'test',
                     },
                   });
                 }
-                
+
                 // Update team
                 await tx.team.update({
                   where: { id: teamId },
                   data: { name: newData.teamName || 'Test' },
                 });
-                
+
                 // Update submission (this will fail)
                 await tx.submission.update({
                   where: { teamId },
                   data: { ideaTitle: newData.ideaTitle },
                 });
-                
+
                 // Create activity log (should not reach here)
                 await tx.activityLog.create({
                   data: {
@@ -271,31 +280,31 @@ describe('Audit Logging Atomicity - Property-Based Tests', () => {
                   },
                 });
               });
-              
+
               // Should not succeed
               expect(true).toBe(false);
             } catch (error) {
               // Transaction failed as expected
               expect(error).toBeDefined();
             }
-            
+
             // Verify atomicity properties:
             // 1. Audit logs were created during transaction
             const expectedChangeCount = await (async () => {
               const { diffEngine } = await import('@/lib/diff-engine');
               return diffEngine.diff(oldData, newData).length;
             })();
-            
+
             if (expectedChangeCount > 0) {
               expect(auditLogCreateCount).toBe(expectedChangeCount);
             }
-            
+
             // 2. Team update was called
             expect(teamUpdateCalled).toBe(true);
-            
+
             // 3. Activity log was NOT created (transaction failed before reaching it)
             expect(activityLogCreateCalled).toBe(false);
-            
+
             // 4. In a real database, all these operations would be rolled back
             // The test verifies that the transaction logic is structured correctly
             // to ensure atomicity
@@ -313,7 +322,7 @@ describe('Audit Logging Atomicity - Property-Based Tests', () => {
           fc.uuid(),
           async (oldData, newData, teamId) => {
             const operationsCompleted: string[] = [];
-            
+
             // Mock successful transaction
             mockPrisma.$transaction.mockImplementationOnce(async (fn: any) => {
               const mockTx = {
@@ -348,7 +357,7 @@ describe('Audit Logging Atomicity - Property-Based Tests', () => {
                   }),
                 },
               };
-              
+
               await fn(mockTx);
             });
 
@@ -356,10 +365,10 @@ describe('Audit Logging Atomicity - Property-Based Tests', () => {
             await mockPrisma.$transaction(async (tx: any) => {
               const { diffEngine } = await import('@/lib/diff-engine');
               const { randomUUID } = await import('crypto');
-              
+
               const submissionId = randomUUID();
               const changes = diffEngine.diff(oldData, newData);
-              
+
               // Create audit logs
               for (const change of changes) {
                 await tx.auditLog.create({
@@ -370,31 +379,37 @@ describe('Audit Logging Atomicity - Property-Based Tests', () => {
                     submissionId,
                     action: change.action,
                     fieldName: change.fieldName,
-                    oldValue: typeof change.oldValue === 'string' ? change.oldValue : JSON.stringify(change.oldValue),
-                    newValue: typeof change.newValue === 'string' ? change.newValue : JSON.stringify(change.newValue),
+                    oldValue:
+                      typeof change.oldValue === 'string'
+                        ? change.oldValue
+                        : JSON.stringify(change.oldValue),
+                    newValue:
+                      typeof change.newValue === 'string'
+                        ? change.newValue
+                        : JSON.stringify(change.newValue),
                     ipAddress: '127.0.0.1',
                     userAgent: 'test',
                   },
                 });
               }
-              
+
               // Update team
               await tx.team.update({
                 where: { id: teamId },
                 data: { name: newData.teamName || 'Test' },
               });
-              
+
               // Update submission
               await tx.submission.update({
                 where: { teamId },
                 data: { ideaTitle: newData.ideaTitle },
               });
-              
+
               // Delete old members
               await tx.teamMember.deleteMany({
                 where: { teamId, role: 'MEMBER' },
               });
-              
+
               // Create activity log
               await tx.activityLog.create({
                 data: {
@@ -405,28 +420,28 @@ describe('Audit Logging Atomicity - Property-Based Tests', () => {
                 },
               });
             });
-            
+
             // Verify all operations completed successfully
             const expectedChangeCount = await (async () => {
               const { diffEngine } = await import('@/lib/diff-engine');
               return diffEngine.diff(oldData, newData).length;
             })();
-            
+
             if (expectedChangeCount > 0) {
               // Should have created audit logs
-              const auditLogCreates = operationsCompleted.filter(op => op === 'auditLog.create');
+              const auditLogCreates = operationsCompleted.filter((op) => op === 'auditLog.create');
               expect(auditLogCreates.length).toBe(expectedChangeCount);
             }
-            
+
             // Should have updated team
             expect(operationsCompleted).toContain('team.update');
-            
+
             // Should have updated submission
             expect(operationsCompleted).toContain('submission.update');
-            
+
             // Should have created activity log
             expect(operationsCompleted).toContain('activityLog.create');
-            
+
             // All operations completed - atomicity preserved
           }
         ),

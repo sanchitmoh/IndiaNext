@@ -42,7 +42,10 @@ export async function POST(req: Request) {
     if (!rl.success) {
       return NextResponse.json(
         { success: false, error: 'Too many requests' },
-        { status: 429, headers: { 'Retry-After': String(Math.ceil((rl.reset - Date.now()) / 1000)) } }
+        {
+          status: 429,
+          headers: { 'Retry-After': String(Math.ceil((rl.reset - Date.now()) / 1000)) },
+        }
       );
     }
 
@@ -63,11 +66,14 @@ export async function POST(req: Request) {
     const validation = ReorderSchema.safeParse(body);
 
     if (!validation.success) {
-      return NextResponse.json({
-        success: false,
-        error: 'Validation error',
-        details: validation.error.errors,
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Validation error',
+          details: validation.error.errors,
+        },
+        { status: 400 }
+      );
     }
 
     const { problemIds } = validation.data;
@@ -89,8 +95,8 @@ export async function POST(req: Request) {
         action: 'problem_statement.reordered',
         entity: 'ProblemStatement',
         entityId: 'bulk',
-        metadata: { 
-          problemIds, 
+        metadata: {
+          problemIds,
           newOrder: problemIds.map((id, i) => ({ id, order: i + 1 })),
           adminId: admin.id,
           adminEmail: admin.email,

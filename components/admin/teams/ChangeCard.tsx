@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { Calendar } from "lucide-react";
-import { ChangeItem } from "./ChangeItem";
+import { Calendar } from 'lucide-react';
+import { ChangeItem } from './ChangeItem';
 
 // ── Types ──────────────────────────────────────────────────
 
@@ -9,7 +9,7 @@ interface AuditLogEntry {
   id: string;
   submissionId: string;
   timestamp: Date | string;
-  action: "CREATE" | "UPDATE" | "DELETE";
+  action: 'CREATE' | 'UPDATE' | 'DELETE';
   fieldName: string;
   oldValue: string | null;
   newValue: string | null;
@@ -17,7 +17,7 @@ interface AuditLogEntry {
     id: string;
     name: string;
     email: string;
-    role: "LEADER" | "CO_LEADER" | "MEMBER";
+    role: 'LEADER' | 'CO_LEADER' | 'MEMBER';
   };
   ipAddress: string | null;
   userAgent: string | null;
@@ -41,12 +41,12 @@ export function ChangeCard({ changes }: ChangeCardProps) {
           <div className="flex items-center gap-2 mb-2">
             <Calendar className="h-3.5 w-3.5 text-gray-600" />
             <span className="text-sm font-mono text-gray-300">
-              {new Date(firstChange.timestamp).toLocaleDateString("en-US", {
-                month: "long",
-                day: "numeric",
-                year: "numeric",
-                hour: "numeric",
-                minute: "2-digit",
+              {new Date(firstChange.timestamp).toLocaleDateString('en-US', {
+                month: 'long',
+                day: 'numeric',
+                year: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit',
               })}
             </span>
           </div>
@@ -59,9 +59,9 @@ export function ChangeCard({ changes }: ChangeCardProps) {
             </span>
             <span
               className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded transition-all duration-200 ${
-                firstChange.user.role === "LEADER"
-                  ? "bg-orange-500/15 text-orange-400 border border-orange-500/20 hover:bg-orange-500/25 hover:border-orange-500/30"
-                  : "bg-white/[0.04] text-gray-400 border border-white/[0.06] hover:bg-white/[0.08] hover:border-white/[0.12]"
+                firstChange.user.role === 'LEADER'
+                  ? 'bg-orange-500/15 text-orange-400 border border-orange-500/20 hover:bg-orange-500/25 hover:border-orange-500/30'
+                  : 'bg-white/[0.04] text-gray-400 border border-white/[0.06] hover:bg-white/[0.08] hover:border-white/[0.12]'
               }`}
             >
               {firstChange.user.role}
@@ -69,16 +69,12 @@ export function ChangeCard({ changes }: ChangeCardProps) {
           </div>
 
           {/* User Email */}
-          <div className="text-[10px] font-mono text-gray-600 mt-1">
-            {firstChange.user.email}
-          </div>
+          <div className="text-[10px] font-mono text-gray-600 mt-1">{firstChange.user.email}</div>
         </div>
 
         {/* IP Address */}
         {firstChange.ipAddress && (
-          <div className="text-[10px] font-mono text-gray-600">
-            IP: {firstChange.ipAddress}
-          </div>
+          <div className="text-[10px] font-mono text-gray-600">IP: {firstChange.ipAddress}</div>
         )}
       </div>
 

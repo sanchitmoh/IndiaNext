@@ -37,7 +37,10 @@ export async function GET(req: Request) {
     if (!rl.success) {
       return NextResponse.json(
         { success: false, error: 'Too many requests' },
-        { status: 429, headers: { 'Retry-After': String(Math.ceil((rl.reset - Date.now()) / 1000)) } }
+        {
+          status: 429,
+          headers: { 'Retry-After': String(Math.ceil((rl.reset - Date.now()) / 1000)) },
+        }
       );
     }
 
@@ -90,9 +93,8 @@ export async function GET(req: Request) {
     // Calculate conversion rate
     const totalReservations = reservationMetrics.length;
     const totalConversions = conversionMetrics.length;
-    const conversionRate = totalReservations > 0 
-      ? ((totalConversions / totalReservations) * 100).toFixed(2)
-      : '0.00';
+    const conversionRate =
+      totalReservations > 0 ? ((totalConversions / totalReservations) * 100).toFixed(2) : '0.00';
 
     // Group by problem statement
     const problemStats: Record<string, any> = {};
@@ -142,7 +144,7 @@ export async function GET(req: Request) {
       },
     });
 
-    const problemSummary = problems.map(p => ({
+    const problemSummary = problems.map((p) => ({
       id: p.id,
       title: p.title,
       order: p.order,
@@ -155,9 +157,15 @@ export async function GET(req: Request) {
     }));
 
     // Time series data for charts
-    const dailyStats: Record<string, { date: string; reservations: number; conversions: number; registrations: number }> = {};
+    const dailyStats: Record<
+      string,
+      { date: string; reservations: number; conversions: number; registrations: number }
+    > = {};
 
-    const addToDaily = (timestamp: Date, type: 'reservations' | 'conversions' | 'registrations') => {
+    const addToDaily = (
+      timestamp: Date,
+      type: 'reservations' | 'conversions' | 'registrations'
+    ) => {
       const dateKey = timestamp.toISOString().split('T')[0];
       if (!dailyStats[dateKey]) {
         dailyStats[dateKey] = { date: dateKey, reservations: 0, conversions: 0, registrations: 0 };
@@ -165,9 +173,11 @@ export async function GET(req: Request) {
       dailyStats[dateKey][type]++;
     };
 
-    reservationMetrics.forEach(m => addToDaily(m.timestamp, 'reservations'));
-    conversionMetrics.forEach(m => addToDaily(m.timestamp, 'conversions'));
-    registrationMetrics.filter(m => (m.metadata as Record<string, any> | null)?.track === 'BUILD_STORM').forEach(m => addToDaily(m.timestamp, 'registrations'));
+    reservationMetrics.forEach((m) => addToDaily(m.timestamp, 'reservations'));
+    conversionMetrics.forEach((m) => addToDaily(m.timestamp, 'conversions'));
+    registrationMetrics
+      .filter((m) => (m.metadata as Record<string, any> | null)?.track === 'BUILD_STORM')
+      .forEach((m) => addToDaily(m.timestamp, 'registrations'));
 
     return NextResponse.json({
       success: true,

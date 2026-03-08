@@ -4,18 +4,18 @@
 // Permission: SEND_EMAILS (SUPER_ADMIN, ADMIN, ORGANIZER).
 // JUDGEs and LOGISTICS are blocked from all operations.
 //
-import { z } from "zod";
-import { router, adminProcedure, rateLimitedAdminProcedure } from "../trpc";
-import { TRPCError } from "@trpc/server";
-import { hasPermission } from "@/lib/rbac-permissions";
-import type { UserRole } from "@prisma/client";
+import { z } from 'zod';
+import { router, adminProcedure, rateLimitedAdminProcedure } from '../trpc';
+import { TRPCError } from '@trpc/server';
+import { hasPermission } from '@/lib/rbac-permissions';
+import type { UserRole } from '@prisma/client';
 import {
   resolveRecipients,
   dispatchCampaign,
   retryCampaignFailed,
   renderCampaignEmail,
   type CampaignFilters,
-} from "@/lib/campaign-email";
+} from '@/lib/campaign-email';
 
 // ═══════════════════════════════════════════════════════════
 // HELPERS
@@ -24,21 +24,23 @@ import {
 function requireBulkActions(role: UserRole) {
   if (!hasPermission(role, 'SEND_EMAILS')) {
     throw new TRPCError({
-      code: "FORBIDDEN",
-      message: "You do not have permission to manage email campaigns",
+      code: 'FORBIDDEN',
+      message: 'You do not have permission to manage email campaigns',
     });
   }
 }
 
 // Shared Zod schemas
-const filtersSchema = z.object({
-  statuses: z.array(z.string()).optional(),
-  track: z.string().optional(),
-  college: z.string().optional(),
-  teamIds: z.array(z.string()).optional(),
-}).optional();
+const filtersSchema = z
+  .object({
+    statuses: z.array(z.string()).optional(),
+    track: z.string().optional(),
+    college: z.string().optional(),
+    teamIds: z.array(z.string()).optional(),
+  })
+  .optional();
 
-const audienceTypeSchema = z.enum(["ALL", "LEADERS_ONLY", "CUSTOM"]);
+const audienceTypeSchema = z.enum(['ALL', 'LEADERS_ONLY', 'CUSTOM']);
 
 // ═══════════════════════════════════════════════════════════
 // ROUTER
@@ -53,7 +55,7 @@ export const emailRouter = router({
       z.object({
         page: z.number().int().min(1).default(1),
         pageSize: z.number().int().min(1).max(50).default(20),
-        status: z.enum(["DRAFT", "SCHEDULED", "SENDING", "SENT", "FAILED"]).optional(),
+        status: z.enum(['DRAFT', 'SCHEDULED', 'SENDING', 'SENT', 'FAILED']).optional(),
         search: z.string().max(200).optional(),
       })
     )
@@ -64,8 +66,8 @@ export const emailRouter = router({
         ...(input.status && { status: input.status }),
         ...(input.search && {
           OR: [
-            { name: { contains: input.search, mode: "insensitive" as const } },
-            { subject: { contains: input.search, mode: "insensitive" as const } },
+            { name: { contains: input.search, mode: 'insensitive' as const } },
+            { subject: { contains: input.search, mode: 'insensitive' as const } },
           ],
         }),
       };
@@ -73,7 +75,7 @@ export const emailRouter = router({
       const [campaigns, total] = await Promise.all([
         ctx.prisma.emailCampaign.findMany({
           where,
-          orderBy: { createdAt: "desc" },
+          orderBy: { createdAt: 'desc' },
           skip: (input.page - 1) * input.pageSize,
           take: input.pageSize,
           select: {
@@ -108,41 +110,39 @@ export const emailRouter = router({
   // ─────────────────────────────────────────────────────────
   // GET SINGLE CAMPAIGN (detail view)
   // ─────────────────────────────────────────────────────────
-  getCampaign: adminProcedure
-    .input(z.object({ id: z.string() }))
-    .query(async ({ ctx, input }) => {
-      requireBulkActions(ctx.admin.role);
+  getCampaign: adminProcedure.input(z.object({ id: z.string() })).query(async ({ ctx, input }) => {
+    requireBulkActions(ctx.admin.role);
 
-      const campaign = await ctx.prisma.emailCampaign.findUnique({
-        where: { id: input.id },
-        include: {
-          creator: { select: { name: true, email: true } },
-          recipients: {
-            orderBy: { sentAt: "desc" },
-            take: 100,
-            select: {
-              id: true,
-              email: true,
-              name: true,
-              teamName: true,
-              memberRole: true,
-              status: true,
-              sentAt: true,
-              deliveredAt: true,
-              openedAt: true,
-              error: true,
-              attempts: true,
-            },
+    const campaign = await ctx.prisma.emailCampaign.findUnique({
+      where: { id: input.id },
+      include: {
+        creator: { select: { name: true, email: true } },
+        recipients: {
+          orderBy: { sentAt: 'desc' },
+          take: 100,
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            teamName: true,
+            memberRole: true,
+            status: true,
+            sentAt: true,
+            deliveredAt: true,
+            openedAt: true,
+            error: true,
+            attempts: true,
           },
         },
-      });
+      },
+    });
 
-      if (!campaign) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Campaign not found" });
-      }
+    if (!campaign) {
+      throw new TRPCError({ code: 'NOT_FOUND', message: 'Campaign not found' });
+    }
 
-      return campaign;
-    }),
+    return campaign;
+  }),
 
   // ─────────────────────────────────────────────────────────
   // GET CAMPAIGN RECIPIENTS (paginated)
@@ -153,7 +153,7 @@ export const emailRouter = router({
         campaignId: z.string(),
         page: z.number().int().min(1).default(1),
         pageSize: z.number().int().min(1).max(100).default(50),
-        status: z.enum(["PENDING", "SENT", "DELIVERED", "OPENED", "BOUNCED", "FAILED"]).optional(),
+        status: z.enum(['PENDING', 'SENT', 'DELIVERED', 'OPENED', 'BOUNCED', 'FAILED']).optional(),
         search: z.string().max(200).optional(),
       })
     )
@@ -165,9 +165,9 @@ export const emailRouter = router({
         ...(input.status && { status: input.status }),
         ...(input.search && {
           OR: [
-            { email: { contains: input.search, mode: "insensitive" as const } },
-            { name: { contains: input.search, mode: "insensitive" as const } },
-            { teamName: { contains: input.search, mode: "insensitive" as const } },
+            { email: { contains: input.search, mode: 'insensitive' as const } },
+            { name: { contains: input.search, mode: 'insensitive' as const } },
+            { teamName: { contains: input.search, mode: 'insensitive' as const } },
           ],
         }),
       };
@@ -175,7 +175,7 @@ export const emailRouter = router({
       const [recipients, total] = await Promise.all([
         ctx.prisma.campaignRecipient.findMany({
           where,
-          orderBy: { sentAt: "desc" },
+          orderBy: { sentAt: 'desc' },
           skip: (input.page - 1) * input.pageSize,
           take: input.pageSize,
         }),
@@ -201,7 +201,7 @@ export const emailRouter = router({
         subject: z.string().min(1).max(500),
         body: z.string().min(1).max(50000),
         previewText: z.string().max(200).optional(),
-        audienceType: audienceTypeSchema.default("ALL"),
+        audienceType: audienceTypeSchema.default('ALL'),
         filters: filtersSchema,
         scheduledAt: z.string().datetime().optional(),
       })
@@ -249,13 +249,13 @@ export const emailRouter = router({
       });
 
       if (!existing) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Campaign not found" });
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Campaign not found' });
       }
 
-      if (existing.status !== "DRAFT") {
+      if (existing.status !== 'DRAFT') {
         throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Only draft campaigns can be edited",
+          code: 'BAD_REQUEST',
+          message: 'Only draft campaigns can be edited',
         });
       }
 
@@ -269,7 +269,9 @@ export const emailRouter = router({
           ...(data.previewText !== undefined && { previewText: data.previewText }),
           ...(data.audienceType !== undefined && { audienceType: data.audienceType }),
           ...(data.filters !== undefined && { filters: data.filters ?? undefined }),
-          ...(data.scheduledAt !== undefined && { scheduledAt: data.scheduledAt ? new Date(data.scheduledAt) : null }),
+          ...(data.scheduledAt !== undefined && {
+            scheduledAt: data.scheduledAt ? new Date(data.scheduledAt) : null,
+          }),
         },
       });
 
@@ -289,13 +291,13 @@ export const emailRouter = router({
       });
 
       if (!existing) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Campaign not found" });
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Campaign not found' });
       }
 
-      if (existing.status !== "DRAFT" && existing.status !== "FAILED") {
+      if (existing.status !== 'DRAFT' && existing.status !== 'FAILED') {
         throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Only draft or failed campaigns can be deleted",
+          code: 'BAD_REQUEST',
+          message: 'Only draft or failed campaigns can be deleted',
         });
       }
 
@@ -311,7 +313,7 @@ export const emailRouter = router({
   previewRecipients: adminProcedure
     .input(
       z.object({
-        audienceType: audienceTypeSchema.default("ALL"),
+        audienceType: audienceTypeSchema.default('ALL'),
         filters: filtersSchema,
       })
     )
@@ -354,12 +356,12 @@ export const emailRouter = router({
       });
 
       if (!existing) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Campaign not found" });
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Campaign not found' });
       }
 
-      if (existing.status !== "DRAFT") {
+      if (existing.status !== 'DRAFT') {
         throw new TRPCError({
-          code: "BAD_REQUEST",
+          code: 'BAD_REQUEST',
           message: `Campaign is already ${existing.status.toLowerCase()}`,
         });
       }
@@ -367,12 +369,12 @@ export const emailRouter = router({
       // Log activity
       await ctx.prisma.activityLog.create({
         data: {
-          action: "CAMPAIGN_SENT",
-          entity: "EmailCampaign",
+          action: 'CAMPAIGN_SENT',
+          entity: 'EmailCampaign',
           entityId: input.id,
           metadata: { campaignName: existing.name, adminName: ctx.admin.name },
-          ipAddress: ctx.req.headers.get("x-forwarded-for") || "unknown",
-          userAgent: ctx.req.headers.get("user-agent") || "unknown",
+          ipAddress: ctx.req.headers.get('x-forwarded-for') || 'unknown',
+          userAgent: ctx.req.headers.get('user-agent') || 'unknown',
         },
       });
 
@@ -399,7 +401,7 @@ export const emailRouter = router({
       });
 
       if (!source) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Campaign not found" });
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Campaign not found' });
       }
 
       const duplicate = await ctx.prisma.emailCampaign.create({
@@ -430,13 +432,13 @@ export const emailRouter = router({
       });
 
       if (!existing) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Campaign not found" });
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Campaign not found' });
       }
 
-      if (existing.status !== "SENT" && existing.status !== "FAILED") {
+      if (existing.status !== 'SENT' && existing.status !== 'FAILED') {
         throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Can only retry sent or failed campaigns",
+          code: 'BAD_REQUEST',
+          message: 'Can only retry sent or failed campaigns',
         });
       }
 
@@ -472,12 +474,12 @@ export const emailRouter = router({
       });
 
       if (!campaign) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Campaign not found" });
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Campaign not found' });
       }
 
       // Also get live breakdown from recipients
       const breakdown = await ctx.prisma.campaignRecipient.groupBy({
-        by: ["status"],
+        by: ['status'],
         where: { campaignId: input.id },
         _count: true,
       });
@@ -510,21 +512,21 @@ export const emailRouter = router({
 
       // Render template with sample recipient data
       const sampleRecipient = {
-        name: "Aarav Sharma",
+        name: 'Aarav Sharma',
         email: input.toEmail,
-        teamName: "Team Phoenix",
-        memberRole: "LEADER",
-        college: "IIT Delhi",
-        track: "BuildStorm",
-        shortCode: "PHX-42",
+        teamName: 'Team Phoenix',
+        memberRole: 'LEADER',
+        college: 'IIT Delhi',
+        track: 'BuildStorm',
+        shortCode: 'PHX-42',
       };
 
       const rendered = renderCampaignEmail(input.body, input.subject, sampleRecipient);
 
       // Send via Resend directly (single email, no batching needed)
-      const { Resend } = await import("resend");
+      const { Resend } = await import('resend');
       const resend = new Resend(process.env.RESEND_API_KEY);
-      const from = process.env.EMAIL_FROM || "onboarding@resend.dev";
+      const from = process.env.EMAIL_FROM || 'onboarding@resend.dev';
 
       const result = await resend.emails.send({
         from,
@@ -535,8 +537,8 @@ export const emailRouter = router({
 
       if (result.error) {
         throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: result.error.message || "Failed to send test email",
+          code: 'INTERNAL_SERVER_ERROR',
+          message: result.error.message || 'Failed to send test email',
         });
       }
 
@@ -549,10 +551,15 @@ export const emailRouter = router({
   sendBatchTestEmail: rateLimitedAdminProcedure
     .input(
       z.object({
-        recipients: z.array(z.object({
-          email: z.string().email(),
-          name: z.string().optional(),
-        })).min(1).max(100),
+        recipients: z
+          .array(
+            z.object({
+              email: z.string().email(),
+              name: z.string().optional(),
+            })
+          )
+          .min(1)
+          .max(100),
         subject: z.string().min(1).max(500),
         body: z.string().min(1).max(50000),
         previewText: z.string().max(200).optional(),
@@ -561,21 +568,21 @@ export const emailRouter = router({
     .mutation(async ({ ctx, input }) => {
       requireBulkActions(ctx.admin.role);
 
-      const { Resend } = await import("resend");
+      const { Resend } = await import('resend');
       const resend = new Resend(process.env.RESEND_API_KEY);
-      const from = process.env.EMAIL_FROM || "onboarding@resend.dev";
+      const from = process.env.EMAIL_FROM || 'onboarding@resend.dev';
 
       // Use single send for 1 recipient, batch for 2+
       if (input.recipients.length === 1) {
         const recipient = input.recipients[0];
         const sampleRecipient = {
-          name: recipient.name || "Participant",
+          name: recipient.name || 'Participant',
           email: recipient.email,
-          teamName: "Sample Team",
-          memberRole: "LEADER",
-          college: "Sample College",
-          track: "BuildStorm",
-          shortCode: "SAMPLE",
+          teamName: 'Sample Team',
+          memberRole: 'LEADER',
+          college: 'Sample College',
+          track: 'BuildStorm',
+          shortCode: 'SAMPLE',
         };
 
         const rendered = renderCampaignEmail(input.body, input.subject, sampleRecipient);
@@ -589,8 +596,8 @@ export const emailRouter = router({
 
         if (result.error) {
           throw new TRPCError({
-            code: "INTERNAL_SERVER_ERROR",
-            message: result.error.message || "Failed to send email",
+            code: 'INTERNAL_SERVER_ERROR',
+            message: result.error.message || 'Failed to send email',
           });
         }
 
@@ -600,13 +607,13 @@ export const emailRouter = router({
       // Use batch API for 2+ recipients
       const batchEmails = input.recipients.map((recipient) => {
         const sampleRecipient = {
-          name: recipient.name || "Participant",
+          name: recipient.name || 'Participant',
           email: recipient.email,
-          teamName: "Sample Team",
-          memberRole: "LEADER",
-          college: "Sample College",
-          track: "BuildStorm",
-          shortCode: "SAMPLE",
+          teamName: 'Sample Team',
+          memberRole: 'LEADER',
+          college: 'Sample College',
+          track: 'BuildStorm',
+          shortCode: 'SAMPLE',
         };
 
         const rendered = renderCampaignEmail(input.body, input.subject, sampleRecipient);
@@ -623,8 +630,8 @@ export const emailRouter = router({
 
       if (result.error) {
         throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: result.error.message || "Failed to send batch emails",
+          code: 'INTERNAL_SERVER_ERROR',
+          message: result.error.message || 'Failed to send batch emails',
         });
       }
 

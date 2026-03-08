@@ -1,9 +1,9 @@
 /**
  * Property-Based Test for Audit Trail Chronological Ordering
- * 
+ *
  * Feature: admin-audit-trail, Property 1: Chronological Ordering
  * **Validates: Requirements US-1.2**
- * 
+ *
  * This test verifies that audit logs are always returned in descending
  * chronological order (newest first) regardless of the order they are
  * stored in the database.
@@ -115,7 +115,7 @@ describe('Audit Trail API - Property 1: Chronological Ordering', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     // Setup default mocks
     (prisma.adminSession.findUnique as any).mockResolvedValue(mockAdminSession as any);
     (prisma.team.findUnique as any).mockResolvedValue(mockTeam as any);
@@ -127,16 +127,16 @@ describe('Audit Trail API - Property 1: Chronological Ordering', () => {
         fc.array(auditLogGenerator(), { minLength: 5, maxLength: 20 }),
         async (generatedLogs) => {
           // Filter out any logs with invalid timestamps
-          const validLogs = generatedLogs.filter(log => !isNaN(log.timestamp.getTime()));
-          
+          const validLogs = generatedLogs.filter((log) => !isNaN(log.timestamp.getTime()));
+
           // Skip test if we don't have enough valid logs
           if (validLogs.length < 2) {
             return true;
           }
 
           // Sort logs by timestamp descending (what the API should do)
-          const sortedLogs = [...validLogs].sort((a, b) => 
-            b.timestamp.getTime() - a.timestamp.getTime()
+          const sortedLogs = [...validLogs].sort(
+            (a, b) => b.timestamp.getTime() - a.timestamp.getTime()
           );
 
           // Mock Prisma to return sorted logs (simulating orderBy: { timestamp: 'desc' })
@@ -217,9 +217,7 @@ describe('Audit Trail API - Property 1: Chronological Ordering', () => {
           const fetchedLogs = data.data.logs;
 
           // All logs should have the same timestamp
-          const timestamps = fetchedLogs.map((log: any) => 
-            new Date(log.timestamp).getTime()
-          );
+          const timestamps = fetchedLogs.map((log: any) => new Date(log.timestamp).getTime());
           const uniqueTimestamps = new Set(timestamps);
           expect(uniqueTimestamps.size).toBe(1);
 
@@ -253,10 +251,10 @@ describe('Audit Trail API - Property 1: Chronological Ordering', () => {
           );
 
           // Sort logs by timestamp descending (simulating orderBy: { timestamp: 'desc' })
-          const sortedLogs = [...allLogs].sort((a, b) => 
-            b.timestamp.getTime() - a.timestamp.getTime()
+          const sortedLogs = [...allLogs].sort(
+            (a, b) => b.timestamp.getTime() - a.timestamp.getTime()
           );
-          
+
           (prisma.auditLog.findMany as any).mockResolvedValue(sortedLogs as any);
           (prisma.auditLog.count as any).mockResolvedValue(sortedLogs.length);
 
@@ -293,8 +291,8 @@ describe('Audit Trail API - Property 1: Chronological Ordering', () => {
         fc.integer({ min: 5, max: 15 }),
         async (generatedLogs, pageSize) => {
           // Filter out any logs with invalid timestamps
-          const validLogs = generatedLogs.filter(log => !isNaN(log.timestamp.getTime()));
-          
+          const validLogs = generatedLogs.filter((log) => !isNaN(log.timestamp.getTime()));
+
           // Skip test if we don't have enough valid logs
           if (validLogs.length < pageSize) {
             return true;

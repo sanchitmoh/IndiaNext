@@ -1,6 +1,6 @@
 /**
  * Unit Tests: AuditFilters Component
- * 
+ *
  * Tests the AuditFilters component functionality:
  * - Renders all filter controls
  * - Updates parent state when filters change
@@ -25,7 +25,7 @@ describe('AuditFilters Component', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     // Mock successful fetch for team members
     (global.fetch as any).mockResolvedValue({
       ok: true,
@@ -40,13 +40,7 @@ describe('AuditFilters Component', () => {
   });
 
   it('should render all filter controls', async () => {
-    render(
-      <AuditFilters
-        teamId={mockTeamId}
-        filters={{}}
-        onChange={mockOnChange}
-      />
-    );
+    render(<AuditFilters teamId={mockTeamId} filters={{}} onChange={mockOnChange} />);
 
     // Wait for component to load
     await waitFor(() => {
@@ -62,13 +56,7 @@ describe('AuditFilters Component', () => {
   });
 
   it('should fetch team members on mount', async () => {
-    render(
-      <AuditFilters
-        teamId={mockTeamId}
-        filters={{}}
-        onChange={mockOnChange}
-      />
-    );
+    render(<AuditFilters teamId={mockTeamId} filters={{}} onChange={mockOnChange} />);
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalled();
@@ -78,13 +66,7 @@ describe('AuditFilters Component', () => {
   });
 
   it('should update filters when date range changes', async () => {
-    render(
-      <AuditFilters
-        teamId={mockTeamId}
-        filters={{}}
-        onChange={mockOnChange}
-      />
-    );
+    render(<AuditFilters teamId={mockTeamId} filters={{}} onChange={mockOnChange} />);
 
     await waitFor(() => {
       expect(screen.getByText('DATE RANGE')).toBeInTheDocument();
@@ -93,7 +75,8 @@ describe('AuditFilters Component', () => {
     // Get date inputs by type
     const dateInputs = screen.getAllByDisplayValue('');
     const fromDateInput = dateInputs.find(
-      (input) => input.getAttribute('type') === 'date' && input.getAttribute('placeholder') === 'From'
+      (input) =>
+        input.getAttribute('type') === 'date' && input.getAttribute('placeholder') === 'From'
     );
 
     if (fromDateInput) {
@@ -106,13 +89,7 @@ describe('AuditFilters Component', () => {
   });
 
   it('should update filters when user is selected', async () => {
-    render(
-      <AuditFilters
-        teamId={mockTeamId}
-        filters={{}}
-        onChange={mockOnChange}
-      />
-    );
+    render(<AuditFilters teamId={mockTeamId} filters={{}} onChange={mockOnChange} />);
 
     await waitFor(() => {
       expect(screen.getByText('USER')).toBeInTheDocument();
@@ -127,13 +104,7 @@ describe('AuditFilters Component', () => {
   });
 
   it('should update filters when field is selected', async () => {
-    render(
-      <AuditFilters
-        teamId={mockTeamId}
-        filters={{}}
-        onChange={mockOnChange}
-      />
-    );
+    render(<AuditFilters teamId={mockTeamId} filters={{}} onChange={mockOnChange} />);
 
     await waitFor(() => {
       expect(screen.getByText('FIELD')).toBeInTheDocument();
@@ -148,13 +119,7 @@ describe('AuditFilters Component', () => {
   });
 
   it('should update filters when action is selected', async () => {
-    render(
-      <AuditFilters
-        teamId={mockTeamId}
-        filters={{}}
-        onChange={mockOnChange}
-      />
-    );
+    render(<AuditFilters teamId={mockTeamId} filters={{}} onChange={mockOnChange} />);
 
     await waitFor(() => {
       expect(screen.getByText('ACTION')).toBeInTheDocument();
@@ -169,13 +134,7 @@ describe('AuditFilters Component', () => {
   });
 
   it('should update filters when search term is entered', async () => {
-    render(
-      <AuditFilters
-        teamId={mockTeamId}
-        filters={{}}
-        onChange={mockOnChange}
-      />
-    );
+    render(<AuditFilters teamId={mockTeamId} filters={{}} onChange={mockOnChange} />);
 
     await waitFor(() => {
       expect(screen.getByText('SEARCH')).toBeInTheDocument();
@@ -204,13 +163,7 @@ describe('AuditFilters Component', () => {
   });
 
   it('should not show clear filters button when no filters are active', async () => {
-    render(
-      <AuditFilters
-        teamId={mockTeamId}
-        filters={{}}
-        onChange={mockOnChange}
-      />
-    );
+    render(<AuditFilters teamId={mockTeamId} filters={{}} onChange={mockOnChange} />);
 
     await waitFor(() => {
       expect(screen.getByText('FILTERS')).toBeInTheDocument();
@@ -244,19 +197,10 @@ describe('AuditFilters Component', () => {
 
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-    render(
-      <AuditFilters
-        teamId={mockTeamId}
-        filters={{}}
-        onChange={mockOnChange}
-      />
-    );
+    render(<AuditFilters teamId={mockTeamId} filters={{}} onChange={mockOnChange} />);
 
     await waitFor(() => {
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'Failed to fetch team members:',
-        expect.any(Error)
-      );
+      expect(consoleSpy).toHaveBeenCalledWith('Failed to fetch team members:', expect.any(Error));
     });
 
     consoleSpy.mockRestore();

@@ -1,15 +1,8 @@
-"use client";
+'use client';
 
-import { trpc } from "@/lib/trpc-client";
-import {
-  CheckCircle,
-  XCircle,
-  Clock,
-  AlertTriangle,
-  X,
-  Eye,
-} from "lucide-react";
-import { toast } from "sonner";
+import { trpc } from '@/lib/trpc-client';
+import { CheckCircle, XCircle, Clock, AlertTriangle, X, Eye } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface BulkActionsProps {
   selectedTeams: string[];
@@ -18,34 +11,35 @@ interface BulkActionsProps {
 
 const actions = [
   {
-    status: "APPROVED",
-    label: "Approve",
+    status: 'APPROVED',
+    label: 'Approve',
     icon: CheckCircle,
-    color: "bg-emerald-500/15 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/25",
+    color:
+      'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/25',
   },
   {
-    status: "REJECTED",
-    label: "Reject",
+    status: 'REJECTED',
+    label: 'Reject',
     icon: XCircle,
-    color: "bg-red-500/15 text-red-400 border border-red-500/20 hover:bg-red-500/25",
+    color: 'bg-red-500/15 text-red-400 border border-red-500/20 hover:bg-red-500/25',
   },
   {
-    status: "UNDER_REVIEW",
-    label: "Under Review",
+    status: 'UNDER_REVIEW',
+    label: 'Under Review',
     icon: Eye,
-    color: "bg-cyan-500/15 text-cyan-400 border border-cyan-500/20 hover:bg-cyan-500/25",
+    color: 'bg-cyan-500/15 text-cyan-400 border border-cyan-500/20 hover:bg-cyan-500/25',
   },
   {
-    status: "WAITLISTED",
-    label: "Waitlist",
+    status: 'WAITLISTED',
+    label: 'Waitlist',
     icon: AlertTriangle,
-    color: "bg-orange-500/15 text-orange-400 border border-orange-500/20 hover:bg-orange-500/25",
+    color: 'bg-orange-500/15 text-orange-400 border border-orange-500/20 hover:bg-orange-500/25',
   },
   {
-    status: "PENDING",
-    label: "Reset to Pending",
+    status: 'PENDING',
+    label: 'Reset to Pending',
     icon: Clock,
-    color: "bg-white/[0.05] text-gray-300 border border-white/[0.08] hover:bg-white/[0.08]",
+    color: 'bg-white/[0.05] text-gray-300 border border-white/[0.08] hover:bg-white/[0.08]',
   },
 ];
 
@@ -56,17 +50,12 @@ export function BulkActions({ selectedTeams, onComplete }: BulkActionsProps) {
     try {
       const result = await bulkUpdate.mutateAsync({
         teamIds: selectedTeams,
-        status: status as
-          | "PENDING"
-          | "APPROVED"
-          | "REJECTED"
-          | "WAITLISTED"
-          | "UNDER_REVIEW",
+        status: status as 'PENDING' | 'APPROVED' | 'REJECTED' | 'WAITLISTED' | 'UNDER_REVIEW',
       });
       toast.success(`Updated ${result.count} teams to ${status}`);
       onComplete();
     } catch {
-      toast.error("Failed to update teams");
+      toast.error('Failed to update teams');
     }
   };
 
@@ -75,7 +64,7 @@ export function BulkActions({ selectedTeams, onComplete }: BulkActionsProps) {
       <div className="flex items-center gap-3 flex-wrap">
         <span className="text-xs font-mono font-bold text-orange-400 tracking-wider">
           {selectedTeams.length} TEAM
-          {selectedTeams.length > 1 ? "S" : ""} SELECTED
+          {selectedTeams.length > 1 ? 'S' : ''} SELECTED
         </span>
         <div className="flex gap-2 flex-wrap">
           {actions.map((action) => {

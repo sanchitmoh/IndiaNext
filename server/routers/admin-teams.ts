@@ -11,11 +11,7 @@
 import { z } from 'zod';
 import { router, adminProcedure } from '../trpc';
 import { TRPCError } from '@trpc/server';
-import { 
-  hasPermission,
-  logAdminAction,
-  type Permission,
-} from '@/lib/auth-admin';
+import { hasPermission, logAdminAction, type Permission } from '@/lib/auth-admin';
 import { sendStatusUpdateEmail } from '@/lib/email';
 import type { Prisma } from '@prisma/client/edge';
 
@@ -23,7 +19,10 @@ import type { Prisma } from '@prisma/client/edge';
 // instead of re-reading cookies with requirePermission()
 function checkPermission(adminRole: string, permission: Permission): void {
   if (!hasPermission(adminRole as any, permission)) {
-    throw new TRPCError({ code: 'FORBIDDEN', message: `Insufficient permissions: ${permission} required` });
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message: `Insufficient permissions: ${permission} required`,
+    });
   }
 }
 
@@ -34,12 +33,26 @@ function checkPermission(adminRole: string, permission: Permission): void {
 const TeamFiltersSchema = z.object({
   search: z.string().optional(),
   track: z.array(z.enum(['IDEA_SPRINT', 'BUILD_STORM'])).optional(),
-  status: z.array(z.enum(['DRAFT', 'PENDING', 'UNDER_REVIEW', 'APPROVED', 'REJECTED', 'WAITLISTED', 'WITHDRAWN'])).optional(),
+  status: z
+    .array(
+      z.enum([
+        'DRAFT',
+        'PENDING',
+        'UNDER_REVIEW',
+        'APPROVED',
+        'REJECTED',
+        'WAITLISTED',
+        'WITHDRAWN',
+      ])
+    )
+    .optional(),
   college: z.array(z.string()).optional(),
-  dateRange: z.object({
-    from: z.date(),
-    to: z.date(),
-  }).optional(),
+  dateRange: z
+    .object({
+      from: z.date(),
+      to: z.date(),
+    })
+    .optional(),
   teamSize: z.array(z.number()).optional(),
   hasSubmission: z.boolean().optional(),
   tags: z.array(z.string()).optional(),
@@ -60,49 +73,64 @@ export const adminTeamsRouter = router({
   // ═══════════════════════════════════════════════════════════
   // GET TEAMS LIST (with pagination, filters, sorting)
   // ═══════════════════════════════════════════════════════════
-  
+
   list: adminProcedure
-    .input(z.object({
-      filters: TeamFiltersSchema.optional(),
-      pagination: PaginationSchema.optional(),
-    }))
+    .input(
+      z.object({
+        filters: TeamFiltersSchema.optional(),
+        pagination: PaginationSchema.optional(),
+      })
+    )
     .query(async ({ ctx, input }) => {
       // ✅ SECURITY FIX (C-1): Use ctx.admin from adminProcedure
       checkPermission(ctx.admin.role, 'VIEW_ALL_TEAMS');
-      
+
       const { filters = {}, pagination } = input;
-      const { page = 1, pageSize = 50, sortBy = 'createdAt', sortOrder = 'desc' } = pagination ?? {};
-      
+      const {
+        page = 1,
+        pageSize = 50,
+        sortBy = 'createdAt',
+        sortOrder = 'desc',
+      } = pagination ?? {};
+
       // Build where clause
       const where: Prisma.TeamWhereInput = {
         deletedAt: null, // Exclude soft-deleted teams
       };
-      
+
       // Search filter
       if (filters.search) {
         where.OR = [
           { name: { contains: filters.search, mode: 'insensitive' } },
           { college: { contains: filters.search, mode: 'insensitive' } },
-          { members: { some: { user: { email: { contains: filters.search, mode: 'insensitive' } } } } },
-          { members: { some: { user: { name: { contains: filters.search, mode: 'insensitive' } } } } },
+          {
+            members: {
+              some: { user: { email: { contains: filters.search, mode: 'insensitive' } } },
+            },
+          },
+          {
+            members: {
+              some: { user: { name: { contains: filters.search, mode: 'insensitive' } } },
+            },
+          },
         ];
       }
-      
+
       // Track filter
       if (filters.track && filters.track.length > 0) {
         where.track = { in: filters.track };
       }
-      
+
       // Status filter
       if (filters.status && filters.status.length > 0) {
         where.status = { in: filters.status };
       }
-      
+
       // College filter
       if (filters.college && filters.college.length > 0) {
         where.college = { in: filters.college };
       }
-      
+
       // Date range filter
       if (filters.dateRange) {
         where.createdAt = {
@@ -110,12 +138,12 @@ export const adminTeamsRouter = router({
           lte: filters.dateRange.to,
         };
       }
-      
+
       // Team size filter
       if (filters.teamSize && filters.teamSize.length > 0) {
         where.size = { in: filters.teamSize };
       }
-      
+
       // Has submission filter
       if (filters.hasSubmission !== undefined) {
         if (filters.hasSubmission) {
@@ -124,7 +152,7 @@ export const adminTeamsRouter = router({
           where.submission = { is: null };
         }
       }
-      
+
       // Tags filter
       if (filters.tags && filters.tags.length > 0) {
         where.tags = {
@@ -133,7 +161,7 @@ export const adminTeamsRouter = router({
           },
         };
       }
-      
+
       // Build orderBy
       const orderBy: Prisma.TeamOrderByWithRelationInput = {};
       switch (sortBy) {
@@ -153,7 +181,7 @@ export const adminTeamsRouter = router({
         default:
           orderBy.createdAt = sortOrder;
       }
-      
+
       // Execute queries
       const [teams, totalCount] = await Promise.all([
         ctx.prisma.team.findMany({
@@ -195,7 +223,7 @@ export const adminTeamsRouter = router({
         }),
         ctx.prisma.team.count({ where }),
       ]);
-      
+
       return {
         teams: teams.map((team) => ({
           id: team.id,
@@ -223,18 +251,20 @@ export const adminTeamsRouter = router({
         },
       };
     }),
-  
+
   // ═══════════════════════════════════════════════════════════
   // GET TEAM DETAILS
   // ═══════════════════════════════════════════════════════════
-  
+
   getById: adminProcedure
-    .input(z.object({
-      teamId: z.string(),
-    }))
+    .input(
+      z.object({
+        teamId: z.string(),
+      })
+    )
     .query(async ({ ctx, input }) => {
       checkPermission(ctx.admin.role, 'VIEW_ALL_TEAMS');
-      
+
       const team = await ctx.prisma.team.findUnique({
         where: { id: input.teamId },
         include: {
@@ -284,31 +314,33 @@ export const adminTeamsRouter = router({
           },
         },
       });
-      
+
       if (!team) {
         throw new TRPCError({
           code: 'NOT_FOUND',
           message: 'Team not found',
         });
       }
-      
+
       return team;
     }),
-  
+
   // ═══════════════════════════════════════════════════════════
   // APPROVE TEAM
   // ═══════════════════════════════════════════════════════════
-  
+
   approve: adminProcedure
-    .input(z.object({
-      teamId: z.string(),
-      notes: z.string().optional(),
-      sendEmail: z.boolean().default(true),
-    }))
+    .input(
+      z.object({
+        teamId: z.string(),
+        notes: z.string().optional(),
+        sendEmail: z.boolean().default(true),
+      })
+    )
     .mutation(async ({ ctx, input }) => {
       checkPermission(ctx.admin.role, 'APPROVE_TEAMS');
       const adminUser = ctx.admin;
-      
+
       // Get team with leader info
       const team = await ctx.prisma.team.findUnique({
         where: { id: input.teamId },
@@ -326,14 +358,14 @@ export const adminTeamsRouter = router({
           },
         },
       });
-      
+
       if (!team) {
         throw new TRPCError({
           code: 'NOT_FOUND',
           message: 'Team not found',
         });
       }
-      
+
       // Update team status
       const updatedTeam = await ctx.prisma.team.update({
         where: { id: input.teamId },
@@ -344,7 +376,7 @@ export const adminTeamsRouter = router({
           reviewNotes: input.notes,
         },
       });
-      
+
       // Log action
       await logAdminAction({
         userId: adminUser.id,
@@ -356,7 +388,7 @@ export const adminTeamsRouter = router({
           notes: input.notes,
         },
       });
-      
+
       // Send email notification
       if (input.sendEmail && team.members[0]) {
         const leader = team.members[0].user;
@@ -373,24 +405,26 @@ export const adminTeamsRouter = router({
           // Don't fail the approval if email fails
         }
       }
-      
+
       return updatedTeam;
     }),
-  
+
   // ═══════════════════════════════════════════════════════════
   // REJECT TEAM
   // ═══════════════════════════════════════════════════════════
-  
+
   reject: adminProcedure
-    .input(z.object({
-      teamId: z.string(),
-      reason: z.string().min(10, 'Rejection reason must be at least 10 characters'),
-      sendEmail: z.boolean().default(true),
-    }))
+    .input(
+      z.object({
+        teamId: z.string(),
+        reason: z.string().min(10, 'Rejection reason must be at least 10 characters'),
+        sendEmail: z.boolean().default(true),
+      })
+    )
     .mutation(async ({ ctx, input }) => {
       checkPermission(ctx.admin.role, 'REJECT_TEAMS');
       const adminUser = ctx.admin;
-      
+
       // Get team with leader info
       const team = await ctx.prisma.team.findUnique({
         where: { id: input.teamId },
@@ -408,14 +442,14 @@ export const adminTeamsRouter = router({
           },
         },
       });
-      
+
       if (!team) {
         throw new TRPCError({
           code: 'NOT_FOUND',
           message: 'Team not found',
         });
       }
-      
+
       // Update team status
       const updatedTeam = await ctx.prisma.team.update({
         where: { id: input.teamId },
@@ -426,7 +460,7 @@ export const adminTeamsRouter = router({
           rejectionReason: input.reason,
         },
       });
-      
+
       // Log action
       await logAdminAction({
         userId: adminUser.id,
@@ -438,7 +472,7 @@ export const adminTeamsRouter = router({
           reason: input.reason,
         },
       });
-      
+
       // Send email notification
       if (input.sendEmail && team.members[0]) {
         const leader = team.members[0].user;
@@ -454,24 +488,26 @@ export const adminTeamsRouter = router({
           console.error('[Admin] Failed to send rejection email:', error);
         }
       }
-      
+
       return updatedTeam;
     }),
-  
+
   // ═══════════════════════════════════════════════════════════
   // BULK APPROVE
   // ═══════════════════════════════════════════════════════════
-  
+
   bulkApprove: adminProcedure
-    .input(z.object({
-      teamIds: z.array(z.string()).min(1).max(100),
-      notes: z.string().optional(),
-      sendEmail: z.boolean().default(true),
-    }))
+    .input(
+      z.object({
+        teamIds: z.array(z.string()).min(1).max(100),
+        notes: z.string().optional(),
+        sendEmail: z.boolean().default(true),
+      })
+    )
     .mutation(async ({ ctx, input }) => {
       checkPermission(ctx.admin.role, 'APPROVE_TEAMS');
       const adminUser = ctx.admin;
-      
+
       // Get teams with leader info
       const teams = await ctx.prisma.team.findMany({
         where: {
@@ -491,7 +527,7 @@ export const adminTeamsRouter = router({
           },
         },
       });
-      
+
       // Update all teams
       await ctx.prisma.team.updateMany({
         where: {
@@ -504,7 +540,7 @@ export const adminTeamsRouter = router({
           reviewNotes: input.notes,
         },
       });
-      
+
       // Log actions
       for (const team of teams) {
         await logAdminAction({
@@ -519,7 +555,7 @@ export const adminTeamsRouter = router({
           },
         });
       }
-      
+
       // Send emails
       if (input.sendEmail) {
         const teamsWithLeaders = teams.filter((team) => team.members[0]);
@@ -535,30 +571,32 @@ export const adminTeamsRouter = router({
             console.error(`[Admin] Failed to send approval email to ${leader.email}:`, error);
           });
         });
-        
+
         await Promise.allSettled(emailPromises);
       }
-      
+
       return {
         success: true,
         count: teams.length,
       };
     }),
-  
+
   // ═══════════════════════════════════════════════════════════
   // BULK REJECT
   // ═══════════════════════════════════════════════════════════
-  
+
   bulkReject: adminProcedure
-    .input(z.object({
-      teamIds: z.array(z.string()).min(1).max(100),
-      reason: z.string().min(10),
-      sendEmail: z.boolean().default(true),
-    }))
+    .input(
+      z.object({
+        teamIds: z.array(z.string()).min(1).max(100),
+        reason: z.string().min(10),
+        sendEmail: z.boolean().default(true),
+      })
+    )
     .mutation(async ({ ctx, input }) => {
       checkPermission(ctx.admin.role, 'REJECT_TEAMS');
       const adminUser = ctx.admin;
-      
+
       // Get teams with leader info
       const teams = await ctx.prisma.team.findMany({
         where: {
@@ -578,7 +616,7 @@ export const adminTeamsRouter = router({
           },
         },
       });
-      
+
       // Update all teams
       await ctx.prisma.team.updateMany({
         where: {
@@ -591,7 +629,7 @@ export const adminTeamsRouter = router({
           rejectionReason: input.reason,
         },
       });
-      
+
       // Log actions
       for (const team of teams) {
         await logAdminAction({
@@ -606,7 +644,7 @@ export const adminTeamsRouter = router({
           },
         });
       }
-      
+
       // Send emails
       if (input.sendEmail) {
         const teamsWithLeaders = teams.filter((team) => team.members[0]);
@@ -622,30 +660,32 @@ export const adminTeamsRouter = router({
             console.error(`[Admin] Failed to send rejection email to ${leader.email}:`, error);
           });
         });
-        
+
         await Promise.allSettled(emailPromises);
       }
-      
+
       return {
         success: true,
         count: teams.length,
       };
     }),
-  
+
   // ═══════════════════════════════════════════════════════════
   // ADD COMMENT
   // ═══════════════════════════════════════════════════════════
-  
+
   addComment: adminProcedure
-    .input(z.object({
-      teamId: z.string(),
-      content: z.string().min(1).max(5000),
-      isInternal: z.boolean().default(true),
-    }))
+    .input(
+      z.object({
+        teamId: z.string(),
+        content: z.string().min(1).max(5000),
+        isInternal: z.boolean().default(true),
+      })
+    )
     .mutation(async ({ ctx, input }) => {
       checkPermission(ctx.admin.role, 'ADD_COMMENTS');
       const adminUser = ctx.admin;
-      
+
       const comment = await ctx.prisma.comment.create({
         data: {
           teamId: input.teamId,
@@ -654,7 +694,7 @@ export const adminTeamsRouter = router({
           isInternal: input.isInternal,
         },
       });
-      
+
       // Log action
       await logAdminAction({
         userId: adminUser.id,
@@ -666,24 +706,29 @@ export const adminTeamsRouter = router({
           isInternal: input.isInternal,
         },
       });
-      
+
       return comment;
     }),
-  
+
   // ═══════════════════════════════════════════════════════════
   // ADD TAG
   // ═══════════════════════════════════════════════════════════
-  
+
   addTag: adminProcedure
-    .input(z.object({
-      teamId: z.string(),
-      tag: z.string().min(1).max(50),
-      color: z.string().regex(/^#[0-9A-F]{6}$/i).default('#6366f1'),
-    }))
+    .input(
+      z.object({
+        teamId: z.string(),
+        tag: z.string().min(1).max(50),
+        color: z
+          .string()
+          .regex(/^#[0-9A-F]{6}$/i)
+          .default('#6366f1'),
+      })
+    )
     .mutation(async ({ ctx, input }) => {
       checkPermission(ctx.admin.role, 'EDIT_TEAMS');
       const adminUser = ctx.admin;
-      
+
       const tag = await ctx.prisma.teamTag.create({
         data: {
           teamId: input.teamId,
@@ -692,39 +737,43 @@ export const adminTeamsRouter = router({
           addedBy: adminUser.id,
         },
       });
-      
+
       return tag;
     }),
-  
+
   // ═══════════════════════════════════════════════════════════
   // REMOVE TAG
   // ═══════════════════════════════════════════════════════════
-  
+
   removeTag: adminProcedure
-    .input(z.object({
-      tagId: z.string(),
-    }))
+    .input(
+      z.object({
+        tagId: z.string(),
+      })
+    )
     .mutation(async ({ ctx, input }) => {
       checkPermission(ctx.admin.role, 'EDIT_TEAMS');
-      
+
       await ctx.prisma.teamTag.delete({
         where: { id: input.tagId },
       });
-      
+
       return { success: true };
     }),
-  
+
   // ═══════════════════════════════════════════════════════════
   // GET ACTIVITY TIMELINE
   // ═══════════════════════════════════════════════════════════
-  
+
   getActivity: adminProcedure
-    .input(z.object({
-      teamId: z.string(),
-    }))
+    .input(
+      z.object({
+        teamId: z.string(),
+      })
+    )
     .query(async ({ ctx, input }) => {
       checkPermission(ctx.admin.role, 'VIEW_ALL_TEAMS');
-      
+
       const activities = await ctx.prisma.activityLog.findMany({
         where: {
           entityId: input.teamId,
@@ -735,7 +784,7 @@ export const adminTeamsRouter = router({
         },
         take: 50,
       });
-      
+
       return activities;
     }),
 });

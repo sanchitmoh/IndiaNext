@@ -9,7 +9,9 @@ import type { OtpPurpose } from '@prisma/client/edge';
 const VerifyOtpSchema = z.object({
   email: z.string().email('Invalid email format'),
   otp: z.string().length(6, 'OTP must be 6 digits').regex(/^\d+$/, 'OTP must contain only numbers'),
-  purpose: z.enum(['REGISTRATION', 'LOGIN', 'PASSWORD_RESET', 'EMAIL_VERIFICATION']).default('REGISTRATION'),
+  purpose: z
+    .enum(['REGISTRATION', 'LOGIN', 'PASSWORD_RESET', 'EMAIL_VERIFICATION'])
+    .default('REGISTRATION'),
 });
 
 export async function POST(req: Request) {
@@ -30,7 +32,7 @@ export async function POST(req: Request) {
           message: 'Too many verification attempts. Please wait before trying again.',
           retryAfter: Math.ceil((rateLimit.reset - Date.now()) / 1000),
         },
-        { 
+        {
           status: 429,
           headers: createRateLimitHeaders(rateLimit),
         }
@@ -48,7 +50,7 @@ export async function POST(req: Request) {
           message: validation.error.errors[0].message,
           details: validation.error.errors,
         },
-        { 
+        {
           status: 400,
           headers: createRateLimitHeaders(rateLimit),
         }
@@ -56,12 +58,11 @@ export async function POST(req: Request) {
     }
 
     const { email: rawEmail, otp, purpose } = validation.data;
-    
+
     // Normalize email to lowercase and trim for consistent lookups
     const email = rawEmail.toLowerCase().trim();
 
     // Hash the provided OTP to compare with stored hash
-
 
     // Find the OTP record
     const record = await prisma.otp.findUnique({
@@ -81,7 +82,7 @@ export async function POST(req: Request) {
           error: 'OTP_NOT_FOUND',
           message: 'Invalid or expired OTP',
         },
-        { 
+        {
           status: 400,
           headers: createRateLimitHeaders(rateLimit),
         }
@@ -99,18 +100,23 @@ export async function POST(req: Request) {
     const otpHash = crypto.createHash('sha256').update(otp).digest('hex');
 
     if (isDev && isDemoEmail && isMasterOtp) {
-       console.log(`[VERIFY] Master OTP used for demo account: ${email}`);
+      console.log(`[VERIFY] Master OTP used for demo account: ${email}`);
     } else if (record.otp !== otpHash) {
-       console.log(`[VERIFY] Hash Mismatch for ${email}. Expected: ${record.otp.substring(0,8)}, Received: ${otpHash.substring(0,8)}`);
+      console.log(
+        `[VERIFY] Hash Mismatch for ${email}. Expected: ${record.otp.substring(0, 8)}, Received: ${otpHash.substring(0, 8)}`
+      );
     } else {
-       console.log(`[VERIFY] Success for ${email}`);
+      console.log(`[VERIFY] Success for ${email}`);
     }
 
     // Check if OTP matches (compare hashes) - unless bypass is active
     if (record.otp !== otpHash && !(isDev && isDemoEmail && isMasterOtp)) {
       // Check if OTP has expired
       if (new Date() > record.expiresAt) {
-         return NextResponse.json({ success: false, error: 'OTP_EXPIRED', message: 'OTP has expired.' }, { status: 400 });
+        return NextResponse.json(
+          { success: false, error: 'OTP_EXPIRED', message: 'OTP has expired.' },
+          { status: 400 }
+        );
       }
       // Increment attempts
       const newAttempts = record.attempts + 1;
@@ -132,7 +138,7 @@ export async function POST(req: Request) {
             error: 'TOO_MANY_ATTEMPTS',
             message: 'Too many failed attempts. Please request a new OTP.',
           },
-          { 
+          {
             status: 429,
             headers: createRateLimitHeaders(rateLimit),
           }
@@ -159,7 +165,7 @@ export async function POST(req: Request) {
           message: 'Invalid OTP',
           attemptsRemaining: 5 - newAttempts,
         },
-        { 
+        {
           status: 400,
           headers: createRateLimitHeaders(rateLimit),
         }

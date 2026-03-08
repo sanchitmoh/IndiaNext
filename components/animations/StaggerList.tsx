@@ -1,6 +1,6 @@
 /**
  * StaggerList Component
- * 
+ *
  * Component that staggers animations for list items.
  * Provides orchestrated reveal animations for multiple elements.
  */
@@ -30,10 +30,10 @@ export const StaggerList: React.FC<StaggerListProps> = ({
   className = '',
 }) => {
   const { config, reducedMotion } = useAnimationContext();
-  
+
   const childArray = Children.toArray(children);
   const itemCount = Math.min(childArray.length, MAX_ITEMS);
-  
+
   // Warn if exceeding max items
   if (childArray.length > MAX_ITEMS) {
     console.warn(
@@ -41,9 +41,7 @@ export const StaggerList: React.FC<StaggerListProps> = ({
     );
   }
 
-  const delay = staggerDelay !== undefined 
-    ? staggerDelay / 1000 
-    : config.stagger.normal / 1000;
+  const delay = staggerDelay !== undefined ? staggerDelay / 1000 : config.stagger.normal / 1000;
 
   // If reduced motion, show all items immediately
   if (reducedMotion) {

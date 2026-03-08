@@ -1,9 +1,9 @@
 // Email Campaigns — Inbox / List View
-"use client";
+'use client';
 
-import { useState } from "react";
-import { trpc } from "@/lib/trpc-client";
-import Link from "next/link";
+import { useState } from 'react';
+import { trpc } from '@/lib/trpc-client';
+import Link from 'next/link';
 import {
   Plus,
   RefreshCw,
@@ -16,23 +16,26 @@ import {
   ChevronRight,
   Clock,
   Loader2,
-} from "lucide-react";
+} from 'lucide-react';
 
-type CampaignStatus = "DRAFT" | "SCHEDULED" | "SENDING" | "SENT" | "FAILED";
+type CampaignStatus = 'DRAFT' | 'SCHEDULED' | 'SENDING' | 'SENT' | 'FAILED';
 
-const statusConfig: Record<CampaignStatus, { label: string; bg: string; text: string; icon: typeof Mail }> = {
-  DRAFT: { label: "DRAFT", bg: "bg-gray-500/15", text: "text-gray-400", icon: FileText },
-  SCHEDULED: { label: "SCHEDULED", bg: "bg-blue-500/15", text: "text-blue-400", icon: Clock },
-  SENDING: { label: "SENDING", bg: "bg-cyan-500/15", text: "text-cyan-400", icon: Loader2 },
-  SENT: { label: "SENT", bg: "bg-emerald-500/15", text: "text-emerald-400", icon: Send },
-  FAILED: { label: "FAILED", bg: "bg-red-500/15", text: "text-red-400", icon: AlertTriangle },
+const statusConfig: Record<
+  CampaignStatus,
+  { label: string; bg: string; text: string; icon: typeof Mail }
+> = {
+  DRAFT: { label: 'DRAFT', bg: 'bg-gray-500/15', text: 'text-gray-400', icon: FileText },
+  SCHEDULED: { label: 'SCHEDULED', bg: 'bg-blue-500/15', text: 'text-blue-400', icon: Clock },
+  SENDING: { label: 'SENDING', bg: 'bg-cyan-500/15', text: 'text-cyan-400', icon: Loader2 },
+  SENT: { label: 'SENT', bg: 'bg-emerald-500/15', text: 'text-emerald-400', icon: Send },
+  FAILED: { label: 'FAILED', bg: 'bg-red-500/15', text: 'text-red-400', icon: AlertTriangle },
 };
 
 export default function EmailCampaignsPage() {
   const [page, setPage] = useState(1);
-  const [statusFilter, setStatusFilter] = useState<CampaignStatus | "">("");
-  const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<CampaignStatus | ''>('');
+  const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
 
   // Debounce search input
   const debounceTimer = useState<ReturnType<typeof setTimeout> | null>(null);
@@ -59,13 +62,13 @@ export default function EmailCampaignsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-lg md:text-xl font-mono font-bold text-white tracking-wider">EMAIL_CAMPAIGNS</h1>
+          <h1 className="text-lg md:text-xl font-mono font-bold text-white tracking-wider">
+            EMAIL_CAMPAIGNS
+          </h1>
           <p className="text-[11px] font-mono text-gray-500 mt-1">
             {data?.total || 0} campaigns
             {statusFilter && (
-              <span className="text-orange-400 ml-2">
-                • Filtered: {statusFilter}
-              </span>
+              <span className="text-orange-400 ml-2">• Filtered: {statusFilter}</span>
             )}
           </p>
         </div>
@@ -75,7 +78,7 @@ export default function EmailCampaignsPage() {
             disabled={isLoading}
             className="inline-flex items-center gap-2 px-3 py-1.5 text-[10px] font-mono font-bold tracking-wider text-gray-400 bg-white/[0.03] border border-white/[0.06] rounded-md hover:text-orange-400 hover:border-orange-500/20 transition-all disabled:opacity-40"
           >
-            <RefreshCw className={`h-3.5 w-3.5 ${isLoading ? "animate-spin" : ""}`} />
+            <RefreshCw className={`h-3.5 w-3.5 ${isLoading ? 'animate-spin' : ''}`} />
             REFRESH
           </button>
           <Link
@@ -104,11 +107,14 @@ export default function EmailCampaignsPage() {
         {/* Status Filter */}
         <div className="flex gap-1.5 flex-wrap">
           <button
-            onClick={() => { setStatusFilter(""); setPage(1); }}
+            onClick={() => {
+              setStatusFilter('');
+              setPage(1);
+            }}
             className={`px-2.5 py-1.5 text-[10px] font-mono font-bold tracking-wider rounded-md border transition-all ${
-              statusFilter === ""
-                ? "bg-orange-500/15 text-orange-400 border-orange-500/20"
-                : "bg-white/[0.03] text-gray-500 border-white/[0.06] hover:text-gray-300"
+              statusFilter === ''
+                ? 'bg-orange-500/15 text-orange-400 border-orange-500/20'
+                : 'bg-white/[0.03] text-gray-500 border-white/[0.06] hover:text-gray-300'
             }`}
           >
             ALL
@@ -116,11 +122,14 @@ export default function EmailCampaignsPage() {
           {(Object.keys(statusConfig) as CampaignStatus[]).map((s) => (
             <button
               key={s}
-              onClick={() => { setStatusFilter(s); setPage(1); }}
+              onClick={() => {
+                setStatusFilter(s);
+                setPage(1);
+              }}
               className={`px-2.5 py-1.5 text-[10px] font-mono font-bold tracking-wider rounded-md border transition-all ${
                 statusFilter === s
                   ? `${statusConfig[s].bg} ${statusConfig[s].text} border-current/20`
-                  : "bg-white/[0.03] text-gray-500 border-white/[0.06] hover:text-gray-300"
+                  : 'bg-white/[0.03] text-gray-500 border-white/[0.06] hover:text-gray-300'
               }`}
             >
               {s}
@@ -133,7 +142,10 @@ export default function EmailCampaignsPage() {
       {isLoading ? (
         <div className="space-y-3">
           {[...Array(5)].map((_, i) => (
-            <div key={i} className="bg-[#0A0A0A] border border-white/[0.06] rounded-lg p-4 animate-pulse">
+            <div
+              key={i}
+              className="bg-[#0A0A0A] border border-white/[0.06] rounded-lg p-4 animate-pulse"
+            >
               <div className="h-4 bg-white/[0.06] rounded w-1/3 mb-3" />
               <div className="h-3 bg-white/[0.06] rounded w-2/3 mb-2" />
               <div className="h-3 bg-white/[0.06] rounded w-1/4" />
@@ -167,12 +179,16 @@ export default function EmailCampaignsPage() {
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 text-[9px] font-mono font-bold tracking-wider rounded ${cfg.bg} ${cfg.text}`}>
-                        <StatusIcon className={`h-3 w-3 ${status === "SENDING" ? "animate-spin" : ""}`} />
+                      <span
+                        className={`inline-flex items-center gap-1.5 px-2 py-0.5 text-[9px] font-mono font-bold tracking-wider rounded ${cfg.bg} ${cfg.text}`}
+                      >
+                        <StatusIcon
+                          className={`h-3 w-3 ${status === 'SENDING' ? 'animate-spin' : ''}`}
+                        />
                         {cfg.label}
                       </span>
                       <span className="text-[9px] font-mono text-gray-600 uppercase">
-                        {campaign.audienceType?.replace("_", " ")}
+                        {campaign.audienceType?.replace('_', ' ')}
                       </span>
                     </div>
                     <h3 className="text-sm font-mono font-bold text-white tracking-wider truncate group-hover:text-orange-400 transition-colors">
@@ -184,7 +200,7 @@ export default function EmailCampaignsPage() {
                   </div>
                   {/* Stats */}
                   <div className="hidden sm:flex items-center gap-4 text-[10px] font-mono text-gray-500 shrink-0">
-                    {status !== "DRAFT" && (
+                    {status !== 'DRAFT' && (
                       <>
                         <div className="text-center">
                           <div className="text-white font-bold">{campaign.totalRecipients}</div>
@@ -204,14 +220,12 @@ export default function EmailCampaignsPage() {
                     )}
                     <div className="text-right">
                       <div className="text-gray-400">
-                        {new Date(campaign.createdAt).toLocaleDateString("en-IN", {
-                          day: "2-digit",
-                          month: "short",
+                        {new Date(campaign.createdAt).toLocaleDateString('en-IN', {
+                          day: '2-digit',
+                          month: 'short',
                         })}
                       </div>
-                      <div className="text-gray-600">
-                        {campaign.creator?.name || "Unknown"}
-                      </div>
+                      <div className="text-gray-600">{campaign.creator?.name || 'Unknown'}</div>
                     </div>
                   </div>
                 </div>

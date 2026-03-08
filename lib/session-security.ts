@@ -1,6 +1,6 @@
 /**
  * Session Security Utilities
- * 
+ *
  * Provides secure session management with httpOnly cookies,
  * session rotation, and security best practices.
  */
@@ -52,7 +52,7 @@ export async function setSessionCookie(
   config: SessionConfig = SESSION_CONFIGS.user
 ): Promise<void> {
   const cookieStore = await cookies();
-  
+
   cookieStore.set(config.name, token, {
     maxAge: config.maxAge,
     secure: config.secure ?? process.env.NODE_ENV === 'production',
@@ -91,13 +91,13 @@ export async function rotateSessionToken(
   config: SessionConfig = SESSION_CONFIGS.user
 ): Promise<string> {
   const newToken = generateSessionToken();
-  
+
   // Update session in database
   await updateSession(oldToken, newToken);
-  
+
   // Set new cookie
   await setSessionCookie(newToken, config);
-  
+
   return newToken;
 }
 
@@ -132,13 +132,13 @@ export function generateCsrfToken(): string {
  */
 export function verifyCsrfToken(token: string, expected: string): boolean {
   if (!token || !expected) return false;
-  
+
   const tokenBuf = Buffer.from(token);
   const expectedBuf = Buffer.from(expected);
-  
+
   // timingSafeEqual throws RangeError on different-length buffers
   if (tokenBuf.length !== expectedBuf.length) return false;
-  
+
   return crypto.timingSafeEqual(tokenBuf, expectedBuf);
 }
 
@@ -147,31 +147,23 @@ export function verifyCsrfToken(token: string, expected: string): boolean {
  * ✅ SECURITY FIX: Use HMAC-SHA256 with secret instead of plain SHA-256
  */
 export function hashSessionToken(token: string): string {
-  const secret = process.env.SESSION_SECRET || process.env.JWT_SECRET || 'fallback-secret-change-in-production';
-  
+  const secret =
+    process.env.SESSION_SECRET || process.env.JWT_SECRET || 'fallback-secret-change-in-production';
+
   if (secret === 'fallback-secret-change-in-production' && process.env.NODE_ENV === 'production') {
     console.error('[SECURITY] SESSION_SECRET not set in production! Using fallback.');
   }
-  
-  return crypto
-    .createHmac('sha256', secret)
-    .update(token)
-    .digest('hex');
+
+  return crypto.createHmac('sha256', secret).update(token).digest('hex');
 }
 
 /**
  * Session fingerprint (for additional security)
  * Combines user agent and IP to detect session hijacking
  */
-export function generateSessionFingerprint(
-  userAgent: string,
-  ipAddress: string
-): string {
+export function generateSessionFingerprint(userAgent: string, ipAddress: string): string {
   const data = `${userAgent}:${ipAddress}`;
-  return crypto
-    .createHash('sha256')
-    .update(data)
-    .digest('hex');
+  return crypto.createHash('sha256').update(data).digest('hex');
 }
 
 /**
@@ -185,10 +177,7 @@ export function verifySessionFingerprint(
   const current = generateSessionFingerprint(userAgent, ipAddress);
   // ✅ SECURITY FIX: Use timing-safe comparison to prevent timing attacks
   try {
-    return crypto.timingSafeEqual(
-      Buffer.from(stored, 'hex'),
-      Buffer.from(current, 'hex')
-    );
+    return crypto.timingSafeEqual(Buffer.from(stored, 'hex'), Buffer.from(current, 'hex'));
   } catch {
     // If buffers have different lengths, they're not equal
     return false;
@@ -201,13 +190,13 @@ export function verifySessionFingerprint(
 export function getClientIp(req: Request): string {
   const forwarded = req.headers.get('x-forwarded-for');
   if (forwarded) return forwarded.split(',')[0].trim();
-  
+
   const realIp = req.headers.get('x-real-ip');
   if (realIp) return realIp;
-  
+
   const cfIp = req.headers.get('cf-connecting-ip');
   if (cfIp) return cfIp;
-  
+
   return 'unknown';
 }
 

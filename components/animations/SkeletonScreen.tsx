@@ -1,6 +1,6 @@
 /**
  * SkeletonScreen Component
- * 
+ *
  * Loading skeleton components with shimmer animation.
  * Provides visual feedback during content loading.
  */
@@ -58,24 +58,13 @@ export const Skeleton: React.FC<SkeletonProps> = ({
   };
 
   if (count === 1) {
-    return (
-      <motion.div
-        className={baseClasses}
-        style={style}
-        {...shimmerAnimation}
-      />
-    );
+    return <motion.div className={baseClasses} style={style} {...shimmerAnimation} />;
   }
 
   return (
     <div className="space-y-3">
       {Array.from({ length: count }).map((_, index) => (
-        <motion.div
-          key={index}
-          className={baseClasses}
-          style={style}
-          {...shimmerAnimation}
-        />
+        <motion.div key={index} className={baseClasses} style={style} {...shimmerAnimation} />
       ))}
     </div>
   );

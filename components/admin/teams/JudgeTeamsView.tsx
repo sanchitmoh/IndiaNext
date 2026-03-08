@@ -1,11 +1,11 @@
 /**
  * Judge-specific Teams View
- * 
+ *
  * Simplified view for judges that only shows:
  * - Team list with submissions
  * - Ability to view team details
  * - Ability to add scores and comments
- * 
+ *
  * Hidden features:
  * - Bulk actions
  * - Export
@@ -13,22 +13,22 @@
  * - Filters (simplified)
  */
 
-"use client";
+'use client';
 
-import { useState } from "react";
-import { trpc } from "@/lib/trpc-client";
-import { TeamsTable } from "@/components/admin/teams/TeamsTable";
-import { RefreshCw, Award } from "lucide-react";
+import { useState } from 'react';
+import { trpc } from '@/lib/trpc-client';
+import { TeamsTable } from '@/components/admin/teams/TeamsTable';
+import { RefreshCw, Award } from 'lucide-react';
 
 export function JudgeTeamsView() {
   const [filters, setFilters] = useState({
-    status: "APPROVED", // ⭐ JUDGES ONLY SEE APPROVED TEAMS
-    track: "all",
-    college: "",
-    search: "",
+    status: 'APPROVED', // ⭐ JUDGES ONLY SEE APPROVED TEAMS
+    track: 'all',
+    college: '',
+    search: '',
     dateRange: { from: undefined, to: undefined },
-    sortBy: "createdAt" as "createdAt" | "name" | "status" | "college",
-    sortOrder: "desc" as "asc" | "desc",
+    sortBy: 'createdAt' as 'createdAt' | 'name' | 'status' | 'college',
+    sortOrder: 'desc' as 'asc' | 'desc',
     page: 1,
     pageSize: 50,
   });
@@ -109,11 +109,11 @@ export function JudgeTeamsView() {
               title="Sort teams by"
               value={`${filters.sortBy}-${filters.sortOrder}`}
               onChange={(e) => {
-                const [sortBy, sortOrder] = e.target.value.split("-");
-                setFilters({ 
-                  ...filters, 
-                  sortBy: sortBy as "createdAt" | "name" | "status" | "college",
-                  sortOrder: sortOrder as "asc" | "desc",
+                const [sortBy, sortOrder] = e.target.value.split('-');
+                setFilters({
+                  ...filters,
+                  sortBy: sortBy as 'createdAt' | 'name' | 'status' | 'college',
+                  sortOrder: sortOrder as 'asc' | 'desc',
                 });
               }}
               className="w-full px-3 py-2 bg-black/40 border border-white/[0.1] rounded-md text-sm text-white focus:outline-none focus:border-amber-500/50"
@@ -138,8 +138,13 @@ export function JudgeTeamsView() {
         onSelectionChange={() => {}} // Disabled
         onPageChange={(page: number) => setFilters({ ...filters, page })}
         onSort={(field: string, order: string) => {
-          if (field === "createdAt" || field === "name" || field === "status" || field === "college") {
-            if (order === "asc" || order === "desc") {
+          if (
+            field === 'createdAt' ||
+            field === 'name' ||
+            field === 'status' ||
+            field === 'college'
+          ) {
+            if (order === 'asc' || order === 'desc') {
               setFilters({ ...filters, sortBy: field, sortOrder: order });
             }
           }

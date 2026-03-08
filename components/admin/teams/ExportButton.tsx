@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { Download, Loader2, AlertCircle } from "lucide-react";
+import { useState } from 'react';
+import { Download, Loader2, AlertCircle } from 'lucide-react';
 
 // ── Types ──────────────────────────────────────────────────
 
@@ -13,7 +13,7 @@ interface ExportButtonProps {
     toDate?: string;
     userId?: string;
     fieldName?: string;
-    action?: "CREATE" | "UPDATE" | "DELETE";
+    action?: 'CREATE' | 'UPDATE' | 'DELETE';
     search?: string;
   };
 }
@@ -68,7 +68,9 @@ export function ExportButton({ teamId, teamName, filters }: ExportButtonProps) {
           case 'TEAM_NOT_FOUND':
             throw new Error('Team not found. It may have been deleted.');
           case 'EXPORT_TOO_LARGE':
-            throw new Error('Export too large (max 10,000 records). Please apply filters to reduce the result set.');
+            throw new Error(
+              'Export too large (max 10,000 records). Please apply filters to reduce the result set.'
+            );
           case 'DATABASE_ERROR':
             throw new Error('Database error. Please try again in a moment.');
           default:
@@ -78,29 +80,29 @@ export function ExportButton({ teamId, teamName, filters }: ExportButtonProps) {
 
       // Get the CSV content
       const blob = await response.blob();
-      
+
       // Create download link
       const url = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
+      const link = document.createElement('a');
       link.href = url;
-      
+
       // Set filename from Content-Disposition header or generate default
-      const contentDisposition = response.headers.get("Content-Disposition");
-      let filename = `audit_${teamName || teamId}_${new Date().toISOString().split("T")[0]}.csv`;
-      
+      const contentDisposition = response.headers.get('Content-Disposition');
+      let filename = `audit_${teamName || teamId}_${new Date().toISOString().split('T')[0]}.csv`;
+
       if (contentDisposition) {
         const filenameMatch = contentDisposition.match(/filename="?(.+)"?/i);
         if (filenameMatch) {
           filename = filenameMatch[1];
         }
       }
-      
+
       link.download = filename;
-      
+
       // Trigger download
       document.body.appendChild(link);
       link.click();
-      
+
       // Cleanup
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
@@ -111,8 +113,13 @@ export function ExportButton({ teamId, teamName, filters }: ExportButtonProps) {
     } catch (err) {
       if (err instanceof Error) {
         if (err.name === 'AbortError' || err.name === 'TimeoutError') {
-          setError('Export timed out. The file may be too large. Try applying filters to reduce the size.');
-        } else if (err.message.includes('Failed to fetch') || err.message.includes('NetworkError')) {
+          setError(
+            'Export timed out. The file may be too large. Try applying filters to reduce the size.'
+          );
+        } else if (
+          err.message.includes('Failed to fetch') ||
+          err.message.includes('NetworkError')
+        ) {
           setError('Network error. Please check your connection and try again.');
         } else {
           setError(err.message);
@@ -140,7 +147,12 @@ export function ExportButton({ teamId, teamName, filters }: ExportButtonProps) {
         ) : success ? (
           <>
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M5 13l4 4L19 7"
+              />
             </svg>
             EXPORTED
           </>
@@ -155,7 +167,12 @@ export function ExportButton({ teamId, teamName, filters }: ExportButtonProps) {
       {/* Success Message */}
       {success && (
         <div className="flex items-start gap-2 p-2 bg-green-500/10 border border-green-500/20 rounded text-xs font-mono text-green-400 animate-fadeIn">
-          <svg className="h-3 w-3 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg
+            className="h-3 w-3 shrink-0 mt-0.5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
           <span>Export downloaded successfully</span>

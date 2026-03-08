@@ -1,6 +1,6 @@
 /**
  * Integration Tests: Audit Export Endpoint
- * 
+ *
  * Tests the GET /api/admin/teams/[teamId]/audit/export endpoint:
  * - Admin authentication and authorization
  * - CSV format generation
@@ -178,7 +178,9 @@ describe('Audit Export Endpoint', () => {
     const response = await GET(req, { params: { teamId: mockTeamId } });
 
     const contentDisposition = response.headers.get('Content-Disposition');
-    expect(contentDisposition).toMatch(/^attachment; filename="audit_Test_Team_\d{4}-\d{2}-\d{2}\.csv"$/);
+    expect(contentDisposition).toMatch(
+      /^attachment; filename="audit_Test_Team_\d{4}-\d{2}-\d{2}\.csv"$/
+    );
   });
 
   it('should sanitize team name in filename (remove special characters)', async () => {

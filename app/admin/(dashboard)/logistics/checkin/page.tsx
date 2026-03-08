@@ -1,12 +1,12 @@
 // QR Check-in Landing Page
 // When logistics scans a team's QR code from the approval email,
 // this page auto-looks up the team and provides instant check-in action.
-"use client";
+'use client';
 
-import { useSearchParams, useRouter } from "next/navigation";
-import { useState, useEffect, useCallback, Suspense } from "react";
-import { trpc } from "@/lib/trpc-client";
-import { toast } from "sonner";
+import { useSearchParams, useRouter } from 'next/navigation';
+import { useState, useEffect, useCallback, Suspense } from 'react';
+import { trpc } from '@/lib/trpc-client';
+import { toast } from 'sonner';
 import {
   ArrowLeft,
   CheckCircle2,
@@ -16,12 +16,12 @@ import {
   MapPin,
   Clock,
   QrCode,
-} from "lucide-react";
+} from 'lucide-react';
 
 function CheckinContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const code = searchParams.get("code") || "";
+  const code = searchParams.get('code') || '';
 
   const [shortCode, setShortCode] = useState(code);
   const [teamData, setTeamData] = useState<{
@@ -41,7 +41,7 @@ function CheckinContent() {
     }>;
   } | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
   const [checkinDone, setCheckinDone] = useState(false);
 
   const utils = trpc.useUtils();
@@ -51,7 +51,7 @@ function CheckinContent() {
     async (codeToLookup: string) => {
       if (!codeToLookup.trim()) return;
       setLoading(true);
-      setError("");
+      setError('');
       setTeamData(null);
       setCheckinDone(false);
       try {
@@ -59,11 +59,11 @@ function CheckinContent() {
           shortCode: codeToLookup.trim().toUpperCase(),
         });
         setTeamData(result as typeof teamData);
-        if (result.attendance === "PRESENT") {
+        if (result.attendance === 'PRESENT') {
           setCheckinDone(true);
         }
       } catch {
-        setError("Team not found. Please check the code and try again.");
+        setError('Team not found. Please check the code and try again.');
       } finally {
         setLoading(false);
       }
@@ -84,13 +84,13 @@ function CheckinContent() {
     try {
       await markAttendance.mutateAsync({
         teamId: teamData.id,
-        attendance: "PRESENT",
-        notes: "Checked in via QR code scan",
+        attendance: 'PRESENT',
+        notes: 'Checked in via QR code scan',
       });
       setCheckinDone(true);
       toast.success(`${teamData.name} checked in successfully!`);
     } catch {
-      toast.error("Failed to mark attendance. Please try again.");
+      toast.error('Failed to mark attendance. Please try again.');
     }
   };
 
@@ -100,7 +100,7 @@ function CheckinContent() {
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
           <button
-            onClick={() => router.push("/admin/logistics")}
+            onClick={() => router.push('/admin/logistics')}
             className="text-gray-400 hover:text-white transition-colors"
             title="Back to Logistics"
           >
@@ -111,9 +111,7 @@ function CheckinContent() {
               <QrCode className="w-5 h-5 text-orange-500" />
               QR CHECK-IN
             </h1>
-            <p className="text-xs text-gray-500 font-mono">
-              Scan result — mark attendance
-            </p>
+            <p className="text-xs text-gray-500 font-mono">Scan result — mark attendance</p>
           </div>
         </div>
 
@@ -130,7 +128,7 @@ function CheckinContent() {
                 onChange={(e) => setShortCode(e.target.value.toUpperCase())}
                 placeholder="e.g. BS-7K3X"
                 className="flex-1 bg-black border border-zinc-700 rounded px-3 py-2 text-white font-mono text-sm focus:border-orange-500 focus:outline-none"
-                onKeyDown={(e) => e.key === "Enter" && lookupTeam(shortCode)}
+                onKeyDown={(e) => e.key === 'Enter' && lookupTeam(shortCode)}
               />
               <button
                 onClick={() => lookupTeam(shortCode)}
@@ -147,9 +145,7 @@ function CheckinContent() {
         {loading && (
           <div className="flex flex-col items-center justify-center py-16 gap-3">
             <Loader2 className="w-8 h-8 text-orange-500 animate-spin" />
-            <p className="text-sm text-gray-400 font-mono">
-              Looking up team...
-            </p>
+            <p className="text-sm text-gray-400 font-mono">Looking up team...</p>
           </div>
         )}
 
@@ -160,8 +156,8 @@ function CheckinContent() {
             <p className="text-red-400 text-sm font-mono">{error}</p>
             <button
               onClick={() => {
-                setError("");
-                setShortCode("");
+                setError('');
+                setShortCode('');
               }}
               className="mt-3 text-xs text-orange-500 hover:text-orange-400 font-mono underline"
             >
@@ -178,9 +174,7 @@ function CheckinContent() {
               <div className="bg-emerald-900/20 border-2 border-emerald-500 rounded-lg p-4 flex items-center gap-3 animate-in fade-in">
                 <CheckCircle2 className="w-8 h-8 text-emerald-400 flex-shrink-0" />
                 <div>
-                  <p className="text-emerald-400 font-mono font-bold text-sm">
-                    CHECKED IN
-                  </p>
+                  <p className="text-emerald-400 font-mono font-bold text-sm">CHECKED IN</p>
                   <p className="text-emerald-300/70 text-xs font-mono">
                     {teamData.name} — attendance marked
                   </p>
@@ -194,23 +188,19 @@ function CheckinContent() {
               <div className="bg-zinc-800/50 px-4 py-3 border-b border-zinc-700">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-white font-mono font-bold text-lg">
-                      {teamData.name}
-                    </p>
+                    <p className="text-white font-mono font-bold text-lg">{teamData.name}</p>
                     <p className="text-orange-500 font-mono text-xs tracking-widest">
                       {teamData.shortCode}
                     </p>
                   </div>
                   <span
                     className={`px-2 py-1 rounded text-xs font-mono font-bold ${
-                      teamData.track === "BUILD_STORM"
-                        ? "bg-blue-900/30 text-blue-400 border border-blue-800"
-                        : "bg-purple-900/30 text-purple-400 border border-purple-800"
+                      teamData.track === 'BUILD_STORM'
+                        ? 'bg-blue-900/30 text-blue-400 border border-blue-800'
+                        : 'bg-purple-900/30 text-purple-400 border border-purple-800'
                     }`}
                   >
-                    {teamData.track === "BUILD_STORM"
-                      ? "BuildStorm"
-                      : "IdeaSprint"}
+                    {teamData.track === 'BUILD_STORM' ? 'BuildStorm' : 'IdeaSprint'}
                   </span>
                 </div>
               </div>
@@ -220,23 +210,20 @@ function CheckinContent() {
                 {teamData.college && (
                   <div className="flex items-center gap-2 text-sm">
                     <MapPin className="w-3.5 h-3.5 text-gray-500" />
-                    <span className="text-gray-300 font-mono text-xs">
-                      {teamData.college}
-                    </span>
+                    <span className="text-gray-300 font-mono text-xs">{teamData.college}</span>
                   </div>
                 )}
                 <div className="flex items-center gap-2 text-sm">
                   <Users className="w-3.5 h-3.5 text-gray-500" />
                   <span className="text-gray-300 font-mono text-xs">
-                    {teamData.size} member{teamData.size !== 1 ? "s" : ""}
+                    {teamData.size} member{teamData.size !== 1 ? 's' : ''}
                   </span>
                 </div>
                 {teamData.checkedInAt && (
                   <div className="flex items-center gap-2 text-sm">
                     <Clock className="w-3.5 h-3.5 text-gray-500" />
                     <span className="text-gray-300 font-mono text-xs">
-                      Checked in:{" "}
-                      {new Date(teamData.checkedInAt).toLocaleString()}
+                      Checked in: {new Date(teamData.checkedInAt).toLocaleString()}
                     </span>
                   </div>
                 )}
@@ -249,23 +236,16 @@ function CheckinContent() {
                 </p>
                 <div className="space-y-2">
                   {teamData.members.map((member) => (
-                    <div
-                      key={member.id}
-                      className="flex items-center justify-between text-xs"
-                    >
+                    <div key={member.id} className="flex items-center justify-between text-xs">
                       <div className="flex items-center gap-2">
                         <span
                           className={`w-2 h-2 rounded-full ${
-                            member.isPresent ? "bg-emerald-400" : "bg-zinc-600"
+                            member.isPresent ? 'bg-emerald-400' : 'bg-zinc-600'
                           }`}
                         />
-                        <span className="text-gray-300 font-mono">
-                          {member.user.name}
-                        </span>
-                        {member.role === "LEADER" && (
-                          <span className="text-orange-500 text-[10px] font-mono">
-                            LEAD
-                          </span>
+                        <span className="text-gray-300 font-mono">{member.user.name}</span>
+                        {member.role === 'LEADER' && (
+                          <span className="text-orange-500 text-[10px] font-mono">LEAD</span>
                         )}
                       </div>
                       <span className="text-gray-500 font-mono text-[10px]">
@@ -298,13 +278,13 @@ function CheckinContent() {
                     try {
                       await markAttendance.mutateAsync({
                         teamId: teamData.id,
-                        attendance: "ABSENT",
-                        notes: "Marked absent via QR scan check-in",
+                        attendance: 'ABSENT',
+                        notes: 'Marked absent via QR scan check-in',
                       });
                       toast.info(`${teamData.name} marked as absent`);
-                      router.push("/admin/logistics");
+                      router.push('/admin/logistics');
                     } catch {
-                      toast.error("Failed to mark attendance");
+                      toast.error('Failed to mark attendance');
                     }
                   }}
                   disabled={markAttendance.isPending}
@@ -318,7 +298,7 @@ function CheckinContent() {
 
             {/* Back to list */}
             <button
-              onClick={() => router.push("/admin/logistics")}
+              onClick={() => router.push('/admin/logistics')}
               className="w-full text-center text-xs text-gray-500 hover:text-gray-400 font-mono py-2 transition-colors"
             >
               ← Back to Logistics Dashboard

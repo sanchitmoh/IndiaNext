@@ -1,10 +1,10 @@
 // Edit Member Modal — Edit non-leader member info (name, phone, email, college)
-"use client";
+'use client';
 
-import { useState } from "react";
-import { trpc } from "@/lib/trpc-client";
-import { X, Loader2, Save } from "lucide-react";
-import { toast } from "sonner";
+import { useState } from 'react';
+import { trpc } from '@/lib/trpc-client';
+import { X, Loader2, Save } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface TeamMember {
   id: string;
@@ -26,32 +26,37 @@ interface EditMemberModalProps {
   onSuccess: () => void;
 }
 
-export function EditMemberModal({ memberId, teamMembers, onClose, onSuccess }: EditMemberModalProps) {
+export function EditMemberModal({
+  memberId,
+  teamMembers,
+  onClose,
+  onSuccess,
+}: EditMemberModalProps) {
   const member = teamMembers.find((m) => m.id === memberId);
 
   const [form, setForm] = useState({
-    name: member?.user.name || "",
-    email: member?.user.email || "",
-    phone: member?.user.phone || "",
-    college: member?.user.college || "",
-    year: member?.user.year || "",
+    name: member?.user.name || '',
+    email: member?.user.email || '',
+    phone: member?.user.phone || '',
+    college: member?.user.college || '',
+    year: member?.user.year || '',
   });
 
   const editMember = trpc.logistics.editMemberInfo.useMutation();
 
   if (!member) return null;
-  if (member.role === "LEADER") return null; // Safety check
+  if (member.role === 'LEADER') return null; // Safety check
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // Validate required fields
     if (!form.name.trim()) {
-      toast.error("Name is required");
+      toast.error('Name is required');
       return;
     }
     if (!form.email.trim()) {
-      toast.error("Email is required");
+      toast.error('Email is required');
       return;
     }
 
@@ -64,20 +69,31 @@ export function EditMemberModal({ memberId, teamMembers, onClose, onSuccess }: E
         college: form.college.trim() || undefined,
         year: form.year.trim() || undefined,
       });
-      toast.success("Member info updated");
+      toast.success('Member info updated');
       onSuccess();
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Failed to update member";
+      const message = err instanceof Error ? err.message : 'Failed to update member';
       toast.error(message);
     }
   };
 
   const fields = [
-    { key: "name" as const, label: "NAME", placeholder: "Full name", required: true },
-    { key: "email" as const, label: "EMAIL", placeholder: "email@example.com", type: "email", required: true },
-    { key: "phone" as const, label: "PHONE", placeholder: "+91 XXXXXXXXXX", required: false },
-    { key: "college" as const, label: "COLLEGE", placeholder: "College/University name", required: false },
-    { key: "year" as const, label: "YEAR", placeholder: "e.g. 2nd Year", required: false },
+    { key: 'name' as const, label: 'NAME', placeholder: 'Full name', required: true },
+    {
+      key: 'email' as const,
+      label: 'EMAIL',
+      placeholder: 'email@example.com',
+      type: 'email',
+      required: true,
+    },
+    { key: 'phone' as const, label: 'PHONE', placeholder: '+91 XXXXXXXXXX', required: false },
+    {
+      key: 'college' as const,
+      label: 'COLLEGE',
+      placeholder: 'College/University name',
+      required: false,
+    },
+    { key: 'year' as const, label: 'YEAR', placeholder: 'e.g. 2nd Year', required: false },
   ];
 
   return (
@@ -107,7 +123,7 @@ export function EditMemberModal({ memberId, teamMembers, onClose, onSuccess }: E
                 {field.label} {field.required && <span className="text-red-400">*</span>}
               </label>
               <input
-                type={("type" in field && field.type) || "text"}
+                type={('type' in field && field.type) || 'text'}
                 value={form[field.key]}
                 onChange={(e) => setForm((prev) => ({ ...prev, [field.key]: e.target.value }))}
                 placeholder={field.placeholder}

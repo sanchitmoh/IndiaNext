@@ -1,7 +1,7 @@
 // Admin tRPC Router - Complete Implementation
-import { z } from "zod";
-import { 
-  router, 
+import { z } from 'zod';
+import {
+  router,
   rateLimitedAdminProcedure,
   rateLimitMutation,
   canViewTeams,
@@ -11,25 +11,25 @@ import {
   canViewAnalytics,
   canManageUsers,
   canViewAuditLogs,
-} from "../trpc";
-import { TRPCError } from "@trpc/server";
-import { sendStatusUpdateEmail } from "@/lib/email";
+} from '../trpc';
+import { TRPCError } from '@trpc/server';
+import { sendStatusUpdateEmail } from '@/lib/email';
 import {
   cacheGetOrSet,
   cacheGetOrSetWithMeta,
   CacheKeys,
   invalidateDashboardCache,
   invalidateTeamCache,
-} from "@/lib/redis-cache";
+} from '@/lib/redis-cache';
 
 export const adminRouter = router({
   // ═══════════════════════════════════════════════════════════
   // DASHBOARD STATS (WITH CACHING)
   // ═══════════════════════════════════════════════════════════
-  
+
   getStats: canViewAnalytics.query(async ({ ctx }) => {
     // ✅ FIX H-2: Permission check now handled by middleware guard
-    
+
     // Cache dashboard stats for 5 minutes
     // ✅ FIX: Return cache metadata so the UI can show cache age / last-updated
     return cacheGetOrSetWithMeta(
@@ -48,11 +48,11 @@ export const adminRouter = router({
           newTeamsThisWeek,
         ] = await Promise.all([
           ctx.prisma.team.count({ where: { deletedAt: null } }),
-          ctx.prisma.team.count({ where: { status: "PENDING", deletedAt: null } }),
-          ctx.prisma.team.count({ where: { status: "APPROVED", deletedAt: null } }),
-          ctx.prisma.team.count({ where: { status: "REJECTED", deletedAt: null } }),
-          ctx.prisma.team.count({ where: { status: "WAITLISTED", deletedAt: null } }),
-          ctx.prisma.team.count({ where: { status: "UNDER_REVIEW", deletedAt: null } }),
+          ctx.prisma.team.count({ where: { status: 'PENDING', deletedAt: null } }),
+          ctx.prisma.team.count({ where: { status: 'APPROVED', deletedAt: null } }),
+          ctx.prisma.team.count({ where: { status: 'REJECTED', deletedAt: null } }),
+          ctx.prisma.team.count({ where: { status: 'WAITLISTED', deletedAt: null } }),
+          ctx.prisma.team.count({ where: { status: 'UNDER_REVIEW', deletedAt: null } }),
           ctx.prisma.user.count({
             where: {
               deletedAt: null,
@@ -124,8 +124,8 @@ export const adminRouter = router({
             to: z.date().optional(),
           })
           .optional(),
-        sortBy: z.enum(["createdAt", "name", "status", "college"]).default("createdAt"),
-        sortOrder: z.enum(["asc", "desc"]).default("desc"),
+        sortBy: z.enum(['createdAt', 'name', 'status', 'college']).default('createdAt'),
+        sortOrder: z.enum(['asc', 'desc']).default('desc'),
         page: z.number().default(1),
         // ✅ SECURITY FIX (H-6): Cap pageSize at 100 to prevent DoS
         pageSize: z.number().min(1).max(100).default(50),
@@ -135,38 +135,38 @@ export const adminRouter = router({
       // ✅ FIX H-2: Permission check now handled by middleware guard
       // ✅ FIX H-5: Field filtering for JUDGE role
       const isJudge = ctx.admin.role === 'JUDGE';
-      
+
       const where: Record<string, unknown> = {
         deletedAt: null,
       };
 
       // Status filter
-      if (input.status && input.status !== "all") {
+      if (input.status && input.status !== 'all') {
         where.status = input.status;
       }
 
       // Track filter
-      if (input.track && input.track !== "all") {
+      if (input.track && input.track !== 'all') {
         where.track = input.track;
-      } 
+      }
 
       // College filter
       if (input.college) {
-        where.college = { contains: input.college, mode: "insensitive" };
+        where.college = { contains: input.college, mode: 'insensitive' };
       }
 
       // Search filter
       if (input.search) {
         where.OR = [
-          { name: { contains: input.search, mode: "insensitive" } },
-          { college: { contains: input.search, mode: "insensitive" } },
+          { name: { contains: input.search, mode: 'insensitive' } },
+          { college: { contains: input.search, mode: 'insensitive' } },
           {
             members: {
               some: {
                 user: {
                   OR: [
-                    { name: { contains: input.search, mode: "insensitive" } },
-                    { email: { contains: input.search, mode: "insensitive" } },
+                    { name: { contains: input.search, mode: 'insensitive' } },
+                    { email: { contains: input.search, mode: 'insensitive' } },
                   ],
                 },
               },
@@ -234,83 +234,81 @@ export const adminRouter = router({
       };
     }),
 
-  getTeamById: canViewTeams
-    .input(z.object({ id: z.string() }))
-    .query(async ({ ctx, input }) => {
-      // ✅ FIX H-5: Field filtering for JUDGE role
-      const isJudge = ctx.admin.role === 'JUDGE';
-      
-      const team = await ctx.prisma.team.findUnique({
-        where: { 
-          id: input.id,
-          // ✅ SECURITY FIX: Exclude soft-deleted teams
-          deletedAt: null,
-        },
-        include: {
-          members: {
-            include: {
-              user: {
-                // ✅ FIX H-5: Hide PII from JUDGE role
-                select: {
-                  id: true,
-                  name: true,
-                  email: !isJudge,
-                  phone: !isJudge,
-                  college: true,
-                  degree: true,
-                  year: true,
-                  branch: true,
-                  avatar: true,
-                  github: true,
-                  linkedIn: true,
-                  portfolio: true,
-                  role: true,
-                },
+  getTeamById: canViewTeams.input(z.object({ id: z.string() })).query(async ({ ctx, input }) => {
+    // ✅ FIX H-5: Field filtering for JUDGE role
+    const isJudge = ctx.admin.role === 'JUDGE';
+
+    const team = await ctx.prisma.team.findUnique({
+      where: {
+        id: input.id,
+        // ✅ SECURITY FIX: Exclude soft-deleted teams
+        deletedAt: null,
+      },
+      include: {
+        members: {
+          include: {
+            user: {
+              // ✅ FIX H-5: Hide PII from JUDGE role
+              select: {
+                id: true,
+                name: true,
+                email: !isJudge,
+                phone: !isJudge,
+                college: true,
+                degree: true,
+                year: true,
+                branch: true,
+                avatar: true,
+                github: true,
+                linkedIn: true,
+                portfolio: true,
+                role: true,
               },
             },
           },
-          submission: {
-            include: {
-              files: true,
-              assignedProblemStatement: {
-                select: {
-                  id: true,
-                  title: true,
-                  description: true,
-                  objective: true,
-                  order: true,
-                },
+        },
+        submission: {
+          include: {
+            files: true,
+            assignedProblemStatement: {
+              select: {
+                id: true,
+                title: true,
+                description: true,
+                objective: true,
+                order: true,
               },
             },
           },
-          comments: {
-            orderBy: { createdAt: "desc" },
-          },
-          tags: true,
         },
-      });
+        comments: {
+          orderBy: { createdAt: 'desc' },
+        },
+        tags: true,
+      },
+    });
 
-      if (!team) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Team not found" });
-      }
+    if (!team) {
+      throw new TRPCError({ code: 'NOT_FOUND', message: 'Team not found' });
+    }
 
-      return team;
-    }),
+    return team;
+  }),
 
   updateTeamStatus: canEditTeamsRateLimited
     .input(
       z.object({
         teamId: z.string(),
-        status: z.enum(["PENDING", "APPROVED", "REJECTED", "WAITLISTED", "UNDER_REVIEW"]),
+        status: z.enum(['PENDING', 'APPROVED', 'REJECTED', 'WAITLISTED', 'UNDER_REVIEW']),
         reviewNotes: z.string().optional(),
         rejectionReason: z.string().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
       // ✅ FIX H-2: Permission check now handled by middleware guard
-      
+
       const adminId = ctx.admin.id;
-      
+
       const team = await ctx.prisma.team.update({
         where: { id: input.teamId },
         data: {
@@ -328,26 +326,28 @@ export const adminRouter = router({
       });
 
       // ✅ INVALIDATE CACHES after mutation
-      await Promise.all([
-        invalidateDashboardCache(),
-        invalidateTeamCache(input.teamId),
-      ]);
+      await Promise.all([invalidateDashboardCache(), invalidateTeamCache(input.teamId)]);
 
       // Log activity (userId is null because admin IDs are in separate Admin table)
       await ctx.prisma.activityLog.create({
         data: {
           userId: null,
-          action: "team.status_updated",
-          entity: "Team",
+          action: 'team.status_updated',
+          entity: 'Team',
           entityId: input.teamId,
-          metadata: { status: input.status, previousStatus: team.status, adminId, adminName: ctx.admin.name },
+          metadata: {
+            status: input.status,
+            previousStatus: team.status,
+            adminId,
+            adminName: ctx.admin.name,
+          },
         },
       });
 
       // Send notification to team members
       const notifications = team.members.map((member: { userId: string }) => ({
         userId: member.userId,
-        type: "STATUS_UPDATE" as const,
+        type: 'STATUS_UPDATE' as const,
         title: `Team Status Updated`,
         message: `Your team "${team.name}" status has been changed to ${input.status}`,
         link: `/team/${team.id}`,
@@ -380,15 +380,15 @@ export const adminRouter = router({
     .input(
       z.object({
         teamIds: z.array(z.string()).max(100),
-        status: z.enum(["PENDING", "APPROVED", "REJECTED", "WAITLISTED", "UNDER_REVIEW"]),
+        status: z.enum(['PENDING', 'APPROVED', 'REJECTED', 'WAITLISTED', 'UNDER_REVIEW']),
         reviewNotes: z.string().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
       // ✅ FIX H-2: Permission check now handled by middleware guard
-      
+
       const adminId = ctx.admin.id;
-      
+
       const result = await ctx.prisma.team.updateMany({
         where: { id: { in: input.teamIds } },
         data: {
@@ -409,8 +409,8 @@ export const adminRouter = router({
       await ctx.prisma.activityLog.createMany({
         data: input.teamIds.map((teamId) => ({
           userId: null,
-          action: "team.bulk_status_updated",
-          entity: "Team",
+          action: 'team.bulk_status_updated',
+          entity: 'Team',
           entityId: teamId,
           metadata: { status: input.status, adminId, adminName: ctx.admin.name },
         })),
@@ -451,9 +451,9 @@ export const adminRouter = router({
     .input(z.object({ teamId: z.string() }))
     .mutation(async ({ ctx, input }) => {
       // ✅ FIX H-3: Permission check now handled by middleware guard (SUPER_ADMIN only)
-      
+
       const adminId = ctx.admin.id;
-      
+
       // Soft delete
       await ctx.prisma.team.update({
         where: { id: input.teamId },
@@ -461,16 +461,13 @@ export const adminRouter = router({
       });
 
       // ✅ INVALIDATE CACHES after deletion
-      await Promise.all([
-        invalidateDashboardCache(),
-        invalidateTeamCache(input.teamId),
-      ]);
+      await Promise.all([invalidateDashboardCache(), invalidateTeamCache(input.teamId)]);
 
       await ctx.prisma.activityLog.create({
         data: {
           userId: null,
-          action: "team.deleted",
-          entity: "Team",
+          action: 'team.deleted',
+          entity: 'Team',
           entityId: input.teamId,
           metadata: { adminId, adminName: ctx.admin.name },
         },
@@ -493,7 +490,7 @@ export const adminRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       const adminId = ctx.admin.id;
-      
+
       const comment = await ctx.prisma.comment.create({
         data: {
           teamId: input.teamId,
@@ -506,8 +503,8 @@ export const adminRouter = router({
       await ctx.prisma.activityLog.create({
         data: {
           userId: null,
-          action: "comment.created",
-          entity: "Comment",
+          action: 'comment.created',
+          entity: 'Comment',
           entityId: comment.id,
           metadata: { teamId: input.teamId, adminId, adminName: ctx.admin.name },
         },
@@ -522,7 +519,10 @@ export const adminRouter = router({
         teamId: z.string(),
         tag: z.string(),
         // ✅ SECURITY FIX: Validate hex color format to prevent CSS injection
-        color: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Invalid hex color format').default("#6366f1"),
+        color: z
+          .string()
+          .regex(/^#[0-9A-Fa-f]{6}$/, 'Invalid hex color format')
+          .default('#6366f1'),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -549,9 +549,9 @@ export const adminRouter = router({
       });
 
       if (!tag) {
-        throw new TRPCError({ 
-          code: "NOT_FOUND", 
-          message: "Tag not found" 
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Tag not found',
         });
       }
 
@@ -570,8 +570,8 @@ export const adminRouter = router({
     .query(async ({ ctx, input }) => {
       // ✅ FIX H-2: Permission check now handled by middleware guard
       return ctx.prisma.activityLog.findMany({
-        where: { entityId: input.teamId, entity: "Team" },
-        orderBy: { createdAt: "desc" },
+        where: { entityId: input.teamId, entity: 'Team' },
+        orderBy: { createdAt: 'desc' },
         take: 50,
       });
     }),
@@ -582,16 +582,14 @@ export const adminRouter = router({
 
   getAnalytics: canViewAnalytics.query(async ({ ctx }) => {
     // ✅ FIX H-2: Permission check now handled by middleware guard
-    
+
     return cacheGetOrSet(
       CacheKeys.analyticsOverview(),
       async () => {
         // Registration trends (last 30 days)
         const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-        
-        const registrationTrends = await ctx.prisma.$queryRaw<
-          Array<{ date: Date; count: bigint }>
-        >`
+
+        const registrationTrends = await ctx.prisma.$queryRaw<Array<{ date: Date; count: bigint }>>`
           SELECT DATE("createdAt") as date, COUNT(*) as count
           FROM teams
           WHERE "createdAt" >= ${thirtyDaysAgo} AND "deletedAt" IS NULL
@@ -601,26 +599,26 @@ export const adminRouter = router({
 
         // Top colleges
         const collegeDistribution = await ctx.prisma.team.groupBy({
-          by: ["college"],
+          by: ['college'],
           where: { deletedAt: null, college: { not: null } },
           _count: true,
-          orderBy: { _count: { college: "desc" } },
+          orderBy: { _count: { college: 'desc' } },
           take: 10,
         });
 
         // Track comparison
         const trackComparison = await ctx.prisma.team.groupBy({
-          by: ["track", "status"],
+          by: ['track', 'status'],
           where: { deletedAt: null },
           _count: true,
         });
 
         // Team size distribution
         const teamSizeDistribution = await ctx.prisma.team.groupBy({
-          by: ["size"],
+          by: ['size'],
           where: { deletedAt: null },
           _count: true,
-          orderBy: { size: "asc" },
+          orderBy: { size: 'asc' },
         });
 
         return {
@@ -659,13 +657,13 @@ export const adminRouter = router({
 
       if (input.search) {
         where.OR = [
-          { name: { contains: input.search, mode: "insensitive" } },
-          { email: { contains: input.search, mode: "insensitive" } },
-          { college: { contains: input.search, mode: "insensitive" } },
+          { name: { contains: input.search, mode: 'insensitive' } },
+          { email: { contains: input.search, mode: 'insensitive' } },
+          { college: { contains: input.search, mode: 'insensitive' } },
         ];
       }
 
-      if (input.role && input.role !== "all") {
+      if (input.role && input.role !== 'all') {
         where.role = input.role;
       }
 
@@ -679,7 +677,7 @@ export const adminRouter = router({
               },
             },
           },
-          orderBy: { createdAt: "desc" },
+          orderBy: { createdAt: 'desc' },
           skip: (input.page - 1) * input.pageSize,
           take: input.pageSize,
         }),
@@ -698,7 +696,7 @@ export const adminRouter = router({
     .input(
       z.object({
         userId: z.string(),
-        role: z.enum(["PARTICIPANT", "ORGANIZER", "JUDGE", "ADMIN", "SUPER_ADMIN"]),
+        role: z.enum(['PARTICIPANT', 'ORGANIZER', 'JUDGE', 'ADMIN', 'SUPER_ADMIN']),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -707,14 +705,14 @@ export const adminRouter = router({
 
       // ✅ SECURITY: Prevent privilege escalation
       // Only SUPER_ADMIN can grant ADMIN or SUPER_ADMIN roles
-      const privilegedRoles = ["ADMIN", "SUPER_ADMIN"];
-      if (privilegedRoles.includes(input.role) && ctx.admin.role !== "SUPER_ADMIN") {
+      const privilegedRoles = ['ADMIN', 'SUPER_ADMIN'];
+      if (privilegedRoles.includes(input.role) && ctx.admin.role !== 'SUPER_ADMIN') {
         throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Only SUPER_ADMIN can grant admin-level roles",
+          code: 'FORBIDDEN',
+          message: 'Only SUPER_ADMIN can grant admin-level roles',
         });
       }
-      
+
       const user = await ctx.prisma.user.update({
         where: { id: input.userId },
         data: { role: input.role },
@@ -729,8 +727,8 @@ export const adminRouter = router({
       await ctx.prisma.activityLog.create({
         data: {
           userId: null,
-          action: "user.role_updated",
-          entity: "User",
+          action: 'user.role_updated',
+          entity: 'User',
           entityId: input.userId,
           metadata: { newRole: input.role, adminId, adminName: ctx.admin.name },
         },
@@ -778,7 +776,7 @@ export const adminRouter = router({
               },
             },
           },
-          orderBy: { createdAt: "desc" },
+          orderBy: { createdAt: 'desc' },
           skip: (input.page - 1) * input.pageSize,
           take: input.pageSize,
         }),
@@ -801,23 +799,23 @@ export const adminRouter = router({
       z.object({
         status: z.string().optional(),
         track: z.string().optional(),
-        format: z.enum(["csv", "json"]).default("csv"),
+        format: z.enum(['csv', 'json']).default('csv'),
       })
     )
     .mutation(async ({ ctx, input }) => {
       // ✅ FIX H-2: Permission check now handled by middleware guard
-      
+
       const adminId = ctx.admin.id;
-      
+
       const where: Record<string, unknown> = {
         deletedAt: null,
       };
 
-      if (input.status && input.status !== "all") {
+      if (input.status && input.status !== 'all') {
         where.status = input.status;
       }
 
-      if (input.track && input.track !== "all") {
+      if (input.track && input.track !== 'all') {
         where.track = input.track;
       }
 
@@ -868,10 +866,15 @@ export const adminRouter = router({
       await ctx.prisma.activityLog.create({
         data: {
           userId: null,
-          action: "teams.exported",
-          entity: "Team",
-          entityId: "bulk",
-          metadata: { count: teams.length, format: input.format, adminId, adminName: ctx.admin.name },
+          action: 'teams.exported',
+          entity: 'Team',
+          entityId: 'bulk',
+          metadata: {
+            count: teams.length,
+            format: input.format,
+            adminId,
+            adminName: ctx.admin.name,
+          },
         },
       });
 

@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { Bell, Activity, Menu } from "lucide-react";
-import { usePathname } from "next/navigation";
+import { Bell, Activity, Menu } from 'lucide-react';
+import { usePathname } from 'next/navigation';
 
 interface AdminUser {
   name: string;
@@ -10,11 +10,11 @@ interface AdminUser {
 }
 
 const pageTitles: Record<string, { title: string; code: string }> = {
-  "/admin": { title: "DASHBOARD", code: "SYS://OVERVIEW" },
-  "/admin/teams": { title: "TEAMS", code: "SYS://TEAM_MGMT" },
-  "/admin/analytics": { title: "ANALYTICS", code: "SYS://DATA_VIZ" },
-  "/admin/logistics": { title: "LOGISTICS", code: "SYS://EVENT_DAY" },
-  "/admin/emails": { title: "EMAIL_CAMPAIGNS", code: "SYS://EMAIL_SEND" },
+  '/admin': { title: 'DASHBOARD', code: 'SYS://OVERVIEW' },
+  '/admin/teams': { title: 'TEAMS', code: 'SYS://TEAM_MGMT' },
+  '/admin/analytics': { title: 'ANALYTICS', code: 'SYS://DATA_VIZ' },
+  '/admin/logistics': { title: 'LOGISTICS', code: 'SYS://EVENT_DAY' },
+  '/admin/emails': { title: 'EMAIL_CAMPAIGNS', code: 'SYS://EMAIL_SEND' },
 };
 
 export function AdminHeader({
@@ -26,11 +26,9 @@ export function AdminHeader({
 }) {
   const pathname = usePathname();
 
-  const pageInfo =
-    Object.entries(pageTitles).find(
-      ([path]) =>
-        pathname === path || (path !== "/admin" && pathname.startsWith(path))
-    )?.[1] || { title: "ADMIN PANEL", code: "SYS://UNKNOWN" };
+  const pageInfo = Object.entries(pageTitles).find(
+    ([path]) => pathname === path || (path !== '/admin' && pathname.startsWith(path))
+  )?.[1] || { title: 'ADMIN PANEL', code: 'SYS://UNKNOWN' };
 
   return (
     <header className="bg-[#080808]/80 backdrop-blur-md border-b border-white/[0.06] px-4 md:px-6 py-3 shrink-0 relative z-20">
@@ -57,7 +55,9 @@ export function AdminHeader({
           {/* Status Indicator — hidden on very small screens */}
           <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-white/[0.03] border border-white/[0.06] rounded-md">
             <Activity className="h-3 w-3 text-emerald-400" />
-            <span className="text-[9px] font-mono text-gray-500 tracking-widest font-bold">LIVE</span>
+            <span className="text-[9px] font-mono text-gray-500 tracking-widest font-bold">
+              LIVE
+            </span>
           </div>
 
           <button

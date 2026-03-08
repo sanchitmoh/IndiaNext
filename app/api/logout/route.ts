@@ -10,11 +10,13 @@ export async function POST(_req: Request) {
 
     if (sessionToken) {
       // Delete session from database
-      await prisma.session.delete({
-        where: { token: hashSessionToken(sessionToken) },
-      }).catch(() => {
-        // Ignore if session doesn't exist
-      });
+      await prisma.session
+        .delete({
+          where: { token: hashSessionToken(sessionToken) },
+        })
+        .catch(() => {
+          // Ignore if session doesn't exist
+        });
     }
 
     // Clear the session cookie
@@ -30,7 +32,7 @@ export async function POST(_req: Request) {
     return response;
   } catch (error) {
     console.error('[Logout] Error:', error);
-    
+
     // Still clear cookie even if database operation fails
     const response = NextResponse.json({
       success: true,

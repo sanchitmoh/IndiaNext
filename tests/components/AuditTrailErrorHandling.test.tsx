@@ -25,9 +25,7 @@ vi.mock('@/components/admin/teams/AuditSummary', () => ({
 }));
 
 vi.mock('@/components/admin/teams/AuditFilters', () => ({
-  AuditFilters: ({ filters, onChange }: any) => (
-    <div data-testid="audit-filters">Filters</div>
-  ),
+  AuditFilters: ({ filters, onChange }: any) => <div data-testid="audit-filters">Filters</div>,
 }));
 
 vi.mock('@/components/admin/teams/AuditTimeline', () => ({
@@ -47,9 +45,7 @@ vi.mock('@/components/admin/teams/Pagination', () => ({
 }));
 
 vi.mock('@/components/admin/teams/ExportButton', () => ({
-  ExportButton: ({ teamId }: any) => (
-    <button data-testid="export-button">Export</button>
-  ),
+  ExportButton: ({ teamId }: any) => <button data-testid="export-button">Export</button>,
 }));
 
 // Import the component after mocks
@@ -82,9 +78,12 @@ describe('AuditTrailPage - Error Handling', () => {
     const mockParams = Promise.resolve({ id: 'test-team-id' });
     render(<AuditTrailPage params={mockParams} />);
 
-    await waitFor(() => {
-      expect(screen.getByText('Access Denied')).toBeInTheDocument();
-    }, { timeout: 3000 });
+    await waitFor(
+      () => {
+        expect(screen.getByText('Access Denied')).toBeInTheDocument();
+      },
+      { timeout: 3000 }
+    );
 
     expect(screen.getByText(/Your session has expired/)).toBeInTheDocument();
 
@@ -226,7 +225,12 @@ describe('AuditTrailPage - Error Handling', () => {
           team: { id: 'test-team-id', name: 'Test Team' },
           logs: [],
           pagination: { page: 1, limit: 20, total: 0, totalPages: 0 },
-          summary: { totalEdits: 0, lastEditDate: null, mostActiveUser: null, topChangedFields: [] },
+          summary: {
+            totalEdits: 0,
+            lastEditDate: null,
+            mostActiveUser: null,
+            topChangedFields: [],
+          },
         },
       }),
     });

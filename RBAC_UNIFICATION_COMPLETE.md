@@ -1,11 +1,13 @@
 # RBAC Unification - Complete ✅
 
 ## Summary
+
 Successfully unified the conflicting RBAC systems, fixed all `userRole` references to use the React Context approach, and resolved the missing `@/lib/session` import error.
 
 ## Changes Made
 
 ### 1. Fixed `userRole` References in Team Detail Page
+
 **File**: `app/admin/(dashboard)/teams/[id]/page.tsx`
 
 Replaced all `userRole` references with `role` from the `useAdminRole()` context hook:
@@ -15,6 +17,7 @@ Replaced all `userRole` references with `role` from the `useAdminRole()` context
 - Line 456: CommentsTab readOnly prop
 
 The page now correctly uses:
+
 ```typescript
 const { role } = useAdminRole();
 ```
@@ -22,6 +25,7 @@ const { role } = useAdminRole();
 Instead of the non-existent `userRole` variable.
 
 ### 2. Fixed Missing Session Import
+
 **File**: `app/api/admin/teams/[teamId]/members/route.ts`
 
 Fixed the import error by replacing the non-existent `@/lib/session` import with the correct admin session management:
@@ -47,12 +51,14 @@ Also expanded the allowed roles to include JUDGE and LOGISTICS since they need t
 The RBAC system is now properly unified with three files:
 
 #### `lib/auth-admin.ts` (Server-Only, Source of Truth)
+
 - Contains session management functions
 - Imports `next/headers` for cookie access
 - Defines the canonical PERMISSIONS matrix
 - Functions: `requireAdminSession`, `requireRole`, `logAdminAction`
 
 #### `lib/rbac-permissions.ts` (Client & Server Safe)
+
 - Contains permission checking logic only
 - NO `next/headers` import (can be used in client components)
 - Re-exports PERMISSIONS from auth-admin conceptually
@@ -60,6 +66,7 @@ The RBAC system is now properly unified with three files:
 - Contains `TRPC_PERMISSION_MAP` for camelCase → UPPER_SNAKE_CASE translation
 
 #### `lib/rbac.ts` (Unified Interface)
+
 - Re-exports everything from both files
 - Provides backward compatibility
 - Single import point for all RBAC functionality
@@ -83,6 +90,7 @@ The `TRPC_PERMISSION_MAP` correctly translates between naming conventions:
 ### 5. Audit Logs Permission (Already Correct)
 
 The `getActivityLogs` procedure uses `canViewAuditLogs` middleware which:
+
 - Maps to `VIEW_AUDIT_LOGS` permission
 - Allows: `['ADMIN', 'SUPER_ADMIN']`
 - Correctly restricts access (not just SUPER_ADMIN)
@@ -90,6 +98,7 @@ The `getActivityLogs` procedure uses `canViewAuditLogs` middleware which:
 ## Verification
 
 All diagnostics pass:
+
 - ✅ `app/admin/(dashboard)/teams/[id]/page.tsx` - No errors
 - ✅ `app/api/admin/teams/[teamId]/members/route.ts` - No errors
 - ✅ `server/trpc.ts` - No errors

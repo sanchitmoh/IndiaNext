@@ -1,6 +1,6 @@
 /**
  * useScrollAnimation Hook
- * 
+ *
  * Hook for scroll-triggered animations using Intersection Observer.
  * Integrates with Framer Motion for smooth animations.
  */
@@ -28,9 +28,7 @@ export interface ScrollAnimationReturn {
 /**
  * Hook for scroll-triggered animations
  */
-export const useScrollAnimation = (
-  options: ScrollAnimationOptions = {}
-): ScrollAnimationReturn => {
+export const useScrollAnimation = (options: ScrollAnimationOptions = {}): ScrollAnimationReturn => {
   const {
     threshold = 0.1,
     rootMargin = '0px 0px -100px 0px',
@@ -54,7 +52,7 @@ export const useScrollAnimation = (
   useEffect(() => {
     const shouldAnimate = isInView && (!once || !hasAnimated);
     const shouldHide = !isInView && !once && hasAnimated;
-    
+
     if (shouldAnimate) {
       // Element entered viewport
       controls.start('visible');

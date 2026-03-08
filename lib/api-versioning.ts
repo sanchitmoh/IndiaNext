@@ -1,6 +1,6 @@
 /**
  * API Versioning System
- * 
+ *
  * Provides version prefix handling and backward compatibility for API routes.
  * All new API routes should use /api/v1/ prefix.
  */

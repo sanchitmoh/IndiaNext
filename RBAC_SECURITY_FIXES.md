@@ -19,6 +19,7 @@ export const canManageUsers = adminProcedure.use(requirePermission('manageUsers'
 ```
 
 **Procedures Updated:**
+
 - `getStats` → uses `canViewAnalytics`
 - `getTeams` → uses `canViewTeams`
 - `getTeamById` → uses `canViewTeams`
@@ -35,6 +36,7 @@ export const canManageUsers = adminProcedure.use(requirePermission('manageUsers'
 - `getActivityLogs` → uses `canManageUsers`
 
 **Benefits:**
+
 - Centralized permission logic
 - Consistent error messages
 - Easier to audit and maintain
@@ -49,16 +51,19 @@ export const canManageUsers = adminProcedure.use(requirePermission('manageUsers'
 **Solution:** Changed from `rateLimitedAdminProcedure` to `canDeleteTeamsRateLimited` which enforces `deleteTeams` permission (SUPER_ADMIN only per `lib/rbac.ts`).
 
 **Before:**
+
 ```typescript
-deleteTeam: rateLimitedAdminProcedure // Any admin could delete
+deleteTeam: rateLimitedAdminProcedure; // Any admin could delete
 ```
 
 **After:**
+
 ```typescript
-deleteTeam: canDeleteTeamsRateLimited // Only SUPER_ADMIN
+deleteTeam: canDeleteTeamsRateLimited; // Only SUPER_ADMIN
 ```
 
 **RBAC Matrix Compliance:**
+
 ```typescript
 // lib/rbac.ts
 deleteTeams: ['SUPER_ADMIN'], // ✅ Now enforced
@@ -70,12 +75,14 @@ deleteTeams: ['SUPER_ADMIN'], // ✅ Now enforced
 
 **Problem:** `removeTag` had zero permission checks - any admin could delete any tag (IDOR risk).
 
-**Solution:** 
+**Solution:**
+
 1. Added `canEditTeamsRateLimited` middleware (requires `editTeams` permission)
 2. Added tag existence verification before deletion
 3. Added team ownership validation
 
 **Before:**
+
 ```typescript
 removeTag: rateLimitedAdminProcedure
   .input(z.object({ tagId: z.string() }))
@@ -86,6 +93,7 @@ removeTag: rateLimitedAdminProcedure
 ```
 
 **After:**
+
 ```typescript
 removeTag: canEditTeamsRateLimited
   .input(z.object({ tagId: z.string() }))
@@ -106,6 +114,7 @@ removeTag: canEditTeamsRateLimited
 ```
 
 **Security Improvements:**
+
 - Permission check via middleware
 - Tag existence validation (prevents 404 errors)
 - Team ownership verification (prevents IDOR)
@@ -120,11 +129,12 @@ removeTag: canEditTeamsRateLimited
 **Solution:** Added dynamic field selection based on role:
 
 **Implementation:**
+
 ```typescript
 getTeams: canViewTeams
   .query(async ({ ctx, input }) => {
     const isJudge = ctx.admin.role === 'JUDGE';
-    
+
     const teams = await ctx.prisma.team.findMany({
       include: {
         members: {
@@ -144,23 +154,24 @@ getTeams: canViewTeams
         // ... other includes
       },
     });
-    
+
     return { teams, totalCount, totalPages, currentPage };
   }),
 ```
 
 **Also Applied To:**
+
 - `getTeamById` - Same PII filtering for individual team view
 
 **Data Exposure Matrix:**
 
-| Field    | JUDGE | ORGANIZER | ADMIN | SUPER_ADMIN |
-|----------|-------|-----------|-------|-------------|
-| name     | ✅    | ✅        | ✅    | ✅          |
-| email    | ❌    | ✅        | ✅    | ✅          |
-| phone    | ❌    | ✅        | ✅    | ✅          |
-| college  | ✅    | ✅        | ✅    | ✅          |
-| avatar   | ✅    | ✅        | ✅    | ✅          |
+| Field   | JUDGE | ORGANIZER | ADMIN | SUPER_ADMIN |
+| ------- | ----- | --------- | ----- | ----------- |
+| name    | ✅    | ✅        | ✅    | ✅          |
+| email   | ❌    | ✅        | ✅    | ✅          |
+| phone   | ❌    | ✅        | ✅    | ✅          |
+| college | ✅    | ✅        | ✅    | ✅          |
+| avatar  | ✅    | ✅        | ✅    | ✅          |
 
 ---
 
@@ -176,16 +187,16 @@ Created a clean, reusable permission system:
 function requirePermission(permission: Permission) {
   return t.middleware(({ ctx, next }) => {
     if (!ctx.adminSession?.admin) {
-      throw new TRPCError({ code: "UNAUTHORIZED" });
+      throw new TRPCError({ code: 'UNAUTHORIZED' });
     }
-    
+
     if (!hasPermission(ctx.adminSession.admin.role, permission)) {
-      throw new TRPCError({ 
-        code: "FORBIDDEN", 
-        message: `Insufficient permissions. Required: ${permission}` 
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+        message: `Insufficient permissions. Required: ${permission}`,
       });
     }
-    
+
     return next({ ctx: { ...ctx, admin: ctx.adminSession.admin } });
   });
 }
@@ -194,6 +205,7 @@ function requirePermission(permission: Permission) {
 ### Rate Limiting
 
 All mutation procedures now use rate limiting:
+
 - `canEditTeamsRateLimited`
 - `canDeleteTeamsRateLimited`
 - `canExportTeamsRateLimited`
@@ -202,6 +214,7 @@ All mutation procedures now use rate limiting:
 ### Error Messages
 
 Consistent, informative error messages:
+
 - `"Insufficient permissions. Required: {permission}"`
 - `"Tag not found"` (instead of generic database error)
 - `"Admin access required"`
@@ -267,6 +280,7 @@ None - all changes are backward compatible. Existing API contracts remain unchan
 ### Rollback Plan
 
 If issues arise, revert both files:
+
 ```bash
 git revert <commit-hash>
 ```
@@ -275,12 +289,12 @@ git revert <commit-hash>
 
 ## Compliance Status
 
-| Issue | Status | Severity | Fix |
-|-------|--------|----------|-----|
-| H-2: Ad-hoc role checks | ✅ Fixed | High | Middleware guards |
-| H-3: deleteTeam permissions | ✅ Fixed | Critical | SUPER_ADMIN only |
-| H-4: removeTag IDOR | ✅ Fixed | Critical | Permission + validation |
-| H-5: PII exposure to JUDGE | ✅ Fixed | High | Dynamic field filtering |
+| Issue                       | Status   | Severity | Fix                     |
+| --------------------------- | -------- | -------- | ----------------------- |
+| H-2: Ad-hoc role checks     | ✅ Fixed | High     | Middleware guards       |
+| H-3: deleteTeam permissions | ✅ Fixed | Critical | SUPER_ADMIN only        |
+| H-4: removeTag IDOR         | ✅ Fixed | Critical | Permission + validation |
+| H-5: PII exposure to JUDGE  | ✅ Fixed | High     | Dynamic field filtering |
 
 **All critical RBAC issues resolved.**
 

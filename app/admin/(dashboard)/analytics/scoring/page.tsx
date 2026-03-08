@@ -1,8 +1,8 @@
 // Scoring Analytics Dashboard — Multi-judge scores, criterion comparison, judge consistency
-"use client";
+'use client';
 
-import { useState, useEffect, useCallback } from "react";
-import Link from "next/link";
+import { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
 import {
   BarChart,
   Bar,
@@ -17,7 +17,7 @@ import {
   PolarRadiusAxis,
   Radar,
   Legend,
-} from "recharts";
+} from 'recharts';
 import {
   Loader2,
   Award,
@@ -29,7 +29,7 @@ import {
   BarChart3,
   Target,
   Scale,
-} from "lucide-react";
+} from 'lucide-react';
 
 interface ScoringAnalytics {
   overview: {
@@ -62,7 +62,7 @@ interface ScoringAnalytics {
     teamsScored: number;
     avgScore: number;
     bias: number;
-    leniency: "lenient" | "strict" | "neutral";
+    leniency: 'lenient' | 'strict' | 'neutral';
     internalStdDev: number;
     scoreRange: { min: number; max: number };
   }[];
@@ -73,34 +73,48 @@ interface ScoringAnalytics {
     teams: { teamName: string; teamId: string; maxDiff: number }[];
   };
   leaderboard: {
-    top: { rank: number; teamId: string; teamName: string; track: string; score: number; judgeCount: number }[];
-    bottom: { rank: number; teamId: string; teamName: string; track: string; score: number; judgeCount: number }[];
+    top: {
+      rank: number;
+      teamId: string;
+      teamName: string;
+      track: string;
+      score: number;
+      judgeCount: number;
+    }[];
+    bottom: {
+      rank: number;
+      teamId: string;
+      teamName: string;
+      track: string;
+      score: number;
+      judgeCount: number;
+    }[];
     total: number;
   };
 }
 
 const _TRACK_COLORS = {
-  IDEA_SPRINT: "#00CCFF",
-  BUILD_STORM: "#FF6600",
+  IDEA_SPRINT: '#00CCFF',
+  BUILD_STORM: '#FF6600',
 };
 
 const LENIENCY_COLORS = {
-  lenient: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
-  strict: "text-red-400 bg-red-500/10 border-red-500/20",
-  neutral: "text-gray-400 bg-white/[0.05] border-white/[0.08]",
+  lenient: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
+  strict: 'text-red-400 bg-red-500/10 border-red-500/20',
+  neutral: 'text-gray-400 bg-white/[0.05] border-white/[0.08]',
 };
 
 export default function ScoringAnalyticsPage() {
   const [data, setData] = useState<ScoringAnalytics | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [trackFilter, setTrackFilter] = useState<string>("");
+  const [trackFilter, setTrackFilter] = useState<string>('');
   const [exporting, setExporting] = useState(false);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const params = trackFilter ? `?track=${trackFilter}` : "";
+      const params = trackFilter ? `?track=${trackFilter}` : '';
       const res = await fetch(`/api/admin/analytics/scoring${params}`);
       const json = await res.json();
       if (json.success) {
@@ -109,7 +123,7 @@ export default function ScoringAnalyticsPage() {
         setError(json.error);
       }
     } catch {
-      setError("Failed to load scoring analytics");
+      setError('Failed to load scoring analytics');
     } finally {
       setLoading(false);
     }
@@ -119,28 +133,28 @@ export default function ScoringAnalyticsPage() {
     fetchData();
   }, [fetchData]);
 
-  const handleExport = async (format: "csv" | "json") => {
+  const handleExport = async (format: 'csv' | 'json') => {
     setExporting(true);
     try {
       const params = new URLSearchParams({ format });
-      if (trackFilter) params.set("track", trackFilter);
+      if (trackFilter) params.set('track', trackFilter);
       const res = await fetch(`/api/admin/teams/export-scores?${params}`);
 
-      if (format === "csv") {
+      if (format === 'csv') {
         const blob = await res.blob();
         const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
+        const a = document.createElement('a');
         a.href = url;
-        a.download = `scores_${trackFilter || "all"}_${new Date().toISOString().split("T")[0]}.csv`;
+        a.download = `scores_${trackFilter || 'all'}_${new Date().toISOString().split('T')[0]}.csv`;
         a.click();
         URL.revokeObjectURL(url);
       } else {
         const json = await res.json();
-        const blob = new Blob([JSON.stringify(json, null, 2)], { type: "application/json" });
+        const blob = new Blob([JSON.stringify(json, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
+        const a = document.createElement('a');
         a.href = url;
-        a.download = `scores_${trackFilter || "all"}_${new Date().toISOString().split("T")[0]}.json`;
+        a.download = `scores_${trackFilter || 'all'}_${new Date().toISOString().split('T')[0]}.json`;
         a.click();
         URL.revokeObjectURL(url);
       }
@@ -162,18 +176,19 @@ export default function ScoringAnalyticsPage() {
   if (error || !data) {
     return (
       <div className="flex items-center justify-center h-64 text-red-400 text-xs font-mono">
-        {error || "No data available"}
+        {error || 'No data available'}
       </div>
     );
   }
 
-  const { overview, scoreDistribution, criterionStats, judgeConsistency, conflicts, leaderboard } = data;
+  const { overview, scoreDistribution, criterionStats, judgeConsistency, conflicts, leaderboard } =
+    data;
 
   // Prepare radar data for criterion comparison
-  const ideaCriteria = criterionStats.filter((c) => c.track === "IDEA_SPRINT");
-  const buildCriteria = criterionStats.filter((c) => c.track === "BUILD_STORM");
-  const radarData = (trackFilter === "BUILD_STORM" ? buildCriteria : ideaCriteria).map((c) => ({
-    criterion: c.name.replace(/&/g, "\n&"),
+  const ideaCriteria = criterionStats.filter((c) => c.track === 'IDEA_SPRINT');
+  const buildCriteria = criterionStats.filter((c) => c.track === 'BUILD_STORM');
+  const radarData = (trackFilter === 'BUILD_STORM' ? buildCriteria : ideaCriteria).map((c) => ({
+    criterion: c.name.replace(/&/g, '\n&'),
     average: c.avgPoints,
     max: c.maxPossible,
   }));
@@ -210,15 +225,15 @@ export default function ScoringAnalyticsPage() {
           </select>
           {/* Export */}
           <button
-            onClick={() => handleExport("csv")}
+            onClick={() => handleExport('csv')}
             disabled={exporting}
             className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-mono font-bold tracking-wider bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-md hover:bg-amber-500/20 transition-all disabled:opacity-50"
           >
             <Download className="h-3 w-3" />
-            {exporting ? "EXPORTING..." : "EXPORT CSV"}
+            {exporting ? 'EXPORTING...' : 'EXPORT CSV'}
           </button>
           <button
-            onClick={() => handleExport("json")}
+            onClick={() => handleExport('json')}
             disabled={exporting}
             className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-mono font-bold tracking-wider bg-white/[0.03] text-gray-400 border border-white/[0.08] rounded-md hover:bg-white/[0.06] transition-all disabled:opacity-50"
           >
@@ -230,11 +245,45 @@ export default function ScoringAnalyticsPage() {
 
       {/* Overview Metrics */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-        <MetricCard label="SCORED" value={`${overview.scoredTeams}/${overview.totalApproved}`} sub={`${overview.scoringProgress}% complete`} icon={<Award className="h-4 w-4" />} color="text-amber-400 bg-amber-500/10 border-amber-500/20" />
-        <MetricCard label="AVG_SCORE" value={overview.avgScore} sub={`median: ${overview.medianScore}`} icon={<TrendingUp className="h-4 w-4" />} color="text-cyan-400 bg-cyan-500/10 border-cyan-500/20" />
-        <MetricCard label="SCORE_RANGE" value={`${overview.minScore} - ${overview.maxScore}`} sub="min / max" icon={<BarChart3 className="h-4 w-4" />} color="text-emerald-400 bg-emerald-500/10 border-emerald-500/20" />
-        <MetricCard label="JUDGES" value={overview.totalJudges} sub={`${overview.unscoredTeams} unscored`} icon={<Users className="h-4 w-4" />} color="text-purple-400 bg-purple-500/10 border-purple-500/20" />
-        <MetricCard label="CONFLICTS" value={conflicts.total} sub={`>${conflicts.threshold}pt diff`} icon={<AlertTriangle className="h-4 w-4" />} color={conflicts.total > 0 ? "text-red-400 bg-red-500/10 border-red-500/20" : "text-gray-400 bg-white/[0.05] border-white/[0.08]"} />
+        <MetricCard
+          label="SCORED"
+          value={`${overview.scoredTeams}/${overview.totalApproved}`}
+          sub={`${overview.scoringProgress}% complete`}
+          icon={<Award className="h-4 w-4" />}
+          color="text-amber-400 bg-amber-500/10 border-amber-500/20"
+        />
+        <MetricCard
+          label="AVG_SCORE"
+          value={overview.avgScore}
+          sub={`median: ${overview.medianScore}`}
+          icon={<TrendingUp className="h-4 w-4" />}
+          color="text-cyan-400 bg-cyan-500/10 border-cyan-500/20"
+        />
+        <MetricCard
+          label="SCORE_RANGE"
+          value={`${overview.minScore} - ${overview.maxScore}`}
+          sub="min / max"
+          icon={<BarChart3 className="h-4 w-4" />}
+          color="text-emerald-400 bg-emerald-500/10 border-emerald-500/20"
+        />
+        <MetricCard
+          label="JUDGES"
+          value={overview.totalJudges}
+          sub={`${overview.unscoredTeams} unscored`}
+          icon={<Users className="h-4 w-4" />}
+          color="text-purple-400 bg-purple-500/10 border-purple-500/20"
+        />
+        <MetricCard
+          label="CONFLICTS"
+          value={conflicts.total}
+          sub={`>${conflicts.threshold}pt diff`}
+          icon={<AlertTriangle className="h-4 w-4" />}
+          color={
+            conflicts.total > 0
+              ? 'text-red-400 bg-red-500/10 border-red-500/20'
+              : 'text-gray-400 bg-white/[0.05] border-white/[0.08]'
+          }
+        />
       </div>
 
       {/* Score Distribution + Criterion Radar */}
@@ -249,22 +298,22 @@ export default function ScoringAnalyticsPage() {
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
               <XAxis
                 dataKey="range"
-                tick={{ fontSize: 9, fontFamily: "monospace", fill: "#6b7280" }}
+                tick={{ fontSize: 9, fontFamily: 'monospace', fill: '#6b7280' }}
                 stroke="rgba(255,255,255,0.06)"
               />
               <YAxis
-                tick={{ fontSize: 10, fontFamily: "monospace", fill: "#6b7280" }}
+                tick={{ fontSize: 10, fontFamily: 'monospace', fill: '#6b7280' }}
                 stroke="rgba(255,255,255,0.06)"
                 allowDecimals={false}
               />
               <Tooltip
                 contentStyle={{
-                  borderRadius: "6px",
-                  border: "1px solid rgba(255,255,255,0.06)",
-                  backgroundColor: "#0D0D0D",
-                  fontSize: "11px",
-                  fontFamily: "monospace",
-                  color: "#d1d5db",
+                  borderRadius: '6px',
+                  border: '1px solid rgba(255,255,255,0.06)',
+                  backgroundColor: '#0D0D0D',
+                  fontSize: '11px',
+                  fontFamily: 'monospace',
+                  color: '#d1d5db',
                 }}
               />
               <Bar dataKey="count" fill="#f59e0b" radius={[4, 4, 0, 0]} name="Teams" />
@@ -275,7 +324,7 @@ export default function ScoringAnalyticsPage() {
         {/* Criterion Radar */}
         <div className="bg-[#0A0A0A] rounded-lg border border-white/[0.06] p-4 md:p-6">
           <h3 className="text-xs font-mono font-bold text-gray-400 tracking-[0.2em] uppercase mb-4">
-            CRITERION_RADAR // {trackFilter || "IDEA_SPRINT"}
+            CRITERION_RADAR // {trackFilter || 'IDEA_SPRINT'}
           </h3>
           {radarData.length > 0 ? (
             <ResponsiveContainer width="100%" height={240}>
@@ -283,16 +332,27 @@ export default function ScoringAnalyticsPage() {
                 <PolarGrid stroke="rgba(255,255,255,0.08)" />
                 <PolarAngleAxis
                   dataKey="criterion"
-                  tick={{ fontSize: 8, fontFamily: "monospace", fill: "#9ca3af" }}
+                  tick={{ fontSize: 8, fontFamily: 'monospace', fill: '#9ca3af' }}
                 />
                 <PolarRadiusAxis
                   angle={30}
                   domain={[0, 10]}
-                  tick={{ fontSize: 8, fontFamily: "monospace", fill: "#6b7280" }}
+                  tick={{ fontSize: 8, fontFamily: 'monospace', fill: '#6b7280' }}
                 />
-                <Radar name="Average" dataKey="average" stroke="#f59e0b" fill="#f59e0b" fillOpacity={0.2} />
-                <Radar name="Max Possible" dataKey="max" stroke="rgba(255,255,255,0.1)" fill="transparent" />
-                <Legend wrapperStyle={{ fontSize: 10, fontFamily: "monospace" }} />
+                <Radar
+                  name="Average"
+                  dataKey="average"
+                  stroke="#f59e0b"
+                  fill="#f59e0b"
+                  fillOpacity={0.2}
+                />
+                <Radar
+                  name="Max Possible"
+                  dataKey="max"
+                  stroke="rgba(255,255,255,0.1)"
+                  fill="transparent"
+                />
+                <Legend wrapperStyle={{ fontSize: 10, fontFamily: 'monospace' }} />
               </RadarChart>
             </ResponsiveContainer>
           ) : (
@@ -327,12 +387,15 @@ export default function ScoringAnalyticsPage() {
             <tbody>
               {criterionStats.map((c) => {
                 const strength = c.maxPossible > 0 ? (c.avgPoints / c.maxPossible) * 100 : 0;
-                const trackColor = c.track === "IDEA_SPRINT" ? "text-cyan-400" : "text-orange-400";
+                const trackColor = c.track === 'IDEA_SPRINT' ? 'text-cyan-400' : 'text-orange-400';
                 return (
-                  <tr key={`${c.track}-${c.criterionId}`} className="border-b border-white/[0.03] hover:bg-white/[0.02]">
+                  <tr
+                    key={`${c.track}-${c.criterionId}`}
+                    className="border-b border-white/[0.03] hover:bg-white/[0.02]"
+                  >
                     <td className="py-2.5 px-3 text-gray-300">{c.name}</td>
                     <td className={`py-2.5 px-3 text-center text-[10px] ${trackColor}`}>
-                      {c.track === "IDEA_SPRINT" ? "IS" : "BS"}
+                      {c.track === 'IDEA_SPRINT' ? 'IS' : 'BS'}
                     </td>
                     <td className="py-2.5 px-3 text-center text-amber-400">{c.weight}%</td>
                     <td className="py-2.5 px-3 text-center text-white font-bold">{c.avgPoints}</td>
@@ -348,7 +411,9 @@ export default function ScoringAnalyticsPage() {
                             style={{ width: `${strength}%` }}
                           />
                         </div>
-                        <span className="text-gray-400 w-8 text-right">{Math.round(strength)}%</span>
+                        <span className="text-gray-400 w-8 text-right">
+                          {Math.round(strength)}%
+                        </span>
                       </div>
                     </td>
                   </tr>
@@ -379,10 +444,15 @@ export default function ScoringAnalyticsPage() {
                 <span className="text-sm font-mono font-bold text-amber-400">{data.grandMean}</span>
               </div>
               {judgeConsistency.map((judge) => (
-                <div key={judge.judgeId} className="p-3 bg-white/[0.02] border border-white/[0.04] rounded-lg">
+                <div
+                  key={judge.judgeId}
+                  className="p-3 bg-white/[0.02] border border-white/[0.04] rounded-lg"
+                >
                   <div className="flex items-center justify-between mb-2">
                     <div>
-                      <span className="text-sm font-mono font-bold text-gray-200">{judge.judgeName}</span>
+                      <span className="text-sm font-mono font-bold text-gray-200">
+                        {judge.judgeName}
+                      </span>
                       <span className="text-[10px] font-mono text-gray-500 ml-2">
                         ({judge.teamsScored} teams)
                       </span>
@@ -395,23 +465,34 @@ export default function ScoringAnalyticsPage() {
                   </div>
                   <div className="grid grid-cols-3 gap-2 text-[10px] font-mono">
                     <div>
-                      <span className="text-gray-500">Avg:</span>{" "}
+                      <span className="text-gray-500">Avg:</span>{' '}
                       <span className="text-cyan-400">{judge.avgScore}</span>
                     </div>
                     <div>
-                      <span className="text-gray-500">Bias:</span>{" "}
-                      <span className={judge.bias > 0 ? "text-emerald-400" : judge.bias < 0 ? "text-red-400" : "text-gray-400"}>
-                        {judge.bias > 0 ? "+" : ""}{judge.bias}
+                      <span className="text-gray-500">Bias:</span>{' '}
+                      <span
+                        className={
+                          judge.bias > 0
+                            ? 'text-emerald-400'
+                            : judge.bias < 0
+                              ? 'text-red-400'
+                              : 'text-gray-400'
+                        }
+                      >
+                        {judge.bias > 0 ? '+' : ''}
+                        {judge.bias}
                       </span>
                     </div>
                     <div>
-                      <span className="text-gray-500">σ:</span>{" "}
+                      <span className="text-gray-500">σ:</span>{' '}
                       <span className="text-gray-400">{judge.internalStdDev}</span>
                     </div>
                   </div>
                   {/* Score range bar */}
                   <div className="mt-2 flex items-center gap-2">
-                    <span className="text-[9px] font-mono text-gray-600">{judge.scoreRange.min}</span>
+                    <span className="text-[9px] font-mono text-gray-600">
+                      {judge.scoreRange.min}
+                    </span>
                     <div className="flex-1 bg-white/[0.05] rounded-full h-1.5 relative">
                       <div
                         className="absolute h-1.5 rounded-full bg-purple-400/40"
@@ -425,7 +506,9 @@ export default function ScoringAnalyticsPage() {
                         style={{ left: `${judge.avgScore}%` }}
                       />
                     </div>
-                    <span className="text-[9px] font-mono text-gray-600">{judge.scoreRange.max}</span>
+                    <span className="text-[9px] font-mono text-gray-600">
+                      {judge.scoreRange.max}
+                    </span>
                   </div>
                 </div>
               ))}
@@ -444,7 +527,9 @@ export default function ScoringAnalyticsPage() {
               <div className="text-center">
                 <div className="text-3xl mb-2">✓</div>
                 <p className="text-xs font-mono text-emerald-400">NO CONFLICTS DETECTED</p>
-                <p className="text-[10px] font-mono text-gray-600 mt-1">All scores within {conflicts.threshold}pt threshold</p>
+                <p className="text-[10px] font-mono text-gray-600 mt-1">
+                  All scores within {conflicts.threshold}pt threshold
+                </p>
               </div>
             </div>
           ) : (
@@ -488,21 +573,29 @@ export default function ScoringAnalyticsPage() {
                 href={`/admin/teams/${team.teamId}`}
                 className="flex items-center gap-3 p-2 rounded-md hover:bg-white/[0.03] transition-all group"
               >
-                <span className={`text-sm font-mono font-bold w-6 text-center ${
-                  team.rank <= 3 ? "text-amber-400" : "text-gray-500"
-                }`}>
+                <span
+                  className={`text-sm font-mono font-bold w-6 text-center ${
+                    team.rank <= 3 ? 'text-amber-400' : 'text-gray-500'
+                  }`}
+                >
                   #{team.rank}
                 </span>
                 <span className="text-xs font-mono text-gray-300 flex-1 group-hover:text-white truncate">
                   {team.teamName}
                 </span>
-                <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded ${
-                  team.track === "IDEA_SPRINT" ? "text-cyan-400 bg-cyan-500/10" : "text-orange-400 bg-orange-500/10"
-                }`}>
-                  {team.track === "IDEA_SPRINT" ? "IS" : "BS"}
+                <span
+                  className={`text-[9px] font-mono px-1.5 py-0.5 rounded ${
+                    team.track === 'IDEA_SPRINT'
+                      ? 'text-cyan-400 bg-cyan-500/10'
+                      : 'text-orange-400 bg-orange-500/10'
+                  }`}
+                >
+                  {team.track === 'IDEA_SPRINT' ? 'IS' : 'BS'}
                 </span>
                 <span className="text-xs font-mono text-gray-500">{team.judgeCount}J</span>
-                <span className="text-sm font-mono font-bold text-emerald-400 w-12 text-right">{team.score}</span>
+                <span className="text-sm font-mono font-bold text-emerald-400 w-12 text-right">
+                  {team.score}
+                </span>
               </Link>
             ))}
           </div>
@@ -527,13 +620,19 @@ export default function ScoringAnalyticsPage() {
                 <span className="text-xs font-mono text-gray-400 flex-1 group-hover:text-white truncate">
                   {team.teamName}
                 </span>
-                <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded ${
-                  team.track === "IDEA_SPRINT" ? "text-cyan-400 bg-cyan-500/10" : "text-orange-400 bg-orange-500/10"
-                }`}>
-                  {team.track === "IDEA_SPRINT" ? "IS" : "BS"}
+                <span
+                  className={`text-[9px] font-mono px-1.5 py-0.5 rounded ${
+                    team.track === 'IDEA_SPRINT'
+                      ? 'text-cyan-400 bg-cyan-500/10'
+                      : 'text-orange-400 bg-orange-500/10'
+                  }`}
+                >
+                  {team.track === 'IDEA_SPRINT' ? 'IS' : 'BS'}
                 </span>
                 <span className="text-xs font-mono text-gray-500">{team.judgeCount}J</span>
-                <span className="text-sm font-mono font-bold text-red-400 w-12 text-right">{team.score}</span>
+                <span className="text-sm font-mono font-bold text-red-400 w-12 text-right">
+                  {team.score}
+                </span>
               </Link>
             ))}
           </div>
@@ -582,11 +681,11 @@ function MetricCard({
 }) {
   return (
     <div className="bg-[#0A0A0A] rounded-lg border border-white/[0.06] p-3 md:p-4">
-      <div className={`inline-flex p-1.5 rounded-md border ${color} mb-2`}>
-        {icon}
-      </div>
+      <div className={`inline-flex p-1.5 rounded-md border ${color} mb-2`}>{icon}</div>
       <div className="text-base md:text-lg font-mono font-bold text-white">{value}</div>
-      <div className="text-[9px] font-mono font-bold text-gray-500 tracking-[0.15em] uppercase mt-0.5">{label}</div>
+      <div className="text-[9px] font-mono font-bold text-gray-500 tracking-[0.15em] uppercase mt-0.5">
+        {label}
+      </div>
       <div className="text-[9px] font-mono text-gray-600 mt-0.5">{sub}</div>
     </div>
   );

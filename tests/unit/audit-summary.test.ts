@@ -1,13 +1,13 @@
 /**
  * Unit Tests: Audit Summary Statistics Calculation
- * 
+ *
  * Tests the calculateSummary function to ensure it correctly:
  * - Calculates total edits (count distinct submissionIds)
  * - Finds last edit date (max timestamp)
  * - Finds most active user (user with most audit log entries)
  * - Finds top changed fields (fields ordered by change frequency)
  * - Returns null values for teams with no audit logs
- * 
+ *
  * Requirements: US-7.1, US-7.2, US-7.3, US-7.4
  */
 
@@ -112,10 +112,54 @@ describe('Audit Summary Statistics', () => {
 
   it('should calculate total edits as count of distinct submissionIds', () => {
     const logs = [
-      { submissionId: 'sub-1', userId: 'user-1', fieldName: 'teamName', timestamp: new Date('2024-01-01'), user: { id: 'user-1', name: 'User 1', email: 'user1@test.com', teamMemberships: [{ role: 'LEADER' }] } },
-      { submissionId: 'sub-1', userId: 'user-1', fieldName: 'ideaTitle', timestamp: new Date('2024-01-01'), user: { id: 'user-1', name: 'User 1', email: 'user1@test.com', teamMemberships: [{ role: 'LEADER' }] } },
-      { submissionId: 'sub-2', userId: 'user-2', fieldName: 'teamName', timestamp: new Date('2024-01-02'), user: { id: 'user-2', name: 'User 2', email: 'user2@test.com', teamMemberships: [{ role: 'MEMBER' }] } },
-      { submissionId: 'sub-3', userId: 'user-1', fieldName: 'problemStatement', timestamp: new Date('2024-01-03'), user: { id: 'user-1', name: 'User 1', email: 'user1@test.com', teamMemberships: [{ role: 'LEADER' }] } },
+      {
+        submissionId: 'sub-1',
+        userId: 'user-1',
+        fieldName: 'teamName',
+        timestamp: new Date('2024-01-01'),
+        user: {
+          id: 'user-1',
+          name: 'User 1',
+          email: 'user1@test.com',
+          teamMemberships: [{ role: 'LEADER' }],
+        },
+      },
+      {
+        submissionId: 'sub-1',
+        userId: 'user-1',
+        fieldName: 'ideaTitle',
+        timestamp: new Date('2024-01-01'),
+        user: {
+          id: 'user-1',
+          name: 'User 1',
+          email: 'user1@test.com',
+          teamMemberships: [{ role: 'LEADER' }],
+        },
+      },
+      {
+        submissionId: 'sub-2',
+        userId: 'user-2',
+        fieldName: 'teamName',
+        timestamp: new Date('2024-01-02'),
+        user: {
+          id: 'user-2',
+          name: 'User 2',
+          email: 'user2@test.com',
+          teamMemberships: [{ role: 'MEMBER' }],
+        },
+      },
+      {
+        submissionId: 'sub-3',
+        userId: 'user-1',
+        fieldName: 'problemStatement',
+        timestamp: new Date('2024-01-03'),
+        user: {
+          id: 'user-1',
+          name: 'User 1',
+          email: 'user1@test.com',
+          teamMemberships: [{ role: 'LEADER' }],
+        },
+      },
     ];
 
     const summary = calculateSummary(logs);
@@ -130,9 +174,42 @@ describe('Audit Summary Statistics', () => {
     const date3 = new Date('2024-01-03T08:45:00Z');
 
     const logs = [
-      { submissionId: 'sub-1', userId: 'user-1', fieldName: 'teamName', timestamp: date1, user: { id: 'user-1', name: 'User 1', email: 'user1@test.com', teamMemberships: [{ role: 'LEADER' }] } },
-      { submissionId: 'sub-2', userId: 'user-1', fieldName: 'ideaTitle', timestamp: date3, user: { id: 'user-1', name: 'User 1', email: 'user1@test.com', teamMemberships: [{ role: 'LEADER' }] } },
-      { submissionId: 'sub-3', userId: 'user-1', fieldName: 'problemStatement', timestamp: date2, user: { id: 'user-1', name: 'User 1', email: 'user1@test.com', teamMemberships: [{ role: 'LEADER' }] } },
+      {
+        submissionId: 'sub-1',
+        userId: 'user-1',
+        fieldName: 'teamName',
+        timestamp: date1,
+        user: {
+          id: 'user-1',
+          name: 'User 1',
+          email: 'user1@test.com',
+          teamMemberships: [{ role: 'LEADER' }],
+        },
+      },
+      {
+        submissionId: 'sub-2',
+        userId: 'user-1',
+        fieldName: 'ideaTitle',
+        timestamp: date3,
+        user: {
+          id: 'user-1',
+          name: 'User 1',
+          email: 'user1@test.com',
+          teamMemberships: [{ role: 'LEADER' }],
+        },
+      },
+      {
+        submissionId: 'sub-3',
+        userId: 'user-1',
+        fieldName: 'problemStatement',
+        timestamp: date2,
+        user: {
+          id: 'user-1',
+          name: 'User 1',
+          email: 'user1@test.com',
+          teamMemberships: [{ role: 'LEADER' }],
+        },
+      },
     ];
 
     const summary = calculateSummary(logs);
@@ -143,11 +220,66 @@ describe('Audit Summary Statistics', () => {
 
   it('should find most active user as user with most audit log entries', () => {
     const logs = [
-      { submissionId: 'sub-1', userId: 'user-1', fieldName: 'teamName', timestamp: new Date('2024-01-01'), user: { id: 'user-1', name: 'Alice', email: 'alice@test.com', teamMemberships: [{ role: 'LEADER' }] } },
-      { submissionId: 'sub-1', userId: 'user-1', fieldName: 'ideaTitle', timestamp: new Date('2024-01-01'), user: { id: 'user-1', name: 'Alice', email: 'alice@test.com', teamMemberships: [{ role: 'LEADER' }] } },
-      { submissionId: 'sub-1', userId: 'user-1', fieldName: 'problemStatement', timestamp: new Date('2024-01-01'), user: { id: 'user-1', name: 'Alice', email: 'alice@test.com', teamMemberships: [{ role: 'LEADER' }] } },
-      { submissionId: 'sub-2', userId: 'user-2', fieldName: 'teamName', timestamp: new Date('2024-01-02'), user: { id: 'user-2', name: 'Bob', email: 'bob@test.com', teamMemberships: [{ role: 'MEMBER' }] } },
-      { submissionId: 'sub-2', userId: 'user-2', fieldName: 'ideaTitle', timestamp: new Date('2024-01-02'), user: { id: 'user-2', name: 'Bob', email: 'bob@test.com', teamMemberships: [{ role: 'MEMBER' }] } },
+      {
+        submissionId: 'sub-1',
+        userId: 'user-1',
+        fieldName: 'teamName',
+        timestamp: new Date('2024-01-01'),
+        user: {
+          id: 'user-1',
+          name: 'Alice',
+          email: 'alice@test.com',
+          teamMemberships: [{ role: 'LEADER' }],
+        },
+      },
+      {
+        submissionId: 'sub-1',
+        userId: 'user-1',
+        fieldName: 'ideaTitle',
+        timestamp: new Date('2024-01-01'),
+        user: {
+          id: 'user-1',
+          name: 'Alice',
+          email: 'alice@test.com',
+          teamMemberships: [{ role: 'LEADER' }],
+        },
+      },
+      {
+        submissionId: 'sub-1',
+        userId: 'user-1',
+        fieldName: 'problemStatement',
+        timestamp: new Date('2024-01-01'),
+        user: {
+          id: 'user-1',
+          name: 'Alice',
+          email: 'alice@test.com',
+          teamMemberships: [{ role: 'LEADER' }],
+        },
+      },
+      {
+        submissionId: 'sub-2',
+        userId: 'user-2',
+        fieldName: 'teamName',
+        timestamp: new Date('2024-01-02'),
+        user: {
+          id: 'user-2',
+          name: 'Bob',
+          email: 'bob@test.com',
+          teamMemberships: [{ role: 'MEMBER' }],
+        },
+      },
+      {
+        submissionId: 'sub-2',
+        userId: 'user-2',
+        fieldName: 'ideaTitle',
+        timestamp: new Date('2024-01-02'),
+        user: {
+          id: 'user-2',
+          name: 'Bob',
+          email: 'bob@test.com',
+          teamMemberships: [{ role: 'MEMBER' }],
+        },
+      },
     ];
 
     const summary = calculateSummary(logs);
@@ -163,12 +295,78 @@ describe('Audit Summary Statistics', () => {
 
   it('should find top changed fields ordered by change frequency', () => {
     const logs = [
-      { submissionId: 'sub-1', userId: 'user-1', fieldName: 'teamName', timestamp: new Date('2024-01-01'), user: { id: 'user-1', name: 'User 1', email: 'user1@test.com', teamMemberships: [{ role: 'LEADER' }] } },
-      { submissionId: 'sub-1', userId: 'user-1', fieldName: 'teamName', timestamp: new Date('2024-01-01'), user: { id: 'user-1', name: 'User 1', email: 'user1@test.com', teamMemberships: [{ role: 'LEADER' }] } },
-      { submissionId: 'sub-1', userId: 'user-1', fieldName: 'teamName', timestamp: new Date('2024-01-01'), user: { id: 'user-1', name: 'User 1', email: 'user1@test.com', teamMemberships: [{ role: 'LEADER' }] } },
-      { submissionId: 'sub-2', userId: 'user-1', fieldName: 'ideaTitle', timestamp: new Date('2024-01-02'), user: { id: 'user-1', name: 'User 1', email: 'user1@test.com', teamMemberships: [{ role: 'LEADER' }] } },
-      { submissionId: 'sub-2', userId: 'user-1', fieldName: 'ideaTitle', timestamp: new Date('2024-01-02'), user: { id: 'user-1', name: 'User 1', email: 'user1@test.com', teamMemberships: [{ role: 'LEADER' }] } },
-      { submissionId: 'sub-3', userId: 'user-1', fieldName: 'problemStatement', timestamp: new Date('2024-01-03'), user: { id: 'user-1', name: 'User 1', email: 'user1@test.com', teamMemberships: [{ role: 'LEADER' }] } },
+      {
+        submissionId: 'sub-1',
+        userId: 'user-1',
+        fieldName: 'teamName',
+        timestamp: new Date('2024-01-01'),
+        user: {
+          id: 'user-1',
+          name: 'User 1',
+          email: 'user1@test.com',
+          teamMemberships: [{ role: 'LEADER' }],
+        },
+      },
+      {
+        submissionId: 'sub-1',
+        userId: 'user-1',
+        fieldName: 'teamName',
+        timestamp: new Date('2024-01-01'),
+        user: {
+          id: 'user-1',
+          name: 'User 1',
+          email: 'user1@test.com',
+          teamMemberships: [{ role: 'LEADER' }],
+        },
+      },
+      {
+        submissionId: 'sub-1',
+        userId: 'user-1',
+        fieldName: 'teamName',
+        timestamp: new Date('2024-01-01'),
+        user: {
+          id: 'user-1',
+          name: 'User 1',
+          email: 'user1@test.com',
+          teamMemberships: [{ role: 'LEADER' }],
+        },
+      },
+      {
+        submissionId: 'sub-2',
+        userId: 'user-1',
+        fieldName: 'ideaTitle',
+        timestamp: new Date('2024-01-02'),
+        user: {
+          id: 'user-1',
+          name: 'User 1',
+          email: 'user1@test.com',
+          teamMemberships: [{ role: 'LEADER' }],
+        },
+      },
+      {
+        submissionId: 'sub-2',
+        userId: 'user-1',
+        fieldName: 'ideaTitle',
+        timestamp: new Date('2024-01-02'),
+        user: {
+          id: 'user-1',
+          name: 'User 1',
+          email: 'user1@test.com',
+          teamMemberships: [{ role: 'LEADER' }],
+        },
+      },
+      {
+        submissionId: 'sub-3',
+        userId: 'user-1',
+        fieldName: 'problemStatement',
+        timestamp: new Date('2024-01-03'),
+        user: {
+          id: 'user-1',
+          name: 'User 1',
+          email: 'user1@test.com',
+          teamMemberships: [{ role: 'LEADER' }],
+        },
+      },
     ];
 
     const summary = calculateSummary(logs);
@@ -182,13 +380,90 @@ describe('Audit Summary Statistics', () => {
 
   it('should limit top changed fields to 5', () => {
     const logs = [
-      { submissionId: 'sub-1', userId: 'user-1', fieldName: 'field1', timestamp: new Date('2024-01-01'), user: { id: 'user-1', name: 'User 1', email: 'user1@test.com', teamMemberships: [{ role: 'LEADER' }] } },
-      { submissionId: 'sub-1', userId: 'user-1', fieldName: 'field2', timestamp: new Date('2024-01-01'), user: { id: 'user-1', name: 'User 1', email: 'user1@test.com', teamMemberships: [{ role: 'LEADER' }] } },
-      { submissionId: 'sub-1', userId: 'user-1', fieldName: 'field3', timestamp: new Date('2024-01-01'), user: { id: 'user-1', name: 'User 1', email: 'user1@test.com', teamMemberships: [{ role: 'LEADER' }] } },
-      { submissionId: 'sub-1', userId: 'user-1', fieldName: 'field4', timestamp: new Date('2024-01-01'), user: { id: 'user-1', name: 'User 1', email: 'user1@test.com', teamMemberships: [{ role: 'LEADER' }] } },
-      { submissionId: 'sub-1', userId: 'user-1', fieldName: 'field5', timestamp: new Date('2024-01-01'), user: { id: 'user-1', name: 'User 1', email: 'user1@test.com', teamMemberships: [{ role: 'LEADER' }] } },
-      { submissionId: 'sub-1', userId: 'user-1', fieldName: 'field6', timestamp: new Date('2024-01-01'), user: { id: 'user-1', name: 'User 1', email: 'user1@test.com', teamMemberships: [{ role: 'LEADER' }] } },
-      { submissionId: 'sub-1', userId: 'user-1', fieldName: 'field7', timestamp: new Date('2024-01-01'), user: { id: 'user-1', name: 'User 1', email: 'user1@test.com', teamMemberships: [{ role: 'LEADER' }] } },
+      {
+        submissionId: 'sub-1',
+        userId: 'user-1',
+        fieldName: 'field1',
+        timestamp: new Date('2024-01-01'),
+        user: {
+          id: 'user-1',
+          name: 'User 1',
+          email: 'user1@test.com',
+          teamMemberships: [{ role: 'LEADER' }],
+        },
+      },
+      {
+        submissionId: 'sub-1',
+        userId: 'user-1',
+        fieldName: 'field2',
+        timestamp: new Date('2024-01-01'),
+        user: {
+          id: 'user-1',
+          name: 'User 1',
+          email: 'user1@test.com',
+          teamMemberships: [{ role: 'LEADER' }],
+        },
+      },
+      {
+        submissionId: 'sub-1',
+        userId: 'user-1',
+        fieldName: 'field3',
+        timestamp: new Date('2024-01-01'),
+        user: {
+          id: 'user-1',
+          name: 'User 1',
+          email: 'user1@test.com',
+          teamMemberships: [{ role: 'LEADER' }],
+        },
+      },
+      {
+        submissionId: 'sub-1',
+        userId: 'user-1',
+        fieldName: 'field4',
+        timestamp: new Date('2024-01-01'),
+        user: {
+          id: 'user-1',
+          name: 'User 1',
+          email: 'user1@test.com',
+          teamMemberships: [{ role: 'LEADER' }],
+        },
+      },
+      {
+        submissionId: 'sub-1',
+        userId: 'user-1',
+        fieldName: 'field5',
+        timestamp: new Date('2024-01-01'),
+        user: {
+          id: 'user-1',
+          name: 'User 1',
+          email: 'user1@test.com',
+          teamMemberships: [{ role: 'LEADER' }],
+        },
+      },
+      {
+        submissionId: 'sub-1',
+        userId: 'user-1',
+        fieldName: 'field6',
+        timestamp: new Date('2024-01-01'),
+        user: {
+          id: 'user-1',
+          name: 'User 1',
+          email: 'user1@test.com',
+          teamMemberships: [{ role: 'LEADER' }],
+        },
+      },
+      {
+        submissionId: 'sub-1',
+        userId: 'user-1',
+        fieldName: 'field7',
+        timestamp: new Date('2024-01-01'),
+        user: {
+          id: 'user-1',
+          name: 'User 1',
+          email: 'user1@test.com',
+          teamMemberships: [{ role: 'LEADER' }],
+        },
+      },
     ];
 
     const summary = calculateSummary(logs);
@@ -200,17 +475,17 @@ describe('Audit Summary Statistics', () => {
   it('should handle single audit log entry correctly', () => {
     const date = new Date('2024-01-01T10:00:00Z');
     const logs = [
-      { 
-        submissionId: 'sub-1', 
-        userId: 'user-1', 
-        fieldName: 'teamName', 
-        timestamp: date, 
-        user: { 
-          id: 'user-1', 
-          name: 'Alice', 
-          email: 'alice@test.com', 
-          teamMemberships: [{ role: 'LEADER' }] 
-        } 
+      {
+        submissionId: 'sub-1',
+        userId: 'user-1',
+        fieldName: 'teamName',
+        timestamp: date,
+        user: {
+          id: 'user-1',
+          name: 'Alice',
+          email: 'alice@test.com',
+          teamMemberships: [{ role: 'LEADER' }],
+        },
       },
     ];
 
@@ -226,17 +501,17 @@ describe('Audit Summary Statistics', () => {
 
   it('should handle user with no team membership role', () => {
     const logs = [
-      { 
-        submissionId: 'sub-1', 
-        userId: 'user-1', 
-        fieldName: 'teamName', 
-        timestamp: new Date('2024-01-01'), 
-        user: { 
-          id: 'user-1', 
-          name: 'Alice', 
-          email: 'alice@test.com', 
-          teamMemberships: [] // No membership
-        } 
+      {
+        submissionId: 'sub-1',
+        userId: 'user-1',
+        fieldName: 'teamName',
+        timestamp: new Date('2024-01-01'),
+        user: {
+          id: 'user-1',
+          name: 'Alice',
+          email: 'alice@test.com',
+          teamMemberships: [], // No membership
+        },
       },
     ];
 
@@ -248,9 +523,42 @@ describe('Audit Summary Statistics', () => {
 
   it('should correctly count when same field is changed in different submissions', () => {
     const logs = [
-      { submissionId: 'sub-1', userId: 'user-1', fieldName: 'teamName', timestamp: new Date('2024-01-01'), user: { id: 'user-1', name: 'User 1', email: 'user1@test.com', teamMemberships: [{ role: 'LEADER' }] } },
-      { submissionId: 'sub-2', userId: 'user-1', fieldName: 'teamName', timestamp: new Date('2024-01-02'), user: { id: 'user-1', name: 'User 1', email: 'user1@test.com', teamMemberships: [{ role: 'LEADER' }] } },
-      { submissionId: 'sub-3', userId: 'user-1', fieldName: 'teamName', timestamp: new Date('2024-01-03'), user: { id: 'user-1', name: 'User 1', email: 'user1@test.com', teamMemberships: [{ role: 'LEADER' }] } },
+      {
+        submissionId: 'sub-1',
+        userId: 'user-1',
+        fieldName: 'teamName',
+        timestamp: new Date('2024-01-01'),
+        user: {
+          id: 'user-1',
+          name: 'User 1',
+          email: 'user1@test.com',
+          teamMemberships: [{ role: 'LEADER' }],
+        },
+      },
+      {
+        submissionId: 'sub-2',
+        userId: 'user-1',
+        fieldName: 'teamName',
+        timestamp: new Date('2024-01-02'),
+        user: {
+          id: 'user-1',
+          name: 'User 1',
+          email: 'user1@test.com',
+          teamMemberships: [{ role: 'LEADER' }],
+        },
+      },
+      {
+        submissionId: 'sub-3',
+        userId: 'user-1',
+        fieldName: 'teamName',
+        timestamp: new Date('2024-01-03'),
+        user: {
+          id: 'user-1',
+          name: 'User 1',
+          email: 'user1@test.com',
+          teamMemberships: [{ role: 'LEADER' }],
+        },
+      },
     ];
 
     const summary = calculateSummary(logs);

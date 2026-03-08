@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { FileText } from "lucide-react";
-import { ChangeCard } from "./ChangeCard";
+import { FileText } from 'lucide-react';
+import { ChangeCard } from './ChangeCard';
 
 // ── Types ──────────────────────────────────────────────────
 
@@ -9,7 +9,7 @@ interface AuditLogEntry {
   id: string;
   submissionId: string;
   timestamp: Date | string;
-  action: "CREATE" | "UPDATE" | "DELETE";
+  action: 'CREATE' | 'UPDATE' | 'DELETE';
   fieldName: string;
   oldValue: string | null;
   newValue: string | null;
@@ -17,7 +17,7 @@ interface AuditLogEntry {
     id: string;
     name: string;
     email: string;
-    role: "LEADER" | "CO_LEADER" | "MEMBER";
+    role: 'LEADER' | 'CO_LEADER' | 'MEMBER';
   };
   ipAddress: string | null;
   userAgent: string | null;
@@ -60,7 +60,7 @@ export function AuditTimeline({ logs, loading }: AuditTimelineProps) {
               </div>
               <div className="h-3 w-24 bg-white/[0.04] rounded animate-pulse"></div>
             </div>
-            
+
             {/* Changes skeleton */}
             <div className="space-y-3">
               <div className="h-3 bg-white/[0.04] rounded w-1/4 animate-pulse"></div>
@@ -89,7 +89,8 @@ export function AuditTimeline({ logs, loading }: AuditTimelineProps) {
           NO CHANGES RECORDED YET
         </p>
         <p className="text-[10px] font-mono text-gray-700 mt-2 max-w-md mx-auto">
-          This team has not edited their registration. Changes will appear here when team members update their information.
+          This team has not edited their registration. Changes will appear here when team members
+          update their information.
         </p>
         <div className="mt-4 pt-4 border-t border-white/[0.04]">
           <p className="text-[9px] font-mono text-gray-700 uppercase tracking-wider">
@@ -121,9 +122,7 @@ export function AuditTimeline({ logs, loading }: AuditTimelineProps) {
         <span className="text-[9px] font-mono font-bold text-gray-500 tracking-[0.3em] uppercase">
           CHANGE_HISTORY
         </span>
-        <span className="text-[9px] font-mono text-gray-600">
-          ({logs.length} changes)
-        </span>
+        <span className="text-[9px] font-mono text-gray-600">({logs.length} changes)</span>
       </div>
 
       {/* Group logs by submissionId */}

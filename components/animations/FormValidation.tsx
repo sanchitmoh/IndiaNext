@@ -1,6 +1,6 @@
 /**
  * FormValidation Component
- * 
+ *
  * Form validation animations for error and success feedback.
  * Provides visual feedback with shake and slide animations.
  */

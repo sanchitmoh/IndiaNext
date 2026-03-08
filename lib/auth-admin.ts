@@ -28,7 +28,7 @@ const ROLE_HIERARCHY: Record<UserRole, number> = {
   PARTICIPANT: 0,
   ORGANIZER: 1,
   JUDGE: 2,
-  LOGISTICS: 2,  // Same level as JUDGE — event-day role
+  LOGISTICS: 2, // Same level as JUDGE — event-day role
   ADMIN: 3,
   SUPER_ADMIN: 4,
 };

@@ -1,9 +1,9 @@
 /**
  * Property-Based Test for Audit Trail Export Filename Format
- * 
+ *
  * Feature: admin-audit-trail, Property 8: Export Filename Format
  * **Validates: Requirements US-6.3**
- * 
+ *
  * This test verifies that export filenames follow the pattern:
  * audit_[sanitizedTeamName]_[YYYY-MM-DD].csv
  * where sanitizedTeamName contains only alphanumeric characters and underscores.
@@ -101,21 +101,14 @@ function teamNameGenerator() {
       'Team 日本語'
     ),
     // Mixed alphanumeric
-    fc.constantFrom(
-      'Team123',
-      '123Team',
-      'Team_123',
-      'Team-123',
-      'TEAM_NAME_123',
-      'team_name_123'
-    ),
+    fc.constantFrom('Team123', '123Team', 'Team_123', 'Team-123', 'TEAM_NAME_123', 'team_name_123'),
     // Edge cases
     fc.constantFrom(
       'A', // Very short
       'A'.repeat(100), // Very long
       '!!!', // Only special chars
       '   ', // Only spaces
-      '123', // Only numbers
+      '123' // Only numbers
     )
   );
 }
@@ -138,7 +131,7 @@ describe('Audit Trail Export API - Property 8: Export Filename Format', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     // Setup default mocks
     (prisma.adminSession.findUnique as any).mockResolvedValue(mockAdminSession as any);
     (prisma.auditLog.findMany as any).mockResolvedValue([] as any);
@@ -146,107 +139,101 @@ describe('Audit Trail Export API - Property 8: Export Filename Format', () => {
 
   it('should follow pattern audit_[sanitizedTeamName]_[YYYY-MM-DD].csv', async () => {
     await fc.assert(
-      fc.asyncProperty(
-        teamNameGenerator(),
-        async (teamName) => {
-          // Mock team with generated name
-          const mockTeam = {
-            id: testTeamId,
-            name: teamName,
-          };
-          (prisma.team.findUnique as any).mockResolvedValue(mockTeam as any);
+      fc.asyncProperty(teamNameGenerator(), async (teamName) => {
+        // Mock team with generated name
+        const mockTeam = {
+          id: testTeamId,
+          name: teamName,
+        };
+        (prisma.team.findUnique as any).mockResolvedValue(mockTeam as any);
 
-          // Fetch export via API endpoint
-          const req = new Request(`http://localhost/api/admin/teams/${testTeamId}/audit/export`);
-          const response = await GET(req, { params: { teamId: testTeamId } });
+        // Fetch export via API endpoint
+        const req = new Request(`http://localhost/api/admin/teams/${testTeamId}/audit/export`);
+        const response = await GET(req, { params: { teamId: testTeamId } });
 
-          // Verify response is successful
-          expect(response.status).toBe(200);
+        // Verify response is successful
+        expect(response.status).toBe(200);
 
-          // Extract filename from Content-Disposition header
-          const contentDisposition = response.headers.get('Content-Disposition');
-          expect(contentDisposition).toBeTruthy();
-          
-          const filenameMatch = contentDisposition!.match(/filename="(.+)"/);
-          expect(filenameMatch).toBeTruthy();
-          
-          const filename = filenameMatch![1];
+        // Extract filename from Content-Disposition header
+        const contentDisposition = response.headers.get('Content-Disposition');
+        expect(contentDisposition).toBeTruthy();
 
-          // Verify filename matches pattern: audit_[sanitizedTeamName]_[YYYY-MM-DD].csv
-          // Note: sanitizedTeamName can be empty if original name had no alphanumeric chars
-          const filenamePattern = /^audit_([a-zA-Z0-9_]*)_(\d{4}-\d{2}-\d{2})\.csv$/;
-          expect(filename).toMatch(filenamePattern);
+        const filenameMatch = contentDisposition!.match(/filename="(.+)"/);
+        expect(filenameMatch).toBeTruthy();
 
-          // Extract parts
-          const match = filename.match(filenamePattern);
-          expect(match).toBeTruthy();
-          
-          const sanitizedTeamName = match![1];
-          const dateStr = match![2];
+        const filename = filenameMatch![1];
 
-          // Verify sanitizedTeamName contains only alphanumeric and underscores (or is empty)
-          if (sanitizedTeamName.length > 0) {
-            expect(sanitizedTeamName).toMatch(/^[a-zA-Z0-9_]+$/);
-          }
-          // Verify date format is valid YYYY-MM-DD
-          const datePattern = /^\d{4}-\d{2}-\d{2}$/;
-          expect(dateStr).toMatch(datePattern);
+        // Verify filename matches pattern: audit_[sanitizedTeamName]_[YYYY-MM-DD].csv
+        // Note: sanitizedTeamName can be empty if original name had no alphanumeric chars
+        const filenamePattern = /^audit_([a-zA-Z0-9_]*)_(\d{4}-\d{2}-\d{2})\.csv$/;
+        expect(filename).toMatch(filenamePattern);
 
-          // Verify date is valid (can be parsed)
-          const parsedDate = new Date(dateStr);
-          expect(parsedDate.toString()).not.toBe('Invalid Date');
+        // Extract parts
+        const match = filename.match(filenamePattern);
+        expect(match).toBeTruthy();
 
-          // Verify date is today (since export uses current date)
-          const today = new Date();
-          const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-          expect(dateStr).toBe(todayStr);
+        const sanitizedTeamName = match![1];
+        const dateStr = match![2];
+
+        // Verify sanitizedTeamName contains only alphanumeric and underscores (or is empty)
+        if (sanitizedTeamName.length > 0) {
+          expect(sanitizedTeamName).toMatch(/^[a-zA-Z0-9_]+$/);
         }
-      ),
+        // Verify date format is valid YYYY-MM-DD
+        const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+        expect(dateStr).toMatch(datePattern);
+
+        // Verify date is valid (can be parsed)
+        const parsedDate = new Date(dateStr);
+        expect(parsedDate.toString()).not.toBe('Invalid Date');
+
+        // Verify date is today (since export uses current date)
+        const today = new Date();
+        const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+        expect(dateStr).toBe(todayStr);
+      }),
       { numRuns: 100 }
     );
   });
 
   it('should sanitize team names by removing special characters', async () => {
     await fc.assert(
-      fc.asyncProperty(
-        teamNameGenerator(),
-        async (teamName) => {
-          // Mock team with generated name
-          const mockTeam = {
-            id: testTeamId,
-            name: teamName,
-          };
-          (prisma.team.findUnique as any).mockResolvedValue(mockTeam as any);
+      fc.asyncProperty(teamNameGenerator(), async (teamName) => {
+        // Mock team with generated name
+        const mockTeam = {
+          id: testTeamId,
+          name: teamName,
+        };
+        (prisma.team.findUnique as any).mockResolvedValue(mockTeam as any);
 
-          // Fetch export via API endpoint
-          const req = new Request(`http://localhost/api/admin/teams/${testTeamId}/audit/export`);
-          const response = await GET(req, { params: { teamId: testTeamId } });
+        // Fetch export via API endpoint
+        const req = new Request(`http://localhost/api/admin/teams/${testTeamId}/audit/export`);
+        const response = await GET(req, { params: { teamId: testTeamId } });
 
-          // Verify response is successful
-          expect(response.status).toBe(200);
+        // Verify response is successful
+        expect(response.status).toBe(200);
 
-          // Extract filename from Content-Disposition header
-          const contentDisposition = response.headers.get('Content-Disposition');
-          const filenameMatch = contentDisposition!.match(/filename="(.+)"/);
-          const filename = filenameMatch![1];
+        // Extract filename from Content-Disposition header
+        const contentDisposition = response.headers.get('Content-Disposition');
+        const filenameMatch = contentDisposition!.match(/filename="(.+)"/);
+        const filename = filenameMatch![1];
 
-          // Extract sanitized team name
-          const match = filename.match(/^audit_([a-zA-Z0-9_]*)_\d{4}-\d{2}-\d{2}\.csv$/);
-          expect(match).toBeTruthy();
-          
-          const sanitizedTeamName = match![1];
+        // Extract sanitized team name
+        const match = filename.match(/^audit_([a-zA-Z0-9_]*)_\d{4}-\d{2}-\d{2}\.csv$/);
+        expect(match).toBeTruthy();
 
-          // Verify no special characters remain (only alphanumeric and underscores)
-          expect(sanitizedTeamName).toMatch(/^[a-zA-Z0-9_]*$/);
+        const sanitizedTeamName = match![1];
 
-          // Verify sanitized name is not empty (unless original was all special chars)
-          // If original had any alphanumeric chars, sanitized should have them
-          const hasAlphanumeric = /[a-zA-Z0-9]/.test(teamName);
-          if (hasAlphanumeric) {
-            expect(sanitizedTeamName.length).toBeGreaterThan(0);
-          }
+        // Verify no special characters remain (only alphanumeric and underscores)
+        expect(sanitizedTeamName).toMatch(/^[a-zA-Z0-9_]*$/);
+
+        // Verify sanitized name is not empty (unless original was all special chars)
+        // If original had any alphanumeric chars, sanitized should have them
+        const hasAlphanumeric = /[a-zA-Z0-9]/.test(teamName);
+        if (hasAlphanumeric) {
+          expect(sanitizedTeamName.length).toBeGreaterThan(0);
         }
-      ),
+      }),
       { numRuns: 100 }
     );
   });
@@ -287,7 +274,7 @@ describe('Audit Trail Export API - Property 8: Export Filename Format', () => {
           // Extract sanitized team name
           const match = filename.match(/^audit_([a-zA-Z0-9_]+)_\d{4}-\d{2}-\d{2}\.csv$/);
           expect(match).toBeTruthy();
-          
+
           const sanitizedTeamName = match![1];
 
           // Verify no spaces remain in sanitized name
@@ -390,7 +377,7 @@ describe('Audit Trail Export API - Property 8: Export Filename Format', () => {
           // Extract sanitized team name
           const match = filename.match(/^audit_([a-zA-Z0-9_]*)_\d{4}-\d{2}-\d{2}\.csv$/);
           expect(match).toBeTruthy();
-          
+
           const sanitizedTeamName = match![1];
 
           // Verify sanitized name is limited to 50 characters or less
@@ -436,7 +423,7 @@ describe('Audit Trail Export API - Property 8: Export Filename Format', () => {
           // Extract sanitized team name
           const match = filename.match(/^audit_([a-zA-Z0-9_]+)_\d{4}-\d{2}-\d{2}\.csv$/);
           expect(match).toBeTruthy();
-          
+
           const sanitizedTeamName = match![1];
 
           // Extract alphanumeric characters from original name
@@ -448,10 +435,10 @@ describe('Audit Trail Export API - Property 8: Export Filename Format', () => {
             // Check that sanitized name contains alphanumeric chars from original
             // (order may differ due to space replacement, but chars should be present)
             const sanitizedAlphanumeric = sanitizedTeamName.replace(/_/g, '');
-            
+
             // Verify sanitized has alphanumeric content
             expect(sanitizedAlphanumeric.length).toBeGreaterThan(0);
-            
+
             // Verify all chars in sanitized are from original (or underscores)
             for (const char of sanitizedTeamName) {
               if (char !== '_') {
@@ -467,34 +454,31 @@ describe('Audit Trail Export API - Property 8: Export Filename Format', () => {
 
   it('should generate consistent filenames for same team on same day', async () => {
     await fc.assert(
-      fc.asyncProperty(
-        teamNameGenerator(),
-        async (teamName) => {
-          // Mock team with generated name
-          const mockTeam = {
-            id: testTeamId,
-            name: teamName,
-          };
-          (prisma.team.findUnique as any).mockResolvedValue(mockTeam as any);
+      fc.asyncProperty(teamNameGenerator(), async (teamName) => {
+        // Mock team with generated name
+        const mockTeam = {
+          id: testTeamId,
+          name: teamName,
+        };
+        (prisma.team.findUnique as any).mockResolvedValue(mockTeam as any);
 
-          // Fetch export twice
-          const req1 = new Request(`http://localhost/api/admin/teams/${testTeamId}/audit/export`);
-          const response1 = await GET(req1, { params: { teamId: testTeamId } });
+        // Fetch export twice
+        const req1 = new Request(`http://localhost/api/admin/teams/${testTeamId}/audit/export`);
+        const response1 = await GET(req1, { params: { teamId: testTeamId } });
 
-          const req2 = new Request(`http://localhost/api/admin/teams/${testTeamId}/audit/export`);
-          const response2 = await GET(req2, { params: { teamId: testTeamId } });
+        const req2 = new Request(`http://localhost/api/admin/teams/${testTeamId}/audit/export`);
+        const response2 = await GET(req2, { params: { teamId: testTeamId } });
 
-          // Extract filenames
-          const contentDisposition1 = response1.headers.get('Content-Disposition');
-          const filename1 = contentDisposition1!.match(/filename="(.+)"/)![1];
+        // Extract filenames
+        const contentDisposition1 = response1.headers.get('Content-Disposition');
+        const filename1 = contentDisposition1!.match(/filename="(.+)"/)![1];
 
-          const contentDisposition2 = response2.headers.get('Content-Disposition');
-          const filename2 = contentDisposition2!.match(/filename="(.+)"/)![1];
+        const contentDisposition2 = response2.headers.get('Content-Disposition');
+        const filename2 = contentDisposition2!.match(/filename="(.+)"/)![1];
 
-          // Verify filenames are identical (same team, same day)
-          expect(filename1).toBe(filename2);
-        }
-      ),
+        // Verify filenames are identical (same team, same day)
+        expect(filename1).toBe(filename2);
+      }),
       { numRuns: 100 }
     );
   });

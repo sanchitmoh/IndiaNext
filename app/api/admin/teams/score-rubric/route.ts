@@ -42,27 +42,45 @@ async function verifyAdmin(_req: Request) {
 /**
  * POST /api/admin/teams/score-rubric
  * Submit criteria-based scores for a team
- * 
+ *
  * CRITICAL: Judges can ONLY score APPROVED teams
  */
 export async function POST(req: Request) {
   try {
     const admin = await verifyAdmin(req);
     if (!admin) {
-      const err = createErrorResponse('UNAUTHORIZED', 'Authentication required', undefined, '/api/admin/teams/score-rubric');
+      const err = createErrorResponse(
+        'UNAUTHORIZED',
+        'Authentication required',
+        undefined,
+        '/api/admin/teams/score-rubric'
+      );
       return NextResponse.json(err, { status: getStatusCode('UNAUTHORIZED') });
     }
 
     // ✅ SECURITY FIX: Rate limit rubric scoring to 20 req/min per admin
     const rl = await checkRateLimit(`score-rubric:${admin.id}`, 20, 60);
     if (!rl.success) {
-      const err = createErrorResponse('RATE_LIMIT_EXCEEDED', 'Too many scoring requests. Please slow down.', undefined, '/api/admin/teams/score-rubric');
-      return NextResponse.json(err, { status: 429, headers: { 'Retry-After': String(Math.ceil((rl.reset - Date.now()) / 1000)) } });
+      const err = createErrorResponse(
+        'RATE_LIMIT_EXCEEDED',
+        'Too many scoring requests. Please slow down.',
+        undefined,
+        '/api/admin/teams/score-rubric'
+      );
+      return NextResponse.json(err, {
+        status: 429,
+        headers: { 'Retry-After': String(Math.ceil((rl.reset - Date.now()) / 1000)) },
+      });
     }
 
     // Check if admin has permission to score
     if (!hasPermission(admin.role, 'SCORE_TEAMS')) {
-      const err = createErrorResponse('FORBIDDEN', 'Insufficient permissions to score submissions', undefined, '/api/admin/teams/score-rubric');
+      const err = createErrorResponse(
+        'FORBIDDEN',
+        'Insufficient permissions to score submissions',
+        undefined,
+        '/api/admin/teams/score-rubric'
+      );
       return NextResponse.json(err, { status: getStatusCode('FORBIDDEN') });
     }
 
@@ -70,7 +88,12 @@ export async function POST(req: Request) {
     const validation = RubricScoreSchema.safeParse(body);
 
     if (!validation.success) {
-      const err = createErrorResponse('VALIDATION_ERROR', validation.error.errors[0].message, validation.error.errors, '/api/admin/teams/score-rubric');
+      const err = createErrorResponse(
+        'VALIDATION_ERROR',
+        validation.error.errors[0].message,
+        validation.error.errors,
+        '/api/admin/teams/score-rubric'
+      );
       return NextResponse.json(err, { status: 400 });
     }
 
@@ -83,10 +106,7 @@ export async function POST(req: Request) {
     });
 
     if (!team) {
-      return NextResponse.json(
-        { success: false, error: 'Team not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ success: false, error: 'Team not found' }, { status: 404 });
     }
 
     // ⭐ CRITICAL: Judges can ONLY score APPROVED teams
@@ -102,7 +122,12 @@ export async function POST(req: Request) {
     }
 
     if (!team.submission) {
-      const err = createErrorResponse('NOT_FOUND', 'Team has no submission', undefined, '/api/admin/teams/score-rubric');
+      const err = createErrorResponse(
+        'NOT_FOUND',
+        'Team has no submission',
+        undefined,
+        '/api/admin/teams/score-rubric'
+      );
       return NextResponse.json(err, { status: getStatusCode('NOT_FOUND') });
     }
 
@@ -119,7 +144,7 @@ export async function POST(req: Request) {
     // Validate all criteria are scored
     const criteriaIds = new Set(criteria.map((c) => c.criterionId));
     const scoredIds = new Set(scores.map((s) => s.criterionId));
-    
+
     const missingCriteria = Array.from(criteriaIds).filter((id) => !scoredIds.has(id));
     if (missingCriteria.length > 0) {
       return NextResponse.json(
@@ -223,20 +248,24 @@ export async function POST(req: Request) {
 
       // Calculate average across all judges
       const judgeCount = judgeScores.size;
-      const averageScore = judgeCount > 0
-        ? Math.round(
-            (Array.from(judgeScores.values()).reduce((sum, j) => sum + j.weightedTotal, 0) / judgeCount) * 10
-          ) / 10
-        : totalWeightedScore;
+      const averageScore =
+        judgeCount > 0
+          ? Math.round(
+              (Array.from(judgeScores.values()).reduce((sum, j) => sum + j.weightedTotal, 0) /
+                judgeCount) *
+                10
+            ) / 10
+          : totalWeightedScore;
 
       // Update submission with AVERAGED total score
       const updatedSubmission = await tx.submission.update({
         where: { id: submissionId },
         data: {
           judgeScore: averageScore,
-          judgeComments: judgeCount > 1
-            ? `Average of ${judgeCount} judges: ${judgeNames.join(', ')}`
-            : `Scored using rubric by ${admin.name}`,
+          judgeComments:
+            judgeCount > 1
+              ? `Average of ${judgeCount} judges: ${judgeNames.join(', ')}`
+              : `Scored using rubric by ${admin.name}`,
         },
       });
 
@@ -278,9 +307,10 @@ export async function POST(req: Request) {
         judgeCount: result.judgeCount,
         criteriaScored: result.createdScores.length,
       },
-      message: result.judgeCount > 1
-        ? `Score submitted. Average of ${result.judgeCount} judges: ${result.averageScore}`
-        : 'Rubric scores submitted successfully',
+      message:
+        result.judgeCount > 1
+          ? `Score submitted. Average of ${result.judgeCount} judges: ${result.averageScore}`
+          : 'Rubric scores submitted successfully',
     });
   } catch (error) {
     return handleGenericError(error, '/api/admin/teams/score-rubric');
@@ -290,7 +320,7 @@ export async function POST(req: Request) {
 /**
  * GET /api/admin/teams/score-rubric?teamId={id}
  * Get rubric scores for a team with multi-judge support
- * 
+ *
  * Returns:
  * - Your scores (current judge)
  * - All judges' scores (for admins/organizers)
@@ -301,7 +331,12 @@ export async function GET(req: Request) {
   try {
     const admin = await verifyAdmin(req);
     if (!admin) {
-      const err = createErrorResponse('UNAUTHORIZED', 'Authentication required', undefined, '/api/admin/teams/score-rubric');
+      const err = createErrorResponse(
+        'UNAUTHORIZED',
+        'Authentication required',
+        undefined,
+        '/api/admin/teams/score-rubric'
+      );
       return NextResponse.json(err, { status: getStatusCode('UNAUTHORIZED') });
     }
 
@@ -309,7 +344,12 @@ export async function GET(req: Request) {
     const teamId = searchParams.get('teamId');
 
     if (!teamId) {
-      const err = createErrorResponse('BAD_REQUEST', 'Missing teamId parameter', undefined, '/api/admin/teams/score-rubric');
+      const err = createErrorResponse(
+        'BAD_REQUEST',
+        'Missing teamId parameter',
+        undefined,
+        '/api/admin/teams/score-rubric'
+      );
       return NextResponse.json(err, { status: getStatusCode('BAD_REQUEST') });
     }
 
@@ -329,7 +369,12 @@ export async function GET(req: Request) {
     });
 
     if (!team) {
-      const err = createErrorResponse('NOT_FOUND', 'Team not found', undefined, '/api/admin/teams/score-rubric');
+      const err = createErrorResponse(
+        'NOT_FOUND',
+        'Team not found',
+        undefined,
+        '/api/admin/teams/score-rubric'
+      );
       return NextResponse.json(err, { status: getStatusCode('NOT_FOUND') });
     }
 
@@ -357,12 +402,15 @@ export async function GET(req: Request) {
     // ═══════════════════════════════════════════════════════════
     // MULTI-JUDGE: Build per-judge breakdowns
     // ═══════════════════════════════════════════════════════════
-    const judgeMap = new Map<string, {
-      judgeId: string;
-      judgeName: string;
-      scores: { criterionId: string; points: number; comments: string | null }[];
-      weightedTotal: number;
-    }>();
+    const judgeMap = new Map<
+      string,
+      {
+        judgeId: string;
+        judgeName: string;
+        scores: { criterionId: string; points: number; comments: string | null }[];
+        weightedTotal: number;
+      }
+    >();
 
     for (const cs of allCriterionScores) {
       if (!judgeMap.has(cs.judgeId)) {
@@ -393,17 +441,18 @@ export async function GET(req: Request) {
     const judgeCount = judges.length;
 
     // Calculate average + variance
-    const averageScore = judgeCount > 0
-      ? Math.round(
-          (judges.reduce((sum, j) => sum + j.weightedTotal, 0) / judgeCount) * 10
-        ) / 10
-      : null;
+    const averageScore =
+      judgeCount > 0
+        ? Math.round((judges.reduce((sum, j) => sum + j.weightedTotal, 0) / judgeCount) * 10) / 10
+        : null;
 
     // Score variance (standard deviation)
     let variance = 0;
     let stdDev = 0;
     if (judgeCount > 1 && averageScore !== null) {
-      variance = judges.reduce((sum, j) => sum + Math.pow(j.weightedTotal - averageScore, 2), 0) / judgeCount;
+      variance =
+        judges.reduce((sum, j) => sum + Math.pow(j.weightedTotal - averageScore, 2), 0) /
+        judgeCount;
       stdDev = Math.round(Math.sqrt(variance) * 10) / 10;
     }
 
@@ -424,7 +473,10 @@ export async function GET(req: Request) {
     }
 
     // Per-criterion average scores
-    const criterionAverages: Record<string, { average: number; min: number; max: number; count: number }> = {};
+    const criterionAverages: Record<
+      string,
+      { average: number; min: number; max: number; count: number }
+    > = {};
     for (const criterion of criteria) {
       const scoresForCriterion = allCriterionScores.filter(
         (cs) => cs.criterion.criterionId === criterion.criterionId

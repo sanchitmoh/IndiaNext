@@ -17,19 +17,19 @@
 // - Member swap constraints: no duplicate teams, verified email, size limit
 // ═══════════════════════════════════════════════════════════
 
-import { z } from "zod";
-import { router, adminProcedure, rateLimitedAdminProcedure } from "../trpc";
-import { TRPCError } from "@trpc/server";
+import { z } from 'zod';
+import { router, adminProcedure, rateLimitedAdminProcedure } from '../trpc';
+import { TRPCError } from '@trpc/server';
 
 // ── Permission guard ────────────────────────────────────────
 
-const LOGISTICS_ROLES = ["LOGISTICS", "ADMIN", "SUPER_ADMIN"];
-const ADMIN_OVERRIDE_ROLES = ["ADMIN", "SUPER_ADMIN"];
+const LOGISTICS_ROLES = ['LOGISTICS', 'ADMIN', 'SUPER_ADMIN'];
+const ADMIN_OVERRIDE_ROLES = ['ADMIN', 'SUPER_ADMIN'];
 
 function requireLogisticsRole(role: string, action: string) {
   if (!LOGISTICS_ROLES.includes(role)) {
     throw new TRPCError({
-      code: "FORBIDDEN",
+      code: 'FORBIDDEN',
       message: `${action} requires LOGISTICS, ADMIN, or SUPER_ADMIN role`,
     });
   }
@@ -58,31 +58,31 @@ export const logisticsRouter = router({
         page: z.number().min(1).default(1),
         pageSize: z.number().min(1).max(100).default(50),
         sortBy: z
-          .enum(["name", "shortCode", "college", "attendance", "checkedInAt"])
-          .default("name"),
-        sortOrder: z.enum(["asc", "desc"]).default("asc"),
+          .enum(['name', 'shortCode', 'college', 'attendance', 'checkedInAt'])
+          .default('name'),
+        sortOrder: z.enum(['asc', 'desc']).default('asc'),
       })
     )
     .query(async ({ ctx, input }) => {
-      requireLogisticsRole(ctx.admin.role, "View approved teams");
+      requireLogisticsRole(ctx.admin.role, 'View approved teams');
 
       const where: Record<string, unknown> = {
-        status: "APPROVED",
+        status: 'APPROVED',
         deletedAt: null,
       };
 
       if (input.search) {
         where.OR = [
-          { name: { contains: input.search, mode: "insensitive" } },
-          { shortCode: { contains: input.search, mode: "insensitive" } },
-          { college: { contains: input.search, mode: "insensitive" } },
+          { name: { contains: input.search, mode: 'insensitive' } },
+          { shortCode: { contains: input.search, mode: 'insensitive' } },
+          { college: { contains: input.search, mode: 'insensitive' } },
           {
             members: {
               some: {
                 user: {
                   OR: [
-                    { name: { contains: input.search, mode: "insensitive" } },
-                    { email: { contains: input.search, mode: "insensitive" } },
+                    { name: { contains: input.search, mode: 'insensitive' } },
+                    { email: { contains: input.search, mode: 'insensitive' } },
                   ],
                 },
               },
@@ -91,11 +91,11 @@ export const logisticsRouter = router({
         ];
       }
 
-      if (input.track && input.track !== "all") {
+      if (input.track && input.track !== 'all') {
         where.track = input.track;
       }
 
-      if (input.attendance && input.attendance !== "all") {
+      if (input.attendance && input.attendance !== 'all') {
         where.attendance = input.attendance;
       }
 
@@ -120,7 +120,7 @@ export const logisticsRouter = router({
                   },
                 },
               },
-              orderBy: { role: "asc" }, // LEADER first
+              orderBy: { role: 'asc' }, // LEADER first
             },
           },
           orderBy: { [input.sortBy]: input.sortOrder },
@@ -163,7 +163,7 @@ export const logisticsRouter = router({
   getTeamById: adminProcedure
     .input(z.object({ teamId: z.string().min(1) }))
     .query(async ({ ctx, input }) => {
-      requireLogisticsRole(ctx.admin.role, "View team detail");
+      requireLogisticsRole(ctx.admin.role, 'View team detail');
 
       const team = await ctx.prisma.team.findUnique({
         where: { id: input.teamId },
@@ -185,21 +185,21 @@ export const logisticsRouter = router({
                 },
               },
             },
-            orderBy: { role: "asc" },
+            orderBy: { role: 'asc' },
           },
         },
       });
 
       if (!team) {
         throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Team not found",
+          code: 'NOT_FOUND',
+          message: 'Team not found',
         });
       }
 
-      if (team.status !== "APPROVED") {
+      if (team.status !== 'APPROVED') {
         throw new TRPCError({
-          code: "BAD_REQUEST",
+          code: 'BAD_REQUEST',
           message: `Team "${team.name}" is not approved (status: ${team.status})`,
         });
       }
@@ -232,7 +232,7 @@ export const logisticsRouter = router({
   getTeamByShortCode: adminProcedure
     .input(z.object({ shortCode: z.string().min(1) }))
     .query(async ({ ctx, input }) => {
-      requireLogisticsRole(ctx.admin.role, "QR check-in lookup");
+      requireLogisticsRole(ctx.admin.role, 'QR check-in lookup');
 
       const team = await ctx.prisma.team.findUnique({
         where: { shortCode: input.shortCode.toUpperCase().trim() },
@@ -254,21 +254,21 @@ export const logisticsRouter = router({
                 },
               },
             },
-            orderBy: { role: "asc" },
+            orderBy: { role: 'asc' },
           },
         },
       });
 
       if (!team) {
         throw new TRPCError({
-          code: "NOT_FOUND",
+          code: 'NOT_FOUND',
           message: `No team found with code "${input.shortCode}"`,
         });
       }
 
-      if (team.status !== "APPROVED") {
+      if (team.status !== 'APPROVED') {
         throw new TRPCError({
-          code: "BAD_REQUEST",
+          code: 'BAD_REQUEST',
           message: `Team "${team.name}" is not approved (status: ${team.status})`,
         });
       }
@@ -303,12 +303,12 @@ export const logisticsRouter = router({
     .input(
       z.object({
         teamId: z.string(),
-        attendance: z.enum(["NOT_MARKED", "PRESENT", "ABSENT", "PARTIAL"]),
+        attendance: z.enum(['NOT_MARKED', 'PRESENT', 'ABSENT', 'PARTIAL']),
         notes: z.string().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      requireLogisticsRole(ctx.admin.role, "Mark team attendance");
+      requireLogisticsRole(ctx.admin.role, 'Mark team attendance');
 
       // Get current state for audit (conflict resolution: log previous state)
       const currentTeam = await ctx.prisma.team.findUnique({
@@ -325,24 +325,21 @@ export const logisticsRouter = router({
       });
 
       if (!currentTeam) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Team not found" });
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Team not found' });
       }
 
-      if (currentTeam.status !== "APPROVED") {
+      if (currentTeam.status !== 'APPROVED') {
         throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Can only mark attendance for approved teams",
+          code: 'BAD_REQUEST',
+          message: 'Can only mark attendance for approved teams',
         });
       }
 
       // Attendance lock: once set, only ADMIN/SUPER_ADMIN can change
-      if (
-        currentTeam.attendance !== "NOT_MARKED" &&
-        !canOverrideAttendance(ctx.admin.role)
-      ) {
+      if (currentTeam.attendance !== 'NOT_MARKED' && !canOverrideAttendance(ctx.admin.role)) {
         throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Attendance already recorded. Only an Admin can modify it.",
+          code: 'FORBIDDEN',
+          message: 'Attendance already recorded. Only an Admin can modify it.',
         });
       }
 
@@ -360,7 +357,7 @@ export const logisticsRouter = router({
       });
 
       // If marking PRESENT, also mark all members as present
-      if (input.attendance === "PRESENT") {
+      if (input.attendance === 'PRESENT') {
         await ctx.prisma.teamMember.updateMany({
           where: { teamId: input.teamId },
           data: {
@@ -369,7 +366,7 @@ export const logisticsRouter = router({
             checkedInBy: ctx.admin.id,
           },
         });
-      } else if (input.attendance === "ABSENT") {
+      } else if (input.attendance === 'ABSENT') {
         await ctx.prisma.teamMember.updateMany({
           where: { teamId: input.teamId },
           data: {
@@ -384,8 +381,8 @@ export const logisticsRouter = router({
       await ctx.prisma.activityLog.create({
         data: {
           userId: null,
-          action: "logistics.attendance_marked",
-          entity: "Team",
+          action: 'logistics.attendance_marked',
+          entity: 'Team',
           entityId: input.teamId,
           metadata: {
             teamName: currentTeam.name,
@@ -416,7 +413,7 @@ export const logisticsRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      requireLogisticsRole(ctx.admin.role, "Mark member attendance");
+      requireLogisticsRole(ctx.admin.role, 'Mark member attendance');
 
       const member = await ctx.prisma.teamMember.findUnique({
         where: { id: input.memberId },
@@ -427,24 +424,21 @@ export const logisticsRouter = router({
       });
 
       if (!member) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Member not found" });
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Member not found' });
       }
 
-      if (member.team.status !== "APPROVED") {
+      if (member.team.status !== 'APPROVED') {
         throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Can only mark attendance for approved teams",
+          code: 'BAD_REQUEST',
+          message: 'Can only mark attendance for approved teams',
         });
       }
 
       // Attendance lock: if member already checked in, only ADMIN/SUPER_ADMIN can change
-      if (
-        member.checkedInAt !== null &&
-        !canOverrideAttendance(ctx.admin.role)
-      ) {
+      if (member.checkedInAt !== null && !canOverrideAttendance(ctx.admin.role)) {
         throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Member attendance already recorded. Only an Admin can modify it.",
+          code: 'FORBIDDEN',
+          message: 'Member attendance already recorded. Only an Admin can modify it.',
         });
       }
 
@@ -466,14 +460,14 @@ export const logisticsRouter = router({
       });
 
       const presentCount = allMembers.filter((m) => m.isPresent).length;
-      let teamAttendance: "NOT_MARKED" | "PRESENT" | "ABSENT" | "PARTIAL";
+      let teamAttendance: 'NOT_MARKED' | 'PRESENT' | 'ABSENT' | 'PARTIAL';
 
       if (presentCount === 0) {
-        teamAttendance = "ABSENT";
+        teamAttendance = 'ABSENT';
       } else if (presentCount === allMembers.length) {
-        teamAttendance = "PRESENT";
+        teamAttendance = 'PRESENT';
       } else {
-        teamAttendance = "PARTIAL";
+        teamAttendance = 'PARTIAL';
       }
 
       await ctx.prisma.team.update({
@@ -489,8 +483,8 @@ export const logisticsRouter = router({
       await ctx.prisma.activityLog.create({
         data: {
           userId: null,
-          action: "logistics.attendance_marked",
-          entity: "TeamMember",
+          action: 'logistics.attendance_marked',
+          entity: 'TeamMember',
           entityId: input.memberId,
           metadata: {
             teamId: member.teamId,
@@ -528,7 +522,7 @@ export const logisticsRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      requireLogisticsRole(ctx.admin.role, "Edit member info");
+      requireLogisticsRole(ctx.admin.role, 'Edit member info');
 
       const member = await ctx.prisma.teamMember.findUnique({
         where: { id: input.memberId },
@@ -539,21 +533,21 @@ export const logisticsRouter = router({
       });
 
       if (!member) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Member not found" });
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Member not found' });
       }
 
-      if (member.team.status !== "APPROVED") {
+      if (member.team.status !== 'APPROVED') {
         throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Can only edit members of approved teams",
+          code: 'BAD_REQUEST',
+          message: 'Can only edit members of approved teams',
         });
       }
 
       // ⛔ LEADER PROTECTION: Cannot edit team leader
-      if (member.role === "LEADER") {
+      if (member.role === 'LEADER') {
         throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Cannot modify the team leader. Only non-leader members can be edited.",
+          code: 'FORBIDDEN',
+          message: 'Cannot modify the team leader. Only non-leader members can be edited.',
         });
       }
 
@@ -564,7 +558,7 @@ export const logisticsRouter = router({
         });
         if (existingUser && existingUser.id !== member.user.id) {
           throw new TRPCError({
-            code: "CONFLICT",
+            code: 'CONFLICT',
             message: `Email "${input.email}" is already registered to another user`,
           });
         }
@@ -574,7 +568,16 @@ export const logisticsRouter = router({
       const updateData: Record<string, string | undefined> = {};
       const changes: Record<string, { from: string | null; to: string | undefined }> = {};
 
-      const fields = ["name", "phone", "email", "college", "degree", "year", "branch", "gender"] as const;
+      const fields = [
+        'name',
+        'phone',
+        'email',
+        'college',
+        'degree',
+        'year',
+        'branch',
+        'gender',
+      ] as const;
       for (const field of fields) {
         if (input[field] !== undefined) {
           updateData[field] = input[field];
@@ -587,8 +590,8 @@ export const logisticsRouter = router({
 
       if (Object.keys(updateData).length === 0) {
         throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "No fields to update",
+          code: 'BAD_REQUEST',
+          message: 'No fields to update',
         });
       }
 
@@ -601,8 +604,8 @@ export const logisticsRouter = router({
       await ctx.prisma.activityLog.create({
         data: {
           userId: null,
-          action: "logistics.member_edited",
-          entity: "TeamMember",
+          action: 'logistics.member_edited',
+          entity: 'TeamMember',
           entityId: input.memberId,
           metadata: {
             teamId: member.team.id,
@@ -639,7 +642,7 @@ export const logisticsRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      requireLogisticsRole(ctx.admin.role, "Swap member");
+      requireLogisticsRole(ctx.admin.role, 'Swap member');
 
       // 1. Get current member
       const currentMember = await ctx.prisma.teamMember.findUnique({
@@ -654,21 +657,21 @@ export const logisticsRouter = router({
       });
 
       if (!currentMember) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Member not found" });
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Member not found' });
       }
 
-      if (currentMember.team.status !== "APPROVED") {
+      if (currentMember.team.status !== 'APPROVED') {
         throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Can only swap members in approved teams",
+          code: 'BAD_REQUEST',
+          message: 'Can only swap members in approved teams',
         });
       }
 
       // ⛔ LEADER PROTECTION
-      if (currentMember.role === "LEADER") {
+      if (currentMember.role === 'LEADER') {
         throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Cannot swap the team leader. Only non-leader members can be replaced.",
+          code: 'FORBIDDEN',
+          message: 'Cannot swap the team leader. Only non-leader members can be replaced.',
         });
       }
 
@@ -680,12 +683,10 @@ export const logisticsRouter = router({
 
       if (newUser) {
         // Constraint: new user must not already be on another team
-        const activeTeamMembership = newUser.teamMemberships.find(
-          (tm) => !tm.leftAt
-        );
+        const activeTeamMembership = newUser.teamMemberships.find((tm) => !tm.leftAt);
         if (activeTeamMembership) {
           throw new TRPCError({
-            code: "CONFLICT",
+            code: 'CONFLICT',
             message: `User "${input.newUserEmail}" is already a member of another team`,
           });
         }
@@ -706,8 +707,8 @@ export const logisticsRouter = router({
       // 3. Perform the swap in a transaction
       if (!newUser) {
         throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to find or create replacement user",
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to find or create replacement user',
         });
       }
 
@@ -728,7 +729,7 @@ export const logisticsRouter = router({
           data: {
             teamId: currentMember.team.id,
             userId: newUser.id,
-            role: "MEMBER",
+            role: 'MEMBER',
           },
           include: {
             user: {
@@ -750,8 +751,8 @@ export const logisticsRouter = router({
       await ctx.prisma.activityLog.create({
         data: {
           userId: null,
-          action: "logistics.member_swapped",
-          entity: "TeamMember",
+          action: 'logistics.member_swapped',
+          entity: 'TeamMember',
           entityId: input.memberId,
           metadata: {
             teamId: currentMember.team.id,
@@ -782,37 +783,30 @@ export const logisticsRouter = router({
   // ═══════════════════════════════════════════════════════════
 
   getAttendanceStats: adminProcedure.query(async ({ ctx }) => {
-    requireLogisticsRole(ctx.admin.role, "View attendance stats");
+    requireLogisticsRole(ctx.admin.role, 'View attendance stats');
 
-    const [
-      totalApproved,
-      present,
-      absent,
-      partial,
-      notMarked,
-      totalMembers,
-      membersPresent,
-    ] = await Promise.all([
-      ctx.prisma.team.count({ where: { status: "APPROVED", deletedAt: null } }),
-      ctx.prisma.team.count({
-        where: { status: "APPROVED", attendance: "PRESENT", deletedAt: null },
-      }),
-      ctx.prisma.team.count({
-        where: { status: "APPROVED", attendance: "ABSENT", deletedAt: null },
-      }),
-      ctx.prisma.team.count({
-        where: { status: "APPROVED", attendance: "PARTIAL", deletedAt: null },
-      }),
-      ctx.prisma.team.count({
-        where: { status: "APPROVED", attendance: "NOT_MARKED", deletedAt: null },
-      }),
-      ctx.prisma.teamMember.count({
-        where: { team: { status: "APPROVED", deletedAt: null } },
-      }),
-      ctx.prisma.teamMember.count({
-        where: { team: { status: "APPROVED", deletedAt: null }, isPresent: true },
-      }),
-    ]);
+    const [totalApproved, present, absent, partial, notMarked, totalMembers, membersPresent] =
+      await Promise.all([
+        ctx.prisma.team.count({ where: { status: 'APPROVED', deletedAt: null } }),
+        ctx.prisma.team.count({
+          where: { status: 'APPROVED', attendance: 'PRESENT', deletedAt: null },
+        }),
+        ctx.prisma.team.count({
+          where: { status: 'APPROVED', attendance: 'ABSENT', deletedAt: null },
+        }),
+        ctx.prisma.team.count({
+          where: { status: 'APPROVED', attendance: 'PARTIAL', deletedAt: null },
+        }),
+        ctx.prisma.team.count({
+          where: { status: 'APPROVED', attendance: 'NOT_MARKED', deletedAt: null },
+        }),
+        ctx.prisma.teamMember.count({
+          where: { team: { status: 'APPROVED', deletedAt: null } },
+        }),
+        ctx.prisma.teamMember.count({
+          where: { team: { status: 'APPROVED', deletedAt: null }, isPresent: true },
+        }),
+      ]);
 
     return {
       totalApproved,
@@ -824,9 +818,7 @@ export const logisticsRouter = router({
       membersPresent,
       membersAbsent: totalMembers - membersPresent,
       attendanceRate:
-        totalApproved > 0
-          ? Math.round(((present + partial) / totalApproved) * 100)
-          : 0,
+        totalApproved > 0 ? Math.round(((present + partial) / totalApproved) * 100) : 0,
     };
   }),
 
@@ -842,17 +834,17 @@ export const logisticsRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      requireLogisticsRole(ctx.admin.role, "Export attendance");
+      requireLogisticsRole(ctx.admin.role, 'Export attendance');
 
       const where: Record<string, unknown> = {
-        status: "APPROVED",
+        status: 'APPROVED',
         deletedAt: null,
       };
 
-      if (input.track && input.track !== "all") {
+      if (input.track && input.track !== 'all') {
         where.track = input.track;
       }
-      if (input.attendance && input.attendance !== "all") {
+      if (input.attendance && input.attendance !== 'all') {
         where.attendance = input.attendance;
       }
 
@@ -870,19 +862,19 @@ export const logisticsRouter = router({
                 },
               },
             },
-            orderBy: { role: "asc" },
+            orderBy: { role: 'asc' },
           },
         },
-        orderBy: { name: "asc" },
+        orderBy: { name: 'asc' },
       });
 
       // Audit
       await ctx.prisma.activityLog.create({
         data: {
           userId: null,
-          action: "logistics.attendance_exported",
-          entity: "Team",
-          entityId: "bulk",
+          action: 'logistics.attendance_exported',
+          entity: 'Team',
+          entityId: 'bulk',
           metadata: {
             count: teams.length,
             filters: input,

@@ -1,9 +1,9 @@
 /**
  * Property-Based Test for Audit Trail Export Completeness
- * 
+ *
  * Feature: admin-audit-trail, Property 7: Export Completeness
  * **Validates: Requirements US-6.2**
- * 
+ *
  * This test verifies that CSV exports include all required columns and
  * all rows corresponding to the audit logs, ensuring no data is lost
  * during the export process.
@@ -94,11 +94,11 @@ function parseCSV(csv: string): string[][] {
   let currentRow: string[] = [];
   let currentField = '';
   let inQuotes = false;
-  
+
   for (let i = 0; i < csv.length; i++) {
     const char = csv[i];
     const nextChar = csv[i + 1];
-    
+
     if (char === '"') {
       if (inQuotes && nextChar === '"') {
         // Escaped quote - add one quote and skip next
@@ -115,7 +115,7 @@ function parseCSV(csv: string): string[][] {
     } else if (char === '\n' && !inQuotes) {
       // End of row
       currentRow.push(currentField);
-      if (currentRow.some(field => field.length > 0)) {
+      if (currentRow.some((field) => field.length > 0)) {
         rows.push(currentRow);
       }
       currentRow = [];
@@ -125,15 +125,15 @@ function parseCSV(csv: string): string[][] {
       currentField += char;
     }
   }
-  
+
   // Add last field and row if not empty
   if (currentField.length > 0 || currentRow.length > 0) {
     currentRow.push(currentField);
-    if (currentRow.some(field => field.length > 0)) {
+    if (currentRow.some((field) => field.length > 0)) {
       rows.push(currentRow);
     }
   }
-  
+
   return rows;
 }
 
@@ -160,7 +160,7 @@ describe('Audit Trail Export API - Property 7: Export Completeness', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     // Setup default mocks
     (prisma.adminSession.findUnique as any).mockResolvedValue(mockAdminSession as any);
     (prisma.team.findUnique as any).mockResolvedValue(mockTeam as any);

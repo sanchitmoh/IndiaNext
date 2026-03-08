@@ -1,8 +1,8 @@
 // Analytics Page — Registration trends, track comparison, college stats
-"use client";
+'use client';
 
-import Link from "next/link";
-import { trpc } from "@/lib/trpc-client";
+import Link from 'next/link';
+import { trpc } from '@/lib/trpc-client';
 import {
   AreaChart,
   Area,
@@ -17,7 +17,7 @@ import {
   Pie,
   Cell,
   Legend,
-} from "recharts";
+} from 'recharts';
 import {
   Loader2,
   TrendingUp,
@@ -25,41 +25,39 @@ import {
   Building2,
   PieChart as PieChartIcon,
   Award,
-} from "lucide-react";
+} from 'lucide-react';
 
 const STATUS_COLORS: Record<string, string> = {
-  PENDING: "#f59e0b",
-  UNDER_REVIEW: "#00CCFF",
-  APPROVED: "#10b981",
-  REJECTED: "#ef4444",
-  WAITLISTED: "#FF6600",
-  WITHDRAWN: "#6b7280",
+  PENDING: '#f59e0b',
+  UNDER_REVIEW: '#00CCFF',
+  APPROVED: '#10b981',
+  REJECTED: '#ef4444',
+  WAITLISTED: '#FF6600',
+  WITHDRAWN: '#6b7280',
 };
 
 const STATUS_LABELS: Record<string, string> = {
-  PENDING: "Pending",
-  UNDER_REVIEW: "Under Review",
-  APPROVED: "Approved",
-  REJECTED: "Rejected",
-  WAITLISTED: "Waitlisted",
-  WITHDRAWN: "Withdrawn",
+  PENDING: 'Pending',
+  UNDER_REVIEW: 'Under Review',
+  APPROVED: 'Approved',
+  REJECTED: 'Rejected',
+  WAITLISTED: 'Waitlisted',
+  WITHDRAWN: 'Withdrawn',
 };
 
 const _TRACK_COLORS: Record<string, string> = {
-  IDEA_SPRINT: "#00CCFF",
-  BUILD_STORM: "#FF6600",
+  IDEA_SPRINT: '#00CCFF',
+  BUILD_STORM: '#FF6600',
 };
 
 const TRACK_LABELS: Record<string, string> = {
-  IDEA_SPRINT: "Idea Sprint",
-  BUILD_STORM: "Build Storm",
+  IDEA_SPRINT: 'Idea Sprint',
+  BUILD_STORM: 'Build Storm',
 };
 
 export default function AnalyticsPage() {
-  const { data: stats, isLoading: statsLoading } =
-    trpc.admin.getStats.useQuery();
-  const { data: analytics, isLoading: analyticsLoading } =
-    trpc.admin.getAnalytics.useQuery();
+  const { data: stats, isLoading: statsLoading } = trpc.admin.getStats.useQuery();
+  const { data: analytics, isLoading: analyticsLoading } = trpc.admin.getAnalytics.useQuery();
 
   if (statsLoading || analyticsLoading) {
     return (
@@ -74,9 +72,9 @@ export default function AnalyticsPage() {
   // Registration trends
   const trendData = (analytics?.registrationTrends || []).map(
     (item: { date: string | Date; count: number }) => ({
-      date: new Date(String(item.date)).toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
+      date: new Date(String(item.date)).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
       }),
       count: item.count,
     })
@@ -86,28 +84,31 @@ export default function AnalyticsPage() {
   const statsData = stats?.data;
   const statusData = statsData
     ? [
-        { name: "Pending", value: statsData.pendingTeams, color: STATUS_COLORS.PENDING },
-        { name: "Under Review", value: statsData.underReviewTeams, color: STATUS_COLORS.UNDER_REVIEW },
-        { name: "Approved", value: statsData.approvedTeams, color: STATUS_COLORS.APPROVED },
-        { name: "Rejected", value: statsData.rejectedTeams, color: STATUS_COLORS.REJECTED },
-        { name: "Waitlisted", value: statsData.waitlistedTeams, color: STATUS_COLORS.WAITLISTED },
+        { name: 'Pending', value: statsData.pendingTeams, color: STATUS_COLORS.PENDING },
+        {
+          name: 'Under Review',
+          value: statsData.underReviewTeams,
+          color: STATUS_COLORS.UNDER_REVIEW,
+        },
+        { name: 'Approved', value: statsData.approvedTeams, color: STATUS_COLORS.APPROVED },
+        { name: 'Rejected', value: statsData.rejectedTeams, color: STATUS_COLORS.REJECTED },
+        { name: 'Waitlisted', value: statsData.waitlistedTeams, color: STATUS_COLORS.WAITLISTED },
       ].filter((d) => d.value > 0)
     : [];
 
   // Track + Status grouped data for stacked bar
   const trackStatusMap: Record<string, Record<string, number>> = {};
-  (analytics?.trackComparison || []).forEach((item: { track: string; status: string; _count: number }) => {
-    const trackLabel = TRACK_LABELS[item.track] || item.track;
-    if (!trackStatusMap[trackLabel]) trackStatusMap[trackLabel] = {};
-    trackStatusMap[trackLabel][STATUS_LABELS[item.status] || item.status] =
-      item._count;
-  });
-  const trackStatusData = Object.entries(trackStatusMap).map(
-    ([track, statuses]) => ({
-      track,
-      ...statuses,
-    })
+  (analytics?.trackComparison || []).forEach(
+    (item: { track: string; status: string; _count: number }) => {
+      const trackLabel = TRACK_LABELS[item.track] || item.track;
+      if (!trackStatusMap[trackLabel]) trackStatusMap[trackLabel] = {};
+      trackStatusMap[trackLabel][STATUS_LABELS[item.status] || item.status] = item._count;
+    }
   );
+  const trackStatusData = Object.entries(trackStatusMap).map(([track, statuses]) => ({
+    track,
+    ...statuses,
+  }));
   const allStatuses = [
     ...new Set(
       (analytics?.trackComparison || []).map(
@@ -120,14 +121,14 @@ export default function AnalyticsPage() {
   const collegeData = (analytics?.collegeDistribution || [])
     .slice(0, 10)
     .map((item: { college: string | null; _count: number }) => ({
-      name: item.college ?? "Unknown",
+      name: item.college ?? 'Unknown',
       count: item._count,
     }));
 
   // Team size distribution
   const sizeData = (analytics?.teamSizeDistribution || []).map(
     (item: { size: number; _count: number }) => ({
-      size: `${item.size} member${item.size !== 1 ? "s" : ""}`,
+      size: `${item.size} member${item.size !== 1 ? 's' : ''}`,
       count: item._count,
     })
   );
@@ -207,20 +208,24 @@ export default function AnalyticsPage() {
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-              <XAxis dataKey="date" tick={{ fontSize: 10, fontFamily: "monospace", fill: "#6b7280" }} stroke="rgba(255,255,255,0.06)" />
+              <XAxis
+                dataKey="date"
+                tick={{ fontSize: 10, fontFamily: 'monospace', fill: '#6b7280' }}
+                stroke="rgba(255,255,255,0.06)"
+              />
               <YAxis
-                tick={{ fontSize: 10, fontFamily: "monospace", fill: "#6b7280" }}
+                tick={{ fontSize: 10, fontFamily: 'monospace', fill: '#6b7280' }}
                 stroke="rgba(255,255,255,0.06)"
                 allowDecimals={false}
               />
               <Tooltip
                 contentStyle={{
-                  borderRadius: "6px",
-                  border: "1px solid rgba(255,255,255,0.06)",
-                  backgroundColor: "#0D0D0D",
-                  fontSize: "11px",
-                  fontFamily: "monospace",
-                  color: "#d1d5db",
+                  borderRadius: '6px',
+                  border: '1px solid rgba(255,255,255,0.06)',
+                  backgroundColor: '#0D0D0D',
+                  fontSize: '11px',
+                  fontFamily: 'monospace',
+                  color: '#d1d5db',
                 }}
               />
               <Area
@@ -250,34 +255,34 @@ export default function AnalyticsPage() {
           ) : (
             <div className="flex flex-col sm:flex-row items-center gap-4">
               <div className="w-full sm:w-[55%]">
-              <ResponsiveContainer width="100%" height={200}>
-                <PieChart>
-                  <Pie
-                    data={statusData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={45}
-                    outerRadius={75}
-                    paddingAngle={3}
-                    dataKey="value"
-                  >
-                    {statusData.map((entry, index) => (
-                      <Cell key={index} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    formatter={(value) => [Number(value), "Teams"]}
-                    contentStyle={{
-                      borderRadius: "6px",
-                      border: "1px solid rgba(255,255,255,0.06)",
-                      backgroundColor: "#0D0D0D",
-                      fontSize: "11px",
-                      fontFamily: "monospace",
-                      color: "#d1d5db",
-                    }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
+                <ResponsiveContainer width="100%" height={200}>
+                  <PieChart>
+                    <Pie
+                      data={statusData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={45}
+                      outerRadius={75}
+                      paddingAngle={3}
+                      dataKey="value"
+                    >
+                      {statusData.map((entry, index) => (
+                        <Cell key={index} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      formatter={(value) => [Number(value), 'Teams']}
+                      contentStyle={{
+                        borderRadius: '6px',
+                        border: '1px solid rgba(255,255,255,0.06)',
+                        backgroundColor: '#0D0D0D',
+                        fontSize: '11px',
+                        fontFamily: 'monospace',
+                        color: '#d1d5db',
+                      }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
               </div>
               <div className="flex-1 space-y-2">
                 {statusData.map((item) => (
@@ -286,9 +291,7 @@ export default function AnalyticsPage() {
                       className="w-2 h-2 rounded-full shrink-0"
                       style={{ backgroundColor: item.color }}
                     />
-                    <span className="text-[11px] font-mono text-gray-400 flex-1">
-                      {item.name}
-                    </span>
+                    <span className="text-[11px] font-mono text-gray-400 flex-1">{item.name}</span>
                     <span className="text-[11px] font-mono font-bold text-gray-200">
                       {item.value}
                     </span>
@@ -318,7 +321,7 @@ export default function AnalyticsPage() {
                 />
                 <XAxis
                   type="number"
-                  tick={{ fontSize: 10, fontFamily: "monospace", fill: "#6b7280" }}
+                  tick={{ fontSize: 10, fontFamily: 'monospace', fill: '#6b7280' }}
                   stroke="rgba(255,255,255,0.06)"
                   allowDecimals={false}
                 />
@@ -326,20 +329,20 @@ export default function AnalyticsPage() {
                   type="category"
                   dataKey="track"
                   width={90}
-                  tick={{ fontSize: 10, fontFamily: "monospace", fill: "#9ca3af" }}
+                  tick={{ fontSize: 10, fontFamily: 'monospace', fill: '#9ca3af' }}
                   stroke="rgba(255,255,255,0.06)"
                 />
                 <Tooltip
                   contentStyle={{
-                    borderRadius: "6px",
-                    border: "1px solid rgba(255,255,255,0.06)",
-                    backgroundColor: "#0D0D0D",
-                    fontSize: "11px",
-                    fontFamily: "monospace",
-                    color: "#d1d5db",
+                    borderRadius: '6px',
+                    border: '1px solid rgba(255,255,255,0.06)',
+                    backgroundColor: '#0D0D0D',
+                    fontSize: '11px',
+                    fontFamily: 'monospace',
+                    color: '#d1d5db',
                   }}
                 />
-                <Legend wrapperStyle={{ fontSize: 10, fontFamily: "monospace" }} />
+                <Legend wrapperStyle={{ fontSize: 10, fontFamily: 'monospace' }} />
                 {allStatuses.map((status) => {
                   const originalKey = Object.keys(STATUS_LABELS).find(
                     (k) => STATUS_LABELS[k] === status
@@ -349,11 +352,7 @@ export default function AnalyticsPage() {
                       key={String(status)}
                       dataKey={String(status)}
                       stackId="a"
-                      fill={
-                        originalKey
-                          ? STATUS_COLORS[originalKey]
-                          : "#4b5563"
-                      }
+                      fill={originalKey ? STATUS_COLORS[originalKey] : '#4b5563'}
                     />
                   );
                 })}
@@ -384,7 +383,7 @@ export default function AnalyticsPage() {
                 />
                 <XAxis
                   type="number"
-                  tick={{ fontSize: 10, fontFamily: "monospace", fill: "#6b7280" }}
+                  tick={{ fontSize: 10, fontFamily: 'monospace', fill: '#6b7280' }}
                   stroke="rgba(255,255,255,0.06)"
                   allowDecimals={false}
                 />
@@ -392,17 +391,17 @@ export default function AnalyticsPage() {
                   type="category"
                   dataKey="name"
                   width={100}
-                  tick={{ fontSize: 9, fontFamily: "monospace", fill: "#9ca3af" }}
+                  tick={{ fontSize: 9, fontFamily: 'monospace', fill: '#9ca3af' }}
                   stroke="rgba(255,255,255,0.06)"
                 />
                 <Tooltip
                   contentStyle={{
-                    borderRadius: "6px",
-                    border: "1px solid rgba(255,255,255,0.06)",
-                    backgroundColor: "#0D0D0D",
-                    fontSize: "11px",
-                    fontFamily: "monospace",
-                    color: "#d1d5db",
+                    borderRadius: '6px',
+                    border: '1px solid rgba(255,255,255,0.06)',
+                    backgroundColor: '#0D0D0D',
+                    fontSize: '11px',
+                    fontFamily: 'monospace',
+                    color: '#d1d5db',
                   }}
                 />
                 <Bar dataKey="count" fill="#FF6600" radius={[0, 4, 4, 0]} />
@@ -426,22 +425,22 @@ export default function AnalyticsPage() {
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
                 <XAxis
                   dataKey="size"
-                  tick={{ fontSize: 10, fontFamily: "monospace", fill: "#6b7280" }}
+                  tick={{ fontSize: 10, fontFamily: 'monospace', fill: '#6b7280' }}
                   stroke="rgba(255,255,255,0.06)"
                 />
                 <YAxis
-                  tick={{ fontSize: 10, fontFamily: "monospace", fill: "#6b7280" }}
+                  tick={{ fontSize: 10, fontFamily: 'monospace', fill: '#6b7280' }}
                   stroke="rgba(255,255,255,0.06)"
                   allowDecimals={false}
                 />
                 <Tooltip
                   contentStyle={{
-                    borderRadius: "6px",
-                    border: "1px solid rgba(255,255,255,0.06)",
-                    backgroundColor: "#0D0D0D",
-                    fontSize: "11px",
-                    fontFamily: "monospace",
-                    color: "#d1d5db",
+                    borderRadius: '6px',
+                    border: '1px solid rgba(255,255,255,0.06)',
+                    backgroundColor: '#0D0D0D',
+                    fontSize: '11px',
+                    fontFamily: 'monospace',
+                    color: '#d1d5db',
                   }}
                 />
                 <Bar dataKey="count" fill="#00CCFF" radius={[4, 4, 0, 0]} />
@@ -469,11 +468,11 @@ function MetricCard({
 }) {
   return (
     <div className="bg-[#0A0A0A] rounded-lg border border-white/[0.06] p-3 md:p-5">
-      <div className={`inline-flex p-2 rounded-md border ${color} mb-2 md:mb-3`}>
-        {icon}
-      </div>
+      <div className={`inline-flex p-2 rounded-md border ${color} mb-2 md:mb-3`}>{icon}</div>
       <div className="text-lg md:text-xl font-mono font-bold text-white">{value}</div>
-      <div className="text-[9px] font-mono font-bold text-gray-500 tracking-[0.2em] uppercase mt-1">{label}</div>
+      <div className="text-[9px] font-mono font-bold text-gray-500 tracking-[0.2em] uppercase mt-1">
+        {label}
+      </div>
     </div>
   );
 }

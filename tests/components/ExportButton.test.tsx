@@ -1,12 +1,12 @@
 /**
  * Unit Tests: ExportButton Component
- * 
+ *
  * Tests the ExportButton component to ensure it:
  * - Renders correctly with download icon
  * - Builds export URL with current filters
  * - Shows loading state during export
  * - Handles export errors gracefully
- * 
+ *
  * Requirements: FR-4, US-6.1
  */
 
@@ -41,13 +41,7 @@ describe('ExportButton Component', () => {
   });
 
   it('should render export button with download icon', () => {
-    render(
-      <ExportButton
-        teamId={mockTeamId}
-        teamName={mockTeamName}
-        filters={{}}
-      />
-    );
+    render(<ExportButton teamId={mockTeamId} teamName={mockTeamName} filters={{}} />);
 
     const button = screen.getByRole('button', { name: /export csv/i });
     expect(button).toBeDefined();
@@ -58,20 +52,14 @@ describe('ExportButton Component', () => {
     const mockBlob = new Blob(['test csv data'], { type: 'text/csv' });
     const mockHeaders = new Headers();
     mockHeaders.set('Content-Disposition', 'attachment; filename="test.csv"');
-    
+
     (global.fetch as any).mockResolvedValue({
       ok: true,
       blob: () => Promise.resolve(mockBlob),
       headers: mockHeaders,
     });
 
-    render(
-      <ExportButton
-        teamId={mockTeamId}
-        teamName={mockTeamName}
-        filters={mockFilters}
-      />
-    );
+    render(<ExportButton teamId={mockTeamId} teamName={mockTeamName} filters={mockFilters} />);
 
     const button = screen.getByRole('button', { name: /export csv/i });
     fireEvent.click(button);
@@ -97,13 +85,7 @@ describe('ExportButton Component', () => {
         })
     );
 
-    render(
-      <ExportButton
-        teamId={mockTeamId}
-        teamName={mockTeamName}
-        filters={{}}
-      />
-    );
+    render(<ExportButton teamId={mockTeamId} teamName={mockTeamName} filters={{}} />);
 
     const button = screen.getByRole('button');
     fireEvent.click(button);
@@ -131,13 +113,7 @@ describe('ExportButton Component', () => {
       json: () => Promise.resolve({ message: errorMessage }),
     });
 
-    render(
-      <ExportButton
-        teamId={mockTeamId}
-        teamName={mockTeamName}
-        filters={{}}
-      />
-    );
+    render(<ExportButton teamId={mockTeamId} teamName={mockTeamName} filters={{}} />);
 
     const button = screen.getByRole('button', { name: /export csv/i });
     fireEvent.click(button);
@@ -155,13 +131,7 @@ describe('ExportButton Component', () => {
       headers: new Headers(),
     });
 
-    render(
-      <ExportButton
-        teamId={mockTeamId}
-        teamName={mockTeamName}
-        filters={{}}
-      />
-    );
+    render(<ExportButton teamId={mockTeamId} teamName={mockTeamName} filters={{}} />);
 
     const button = screen.getByRole('button', { name: /export csv/i });
     fireEvent.click(button);

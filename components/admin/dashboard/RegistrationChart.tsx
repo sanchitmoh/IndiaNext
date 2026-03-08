@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import {
   AreaChart,
@@ -8,7 +8,7 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-} from "recharts";
+} from 'recharts';
 
 interface RegistrationChartProps {
   data: Array<{ date: string; count: number }>;
@@ -16,9 +16,9 @@ interface RegistrationChartProps {
 
 export function RegistrationChart({ data }: RegistrationChartProps) {
   const chartData = data.map((item) => ({
-    date: new Date(item.date).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
+    date: new Date(item.date).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
     }),
     count: item.count,
   }));
@@ -44,26 +44,26 @@ export function RegistrationChart({ data }: RegistrationChartProps) {
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
             <XAxis
               dataKey="date"
-              tick={{ fontSize: 10, fill: "#555", fontFamily: "monospace" }}
+              tick={{ fontSize: 10, fill: '#555', fontFamily: 'monospace' }}
               stroke="rgba(255,255,255,0.06)"
               tickLine={false}
             />
             <YAxis
-              tick={{ fontSize: 10, fill: "#555", fontFamily: "monospace" }}
+              tick={{ fontSize: 10, fill: '#555', fontFamily: 'monospace' }}
               stroke="rgba(255,255,255,0.06)"
               allowDecimals={false}
               tickLine={false}
             />
             <Tooltip
               contentStyle={{
-                borderRadius: "6px",
-                border: "1px solid rgba(255,255,255,0.06)",
-                backgroundColor: "#0D0D0D",
-                color: "#fff",
-                fontSize: "11px",
-                fontFamily: "monospace",
+                borderRadius: '6px',
+                border: '1px solid rgba(255,255,255,0.06)',
+                backgroundColor: '#0D0D0D',
+                color: '#fff',
+                fontSize: '11px',
+                fontFamily: 'monospace',
               }}
-              labelStyle={{ fontWeight: 700, color: "#FF6600" }}
+              labelStyle={{ fontWeight: 700, color: '#FF6600' }}
             />
             <Area
               type="monotone"

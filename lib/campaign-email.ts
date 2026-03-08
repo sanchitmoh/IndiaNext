@@ -5,9 +5,9 @@
 // substitution, and batched dispatch via Resend.
 // ═══════════════════════════════════════════════════════════
 
-import { Resend } from "resend";
-import { prisma } from "./prisma";
-import type { AudienceType, MemberRole, Prisma } from "@prisma/client/edge";
+import { Resend } from 'resend';
+import { prisma } from './prisma';
+import type { AudienceType, MemberRole, Prisma } from '@prisma/client/edge';
 
 // ═══════════════════════════════════════════════════════════
 // TYPES
@@ -37,14 +37,14 @@ export interface ResolvedRecipient {
 // ═══════════════════════════════════════════════════════════
 
 const CAMPAIGN_CONFIG = {
-  batchSize: 100,       // Resend batch API supports up to 100 emails per batch
-  batchDelayMs: 1000,   // delay between batches
-  maxRetries: 2,        // retries per batch
-  retryDelayMs: 500,    // delay between retries
-  maxRecipients: 500,   // cap per campaign
+  batchSize: 100, // Resend batch API supports up to 100 emails per batch
+  batchDelayMs: 1000, // delay between batches
+  maxRetries: 2, // retries per batch
+  retryDelayMs: 500, // delay between retries
+  maxRecipients: 500, // cap per campaign
 } as const;
 
-const EMAIL_FROM = process.env.EMAIL_FROM || "onboarding@resend.dev";
+const EMAIL_FROM = process.env.EMAIL_FROM || 'onboarding@resend.dev';
 
 let _resend: Resend | null = null;
 function getResend(): Resend {
@@ -62,20 +62,18 @@ function getResend(): Resend {
  * Resolve recipients from campaign filters. Runs at send time
  * to snapshot the current state of teams/members.
  */
-export async function resolveRecipients(
-  filters: CampaignFilters
-): Promise<ResolvedRecipient[]> {
+export async function resolveRecipients(filters: CampaignFilters): Promise<ResolvedRecipient[]> {
   const teamWhere: Prisma.TeamWhereInput = {
     deletedAt: null,
     // Default to PENDING status if no specific statuses or teamIds are provided
     ...(filters.statuses && filters.statuses.length > 0
-      ? { status: { in: filters.statuses as Prisma.EnumRegistrationStatusFilter["in"] } }
+      ? { status: { in: filters.statuses as Prisma.EnumRegistrationStatusFilter['in'] } }
       : filters.teamIds && filters.teamIds.length > 0
-      ? {} // No status filter when specific teams are selected
-      : { status: { in: ["PENDING", "APPROVED", "UNDER_REVIEW"] } }), // Default to active teams
-    ...(filters.track && { track: filters.track as Prisma.EnumTrackFilter["equals"] }),
+        ? {} // No status filter when specific teams are selected
+        : { status: { in: ['PENDING', 'APPROVED', 'UNDER_REVIEW'] } }), // Default to active teams
+    ...(filters.track && { track: filters.track as Prisma.EnumTrackFilter['equals'] }),
     ...(filters.college && {
-      college: { contains: filters.college, mode: "insensitive" as const },
+      college: { contains: filters.college, mode: 'insensitive' as const },
     }),
     ...(filters.teamIds && filters.teamIds.length > 0 && { id: { in: filters.teamIds } }),
   };
@@ -87,7 +85,7 @@ export async function resolveRecipients(
     team: teamWhere,
     leftAt: null,
     user: { deletedAt: null },
-    ...(filters.audienceType === "LEADERS_ONLY" && { role: "LEADER" as MemberRole }),
+    ...(filters.audienceType === 'LEADERS_ONLY' && { role: 'LEADER' as MemberRole }),
   };
 
   const members = await prisma.teamMember.findMany({
@@ -116,9 +114,9 @@ export async function resolveRecipients(
       name: m.user.name,
       teamName: m.team.name,
       memberRole: m.role,
-      college: m.team.college || m.user.college || "", // Prefer team college, fallback to user college
+      college: m.team.college || m.user.college || '', // Prefer team college, fallback to user college
       track: m.team.track,
-      shortCode: m.team.shortCode || "",
+      shortCode: m.team.shortCode || '',
     });
   }
 
@@ -147,20 +145,20 @@ export function renderCampaignEmail(
   }
 ): { html: string; subject: string } {
   const variables: Record<string, string> = {
-    name: recipient.name || "Participant",
+    name: recipient.name || 'Participant',
     email: recipient.email,
-    team: recipient.teamName || "",
-    track: recipient.track || "",
-    shortCode: recipient.shortCode || "",
-    role: recipient.memberRole || "",
-    college: recipient.college || "",
+    team: recipient.teamName || '',
+    track: recipient.track || '',
+    shortCode: recipient.shortCode || '',
+    role: recipient.memberRole || '',
+    college: recipient.college || '',
   };
 
   let html = bodyHtml;
   let subject = subjectTemplate;
 
   for (const [key, value] of Object.entries(variables)) {
-    const pattern = new RegExp(`\\{\\{${key}\\}\\}`, "g");
+    const pattern = new RegExp(`\\{\\{${key}\\}\\}`, 'g');
     html = html.replace(pattern, escapeHtml(value));
     subject = subject.replace(pattern, value);
   }
@@ -169,10 +167,7 @@ export function renderCampaignEmail(
 }
 
 function escapeHtml(unsafe: string): string {
-  return unsafe
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
+  return unsafe.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -197,25 +192,25 @@ export async function dispatchCampaign(campaignId: string): Promise<{
 }> {
   // 1. Lock campaign → SENDING (atomic: only DRAFT can transition)
   const campaign = await prisma.emailCampaign.update({
-    where: { id: campaignId, status: "DRAFT" },
-    data: { status: "SENDING", sentAt: new Date() },
+    where: { id: campaignId, status: 'DRAFT' },
+    data: { status: 'SENDING', sentAt: new Date() },
   });
 
   if (!campaign) {
-    throw new Error("Campaign not found or not in DRAFT status");
+    throw new Error('Campaign not found or not in DRAFT status');
   }
 
   // 2. Resolve & snapshot recipients
   const filters: CampaignFilters = {
     audienceType: campaign.audienceType,
-    ...(campaign.filters as Record<string, unknown> || {}),
+    ...((campaign.filters as Record<string, unknown>) || {}),
   };
   const resolved = await resolveRecipients(filters);
 
   if (resolved.length === 0) {
     await prisma.emailCampaign.update({
       where: { id: campaignId },
-      data: { status: "SENT", completedAt: new Date(), totalRecipients: 0 },
+      data: { status: 'SENT', completedAt: new Date(), totalRecipients: 0 },
     });
     return { totalSent: 0, totalFailed: 0 };
   }
@@ -243,7 +238,7 @@ export async function dispatchCampaign(campaignId: string): Promise<{
 
   // 3. Send in batches using Resend's batch API
   const pending = await prisma.campaignRecipient.findMany({
-    where: { campaignId, status: "PENDING" },
+    where: { campaignId, status: 'PENDING' },
   });
 
   let totalSent = 0;
@@ -281,11 +276,11 @@ export async function dispatchCampaign(campaignId: string): Promise<{
         const result = await getResend().batch.send(batchEmails);
 
         if (result.error) {
-          throw new Error(result.error.message || "Resend batch error");
+          throw new Error(result.error.message || 'Resend batch error');
         }
 
         // Update all recipients in this batch as sent
-        const batchIds = batch.map(r => r.id);
+        const batchIds = batch.map((r) => r.id);
         const messageIds = result.data?.data || [];
 
         await prisma.$transaction([
@@ -293,7 +288,7 @@ export async function dispatchCampaign(campaignId: string): Promise<{
           prisma.campaignRecipient.updateMany({
             where: { id: { in: batchIds } },
             data: {
-              status: "SENT",
+              status: 'SENT',
               sentAt: new Date(),
               attempts: attempt + 1,
             },
@@ -309,12 +304,14 @@ export async function dispatchCampaign(campaignId: string): Promise<{
 
         totalSent += batch.length;
         batchSuccess = true;
-        console.log(`[Campaign ${campaignId}] Batch ${Math.floor(i / CAMPAIGN_CONFIG.batchSize) + 1} sent: ${batch.length} emails`);
+        console.log(
+          `[Campaign ${campaignId}] Batch ${Math.floor(i / CAMPAIGN_CONFIG.batchSize) + 1} sent: ${batch.length} emails`
+        );
         break;
       } catch (err) {
         lastError = err instanceof Error ? err.message : String(err);
         console.error(`[Campaign ${campaignId}] Batch attempt ${attempt + 1} failed:`, lastError);
-        
+
         if (attempt < CAMPAIGN_CONFIG.maxRetries) {
           await sleep(CAMPAIGN_CONFIG.retryDelayMs * (attempt + 1));
         }
@@ -323,17 +320,19 @@ export async function dispatchCampaign(campaignId: string): Promise<{
 
     // If all retries failed, mark batch as failed
     if (!batchSuccess) {
-      const batchIds = batch.map(r => r.id);
+      const batchIds = batch.map((r) => r.id);
       await prisma.campaignRecipient.updateMany({
         where: { id: { in: batchIds } },
         data: {
-          status: "FAILED",
+          status: 'FAILED',
           error: lastError,
           attempts: CAMPAIGN_CONFIG.maxRetries + 1,
         },
       });
       totalFailed += batch.length;
-      console.error(`[Campaign ${campaignId}] Batch failed after all retries: ${batch.length} emails`);
+      console.error(
+        `[Campaign ${campaignId}] Batch failed after all retries: ${batch.length} emails`
+      );
     }
 
     // Update running stats after each batch
@@ -349,11 +348,11 @@ export async function dispatchCampaign(campaignId: string): Promise<{
   }
 
   // 4. Mark complete
-  const finalStatus = totalFailed > 0 && totalSent === 0 ? "FAILED" : "SENT";
+  const finalStatus = totalFailed > 0 && totalSent === 0 ? 'FAILED' : 'SENT';
   await prisma.emailCampaign.update({
     where: { id: campaignId },
     data: {
-      status: finalStatus as "SENT" | "FAILED",
+      status: finalStatus as 'SENT' | 'FAILED',
       completedAt: new Date(),
       totalSent,
       totalFailed,
@@ -375,13 +374,13 @@ export async function retryCampaignFailed(campaignId: string): Promise<{
   });
 
   if (!campaign) {
-    throw new Error("Campaign not found");
+    throw new Error('Campaign not found');
   }
 
   const failed = await prisma.campaignRecipient.findMany({
     where: {
       campaignId,
-      status: { in: ["FAILED", "BOUNCED"] },
+      status: { in: ['FAILED', 'BOUNCED'] },
     },
   });
 
@@ -409,13 +408,13 @@ export async function retryCampaignFailed(campaignId: string): Promise<{
       });
 
       if (result.error) {
-        throw new Error(result.error.message || "Resend error");
+        throw new Error(result.error.message || 'Resend error');
       }
 
       await prisma.campaignRecipient.update({
         where: { id: recipient.id },
         data: {
-          status: "SENT",
+          status: 'SENT',
           messageId: result.data?.id,
           sentAt: new Date(),
           error: null,
@@ -437,7 +436,7 @@ export async function retryCampaignFailed(campaignId: string): Promise<{
 
   // Update campaign stats
   const stats = await prisma.campaignRecipient.groupBy({
-    by: ["status"],
+    by: ['status'],
     where: { campaignId },
     _count: true,
   });
@@ -450,10 +449,10 @@ export async function retryCampaignFailed(campaignId: string): Promise<{
   await prisma.emailCampaign.update({
     where: { id: campaignId },
     data: {
-      totalSent: (statMap["SENT"] || 0) + (statMap["DELIVERED"] || 0) + (statMap["OPENED"] || 0),
-      totalDelivered: (statMap["DELIVERED"] || 0) + (statMap["OPENED"] || 0),
-      totalOpened: statMap["OPENED"] || 0,
-      totalFailed: (statMap["FAILED"] || 0) + (statMap["BOUNCED"] || 0),
+      totalSent: (statMap['SENT'] || 0) + (statMap['DELIVERED'] || 0) + (statMap['OPENED'] || 0),
+      totalDelivered: (statMap['DELIVERED'] || 0) + (statMap['OPENED'] || 0),
+      totalOpened: statMap['OPENED'] || 0,
+      totalFailed: (statMap['FAILED'] || 0) + (statMap['BOUNCED'] || 0),
     },
   });
 

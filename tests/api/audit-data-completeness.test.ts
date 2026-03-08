@@ -1,9 +1,9 @@
 /**
  * Property-Based Test for Audit Trail Data Completeness
- * 
+ *
  * Feature: admin-audit-trail, Property 3: Data Completeness
  * **Validates: Requirements US-1.3, US-3.1, US-3.2**
- * 
+ *
  * This test verifies that all audit log entries returned by the API
  * include all required fields with proper structure. Specifically:
  * - All core audit log fields (id, timestamp, action, fieldName, etc.)
@@ -55,10 +55,12 @@ function auditLogGenerator() {
     teamId: fc.constant('test-team-completeness'),
     userId: fc.uuid(),
     submissionId: fc.uuid(),
-    timestamp: fc.date({
-      min: new Date('2024-01-01'),
-      max: new Date('2024-12-31'),
-    }).filter(d => !isNaN(d.getTime())), // Filter out invalid dates
+    timestamp: fc
+      .date({
+        min: new Date('2024-01-01'),
+        max: new Date('2024-12-31'),
+      })
+      .filter((d) => !isNaN(d.getTime())), // Filter out invalid dates
     action: fc.constantFrom('CREATE', 'UPDATE', 'DELETE'),
     fieldName: fc.constantFrom(
       'teamName',
@@ -81,10 +83,7 @@ function auditLogGenerator() {
       id: fc.uuid(),
       name: fc.string({ minLength: 3, maxLength: 50 }),
       email: fc.emailAddress(),
-      teamMemberships: fc.constantFrom(
-        [{ role: 'LEADER' }],
-        [{ role: 'MEMBER' }]
-      ),
+      teamMemberships: fc.constantFrom([{ role: 'LEADER' }], [{ role: 'MEMBER' }]),
     }),
   });
 }
@@ -112,7 +111,7 @@ describe('Audit Trail API - Property 3: Data Completeness', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     // Setup default mocks
     (prisma.adminSession.findUnique as any).mockResolvedValue(mockAdminSession as any);
     (prisma.team.findUnique as any).mockResolvedValue(mockTeam as any);
@@ -124,8 +123,8 @@ describe('Audit Trail API - Property 3: Data Completeness', () => {
         fc.array(auditLogGenerator(), { minLength: 1, maxLength: 50 }),
         async (logs) => {
           // Sort by timestamp descending (as the API does)
-          const sortedLogs = [...logs].sort((a, b) => 
-            b.timestamp.getTime() - a.timestamp.getTime()
+          const sortedLogs = [...logs].sort(
+            (a, b) => b.timestamp.getTime() - a.timestamp.getTime()
           );
 
           // Mock Prisma to return logs
@@ -224,8 +223,8 @@ describe('Audit Trail API - Property 3: Data Completeness', () => {
         fc.array(auditLogGenerator(), { minLength: 1, maxLength: 30 }),
         async (logs) => {
           // Sort by timestamp descending
-          const sortedLogs = [...logs].sort((a, b) => 
-            b.timestamp.getTime() - a.timestamp.getTime()
+          const sortedLogs = [...logs].sort(
+            (a, b) => b.timestamp.getTime() - a.timestamp.getTime()
           );
 
           // Mock Prisma
@@ -260,8 +259,8 @@ describe('Audit Trail API - Property 3: Data Completeness', () => {
         fc.array(auditLogGenerator(), { minLength: 1, maxLength: 30 }),
         async (logs) => {
           // Sort by timestamp descending
-          const sortedLogs = [...logs].sort((a, b) => 
-            b.timestamp.getTime() - a.timestamp.getTime()
+          const sortedLogs = [...logs].sort(
+            (a, b) => b.timestamp.getTime() - a.timestamp.getTime()
           );
 
           // Mock Prisma
@@ -298,8 +297,8 @@ describe('Audit Trail API - Property 3: Data Completeness', () => {
         fc.integer({ min: 5, max: 15 }),
         async (logs, pageSize) => {
           // Sort by timestamp descending
-          const sortedLogs = [...logs].sort((a, b) => 
-            b.timestamp.getTime() - a.timestamp.getTime()
+          const sortedLogs = [...logs].sort(
+            (a, b) => b.timestamp.getTime() - a.timestamp.getTime()
           );
 
           // Test first page
@@ -384,15 +383,15 @@ describe('Audit Trail API - Property 3: Data Completeness', () => {
         async (logs, filters) => {
           // Apply filters to logs
           let filteredLogs = [...logs];
-          
+
           if (filters.userId) {
-            filteredLogs = filteredLogs.filter(log => log.userId === filters.userId);
+            filteredLogs = filteredLogs.filter((log) => log.userId === filters.userId);
           }
           if (filters.fieldName) {
-            filteredLogs = filteredLogs.filter(log => log.fieldName === filters.fieldName);
+            filteredLogs = filteredLogs.filter((log) => log.fieldName === filters.fieldName);
           }
           if (filters.action) {
-            filteredLogs = filteredLogs.filter(log => log.action === filters.action);
+            filteredLogs = filteredLogs.filter((log) => log.action === filters.action);
           }
 
           // Skip if no logs match filters
@@ -401,8 +400,8 @@ describe('Audit Trail API - Property 3: Data Completeness', () => {
           }
 
           // Sort by timestamp descending
-          const sortedLogs = filteredLogs.sort((a, b) => 
-            b.timestamp.getTime() - a.timestamp.getTime()
+          const sortedLogs = filteredLogs.sort(
+            (a, b) => b.timestamp.getTime() - a.timestamp.getTime()
           );
 
           // Mock Prisma
@@ -473,8 +472,8 @@ describe('Audit Trail API - Property 3: Data Completeness', () => {
         fc.array(auditLogGenerator(), { minLength: 1, maxLength: 20 }),
         async (logs) => {
           // Sort by timestamp descending
-          const sortedLogs = [...logs].sort((a, b) => 
-            b.timestamp.getTime() - a.timestamp.getTime()
+          const sortedLogs = [...logs].sort(
+            (a, b) => b.timestamp.getTime() - a.timestamp.getTime()
           );
 
           // Mock Prisma
@@ -513,8 +512,8 @@ describe('Audit Trail API - Property 3: Data Completeness', () => {
         fc.array(auditLogGenerator(), { minLength: 1, maxLength: 20 }),
         async (logs) => {
           // Sort by timestamp descending
-          const sortedLogs = [...logs].sort((a, b) => 
-            b.timestamp.getTime() - a.timestamp.getTime()
+          const sortedLogs = [...logs].sort(
+            (a, b) => b.timestamp.getTime() - a.timestamp.getTime()
           );
 
           // Mock Prisma
@@ -548,8 +547,8 @@ describe('Audit Trail API - Property 3: Data Completeness', () => {
         fc.array(auditLogGenerator(), { minLength: 1, maxLength: 20 }),
         async (logs) => {
           // Sort by timestamp descending
-          const sortedLogs = [...logs].sort((a, b) => 
-            b.timestamp.getTime() - a.timestamp.getTime()
+          const sortedLogs = [...logs].sort(
+            (a, b) => b.timestamp.getTime() - a.timestamp.getTime()
           );
 
           // Mock Prisma

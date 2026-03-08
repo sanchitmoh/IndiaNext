@@ -1,6 +1,6 @@
 /**
  * Unit Tests: Pagination Component
- * 
+ *
  * Tests the Pagination component functionality:
  * - Displays current page and total pages
  * - Previous/Next buttons work correctly
@@ -18,13 +18,7 @@ describe('Pagination Component', () => {
   describe('Display', () => {
     it('should display current page and total pages', () => {
       const onPageChange = vi.fn();
-      render(
-        <Pagination
-          currentPage={3}
-          totalPages={10}
-          onPageChange={onPageChange}
-        />
-      );
+      render(<Pagination currentPage={3} totalPages={10} onPageChange={onPageChange} />);
 
       expect(screen.getByDisplayValue('3')).toBeInTheDocument();
       expect(screen.getByText('of 10')).toBeInTheDocument();
@@ -32,13 +26,7 @@ describe('Pagination Component', () => {
 
     it('should display page 1 of 1 for single page', () => {
       const onPageChange = vi.fn();
-      render(
-        <Pagination
-          currentPage={1}
-          totalPages={1}
-          onPageChange={onPageChange}
-        />
-      );
+      render(<Pagination currentPage={1} totalPages={1} onPageChange={onPageChange} />);
 
       expect(screen.getByDisplayValue('1')).toBeInTheDocument();
       expect(screen.getByText('of 1')).toBeInTheDocument();
@@ -48,13 +36,7 @@ describe('Pagination Component', () => {
   describe('Previous Button', () => {
     it('should call onPageChange with previous page when clicked', () => {
       const onPageChange = vi.fn();
-      render(
-        <Pagination
-          currentPage={5}
-          totalPages={10}
-          onPageChange={onPageChange}
-        />
-      );
+      render(<Pagination currentPage={5} totalPages={10} onPageChange={onPageChange} />);
 
       const prevButton = screen.getByLabelText('Previous page');
       fireEvent.click(prevButton);
@@ -64,13 +46,7 @@ describe('Pagination Component', () => {
 
     it('should be disabled on first page', () => {
       const onPageChange = vi.fn();
-      render(
-        <Pagination
-          currentPage={1}
-          totalPages={10}
-          onPageChange={onPageChange}
-        />
-      );
+      render(<Pagination currentPage={1} totalPages={10} onPageChange={onPageChange} />);
 
       const prevButton = screen.getByLabelText('Previous page');
       expect(prevButton).toBeDisabled();
@@ -78,13 +54,7 @@ describe('Pagination Component', () => {
 
     it('should not call onPageChange when disabled and clicked', () => {
       const onPageChange = vi.fn();
-      render(
-        <Pagination
-          currentPage={1}
-          totalPages={10}
-          onPageChange={onPageChange}
-        />
-      );
+      render(<Pagination currentPage={1} totalPages={10} onPageChange={onPageChange} />);
 
       const prevButton = screen.getByLabelText('Previous page');
       fireEvent.click(prevButton);
@@ -94,13 +64,7 @@ describe('Pagination Component', () => {
 
     it('should be enabled on any page except first', () => {
       const onPageChange = vi.fn();
-      render(
-        <Pagination
-          currentPage={2}
-          totalPages={10}
-          onPageChange={onPageChange}
-        />
-      );
+      render(<Pagination currentPage={2} totalPages={10} onPageChange={onPageChange} />);
 
       const prevButton = screen.getByLabelText('Previous page');
       expect(prevButton).not.toBeDisabled();
@@ -110,13 +74,7 @@ describe('Pagination Component', () => {
   describe('Next Button', () => {
     it('should call onPageChange with next page when clicked', () => {
       const onPageChange = vi.fn();
-      render(
-        <Pagination
-          currentPage={5}
-          totalPages={10}
-          onPageChange={onPageChange}
-        />
-      );
+      render(<Pagination currentPage={5} totalPages={10} onPageChange={onPageChange} />);
 
       const nextButton = screen.getByLabelText('Next page');
       fireEvent.click(nextButton);
@@ -126,13 +84,7 @@ describe('Pagination Component', () => {
 
     it('should be disabled on last page', () => {
       const onPageChange = vi.fn();
-      render(
-        <Pagination
-          currentPage={10}
-          totalPages={10}
-          onPageChange={onPageChange}
-        />
-      );
+      render(<Pagination currentPage={10} totalPages={10} onPageChange={onPageChange} />);
 
       const nextButton = screen.getByLabelText('Next page');
       expect(nextButton).toBeDisabled();
@@ -140,13 +92,7 @@ describe('Pagination Component', () => {
 
     it('should not call onPageChange when disabled and clicked', () => {
       const onPageChange = vi.fn();
-      render(
-        <Pagination
-          currentPage={10}
-          totalPages={10}
-          onPageChange={onPageChange}
-        />
-      );
+      render(<Pagination currentPage={10} totalPages={10} onPageChange={onPageChange} />);
 
       const nextButton = screen.getByLabelText('Next page');
       fireEvent.click(nextButton);
@@ -156,13 +102,7 @@ describe('Pagination Component', () => {
 
     it('should be enabled on any page except last', () => {
       const onPageChange = vi.fn();
-      render(
-        <Pagination
-          currentPage={9}
-          totalPages={10}
-          onPageChange={onPageChange}
-        />
-      );
+      render(<Pagination currentPage={9} totalPages={10} onPageChange={onPageChange} />);
 
       const nextButton = screen.getByLabelText('Next page');
       expect(nextButton).not.toBeDisabled();
@@ -172,13 +112,7 @@ describe('Pagination Component', () => {
   describe('Direct Page Navigation', () => {
     it('should allow typing a page number', () => {
       const onPageChange = vi.fn();
-      render(
-        <Pagination
-          currentPage={5}
-          totalPages={10}
-          onPageChange={onPageChange}
-        />
-      );
+      render(<Pagination currentPage={5} totalPages={10} onPageChange={onPageChange} />);
 
       const input = screen.getByLabelText('Page number') as HTMLInputElement;
       fireEvent.change(input, { target: { value: '7' } });
@@ -188,13 +122,7 @@ describe('Pagination Component', () => {
 
     it('should navigate to typed page on form submit', () => {
       const onPageChange = vi.fn();
-      render(
-        <Pagination
-          currentPage={5}
-          totalPages={10}
-          onPageChange={onPageChange}
-        />
-      );
+      render(<Pagination currentPage={5} totalPages={10} onPageChange={onPageChange} />);
 
       const input = screen.getByLabelText('Page number');
       fireEvent.change(input, { target: { value: '7' } });
@@ -205,13 +133,7 @@ describe('Pagination Component', () => {
 
     it('should navigate to typed page on blur', () => {
       const onPageChange = vi.fn();
-      render(
-        <Pagination
-          currentPage={5}
-          totalPages={10}
-          onPageChange={onPageChange}
-        />
-      );
+      render(<Pagination currentPage={5} totalPages={10} onPageChange={onPageChange} />);
 
       const input = screen.getByLabelText('Page number');
       fireEvent.change(input, { target: { value: '8' } });
@@ -222,13 +144,7 @@ describe('Pagination Component', () => {
 
     it('should accept page 1', () => {
       const onPageChange = vi.fn();
-      render(
-        <Pagination
-          currentPage={5}
-          totalPages={10}
-          onPageChange={onPageChange}
-        />
-      );
+      render(<Pagination currentPage={5} totalPages={10} onPageChange={onPageChange} />);
 
       const input = screen.getByLabelText('Page number');
       fireEvent.change(input, { target: { value: '1' } });
@@ -239,13 +155,7 @@ describe('Pagination Component', () => {
 
     it('should accept last page', () => {
       const onPageChange = vi.fn();
-      render(
-        <Pagination
-          currentPage={5}
-          totalPages={10}
-          onPageChange={onPageChange}
-        />
-      );
+      render(<Pagination currentPage={5} totalPages={10} onPageChange={onPageChange} />);
 
       const input = screen.getByLabelText('Page number');
       fireEvent.change(input, { target: { value: '10' } });
@@ -258,13 +168,7 @@ describe('Pagination Component', () => {
   describe('Input Validation', () => {
     it('should reject page number less than 1', () => {
       const onPageChange = vi.fn();
-      render(
-        <Pagination
-          currentPage={5}
-          totalPages={10}
-          onPageChange={onPageChange}
-        />
-      );
+      render(<Pagination currentPage={5} totalPages={10} onPageChange={onPageChange} />);
 
       const input = screen.getByLabelText('Page number') as HTMLInputElement;
       fireEvent.change(input, { target: { value: '0' } });
@@ -277,13 +181,7 @@ describe('Pagination Component', () => {
 
     it('should reject page number greater than total pages', () => {
       const onPageChange = vi.fn();
-      render(
-        <Pagination
-          currentPage={5}
-          totalPages={10}
-          onPageChange={onPageChange}
-        />
-      );
+      render(<Pagination currentPage={5} totalPages={10} onPageChange={onPageChange} />);
 
       const input = screen.getByLabelText('Page number') as HTMLInputElement;
       fireEvent.change(input, { target: { value: '11' } });
@@ -296,13 +194,7 @@ describe('Pagination Component', () => {
 
     it('should reject negative page numbers', () => {
       const onPageChange = vi.fn();
-      render(
-        <Pagination
-          currentPage={5}
-          totalPages={10}
-          onPageChange={onPageChange}
-        />
-      );
+      render(<Pagination currentPage={5} totalPages={10} onPageChange={onPageChange} />);
 
       const input = screen.getByLabelText('Page number') as HTMLInputElement;
       fireEvent.change(input, { target: { value: '-1' } });
@@ -314,13 +206,7 @@ describe('Pagination Component', () => {
 
     it('should reject non-numeric input', () => {
       const onPageChange = vi.fn();
-      render(
-        <Pagination
-          currentPage={5}
-          totalPages={10}
-          onPageChange={onPageChange}
-        />
-      );
+      render(<Pagination currentPage={5} totalPages={10} onPageChange={onPageChange} />);
 
       const input = screen.getByLabelText('Page number') as HTMLInputElement;
       fireEvent.change(input, { target: { value: 'abc' } });
@@ -332,13 +218,7 @@ describe('Pagination Component', () => {
 
     it('should reject empty input', () => {
       const onPageChange = vi.fn();
-      render(
-        <Pagination
-          currentPage={5}
-          totalPages={10}
-          onPageChange={onPageChange}
-        />
-      );
+      render(<Pagination currentPage={5} totalPages={10} onPageChange={onPageChange} />);
 
       const input = screen.getByLabelText('Page number') as HTMLInputElement;
       fireEvent.change(input, { target: { value: '' } });
@@ -350,13 +230,7 @@ describe('Pagination Component', () => {
 
     it('should accept decimal numbers by truncating to integer', () => {
       const onPageChange = vi.fn();
-      render(
-        <Pagination
-          currentPage={5}
-          totalPages={10}
-          onPageChange={onPageChange}
-        />
-      );
+      render(<Pagination currentPage={5} totalPages={10} onPageChange={onPageChange} />);
 
       const input = screen.getByLabelText('Page number') as HTMLInputElement;
       fireEvent.change(input, { target: { value: '7.5' } });
@@ -371,44 +245,28 @@ describe('Pagination Component', () => {
     it('should update input when currentPage prop changes', () => {
       const onPageChange = vi.fn();
       const { rerender } = render(
-        <Pagination
-          currentPage={5}
-          totalPages={10}
-          onPageChange={onPageChange}
-        />
+        <Pagination currentPage={5} totalPages={10} onPageChange={onPageChange} />
       );
 
       const input = screen.getByLabelText('Page number') as HTMLInputElement;
       expect(input.value).toBe('5');
 
       // Update currentPage prop
-      rerender(
-        <Pagination
-          currentPage={7}
-          totalPages={10}
-          onPageChange={onPageChange}
-        />
-      );
+      rerender(<Pagination currentPage={7} totalPages={10} onPageChange={onPageChange} />);
 
       expect(input.value).toBe('7');
     });
 
     it('should maintain input value during typing', () => {
       const onPageChange = vi.fn();
-      render(
-        <Pagination
-          currentPage={5}
-          totalPages={10}
-          onPageChange={onPageChange}
-        />
-      );
+      render(<Pagination currentPage={5} totalPages={10} onPageChange={onPageChange} />);
 
       const input = screen.getByLabelText('Page number') as HTMLInputElement;
-      
+
       // Type partial value
       fireEvent.change(input, { target: { value: '1' } });
       expect(input.value).toBe('1');
-      
+
       // Continue typing
       fireEvent.change(input, { target: { value: '10' } });
       expect(input.value).toBe('10');
@@ -418,13 +276,7 @@ describe('Pagination Component', () => {
   describe('Edge Cases', () => {
     it('should handle single page scenario', () => {
       const onPageChange = vi.fn();
-      render(
-        <Pagination
-          currentPage={1}
-          totalPages={1}
-          onPageChange={onPageChange}
-        />
-      );
+      render(<Pagination currentPage={1} totalPages={1} onPageChange={onPageChange} />);
 
       const prevButton = screen.getByLabelText('Previous page');
       const nextButton = screen.getByLabelText('Next page');
@@ -435,13 +287,7 @@ describe('Pagination Component', () => {
 
     it('should handle two page scenario on first page', () => {
       const onPageChange = vi.fn();
-      render(
-        <Pagination
-          currentPage={1}
-          totalPages={2}
-          onPageChange={onPageChange}
-        />
-      );
+      render(<Pagination currentPage={1} totalPages={2} onPageChange={onPageChange} />);
 
       const prevButton = screen.getByLabelText('Previous page');
       const nextButton = screen.getByLabelText('Next page');
@@ -452,13 +298,7 @@ describe('Pagination Component', () => {
 
     it('should handle two page scenario on last page', () => {
       const onPageChange = vi.fn();
-      render(
-        <Pagination
-          currentPage={2}
-          totalPages={2}
-          onPageChange={onPageChange}
-        />
-      );
+      render(<Pagination currentPage={2} totalPages={2} onPageChange={onPageChange} />);
 
       const prevButton = screen.getByLabelText('Previous page');
       const nextButton = screen.getByLabelText('Next page');
@@ -469,13 +309,7 @@ describe('Pagination Component', () => {
 
     it('should handle large page numbers', () => {
       const onPageChange = vi.fn();
-      render(
-        <Pagination
-          currentPage={999}
-          totalPages={1000}
-          onPageChange={onPageChange}
-        />
-      );
+      render(<Pagination currentPage={999} totalPages={1000} onPageChange={onPageChange} />);
 
       expect(screen.getByDisplayValue('999')).toBeInTheDocument();
       expect(screen.getByText('of 1000')).toBeInTheDocument();
@@ -490,13 +324,7 @@ describe('Pagination Component', () => {
   describe('Accessibility', () => {
     it('should have proper aria labels', () => {
       const onPageChange = vi.fn();
-      render(
-        <Pagination
-          currentPage={5}
-          totalPages={10}
-          onPageChange={onPageChange}
-        />
-      );
+      render(<Pagination currentPage={5} totalPages={10} onPageChange={onPageChange} />);
 
       expect(screen.getByLabelText('Previous page')).toBeInTheDocument();
       expect(screen.getByLabelText('Next page')).toBeInTheDocument();
@@ -505,20 +333,14 @@ describe('Pagination Component', () => {
 
     it('should be keyboard navigable', () => {
       const onPageChange = vi.fn();
-      render(
-        <Pagination
-          currentPage={5}
-          totalPages={10}
-          onPageChange={onPageChange}
-        />
-      );
+      render(<Pagination currentPage={5} totalPages={10} onPageChange={onPageChange} />);
 
       const input = screen.getByLabelText('Page number');
-      
+
       // Focus input
       input.focus();
       expect(document.activeElement).toBe(input);
-      
+
       // Type and submit with Enter (form submission)
       fireEvent.change(input, { target: { value: '7' } });
       fireEvent.submit(input.closest('form')!);
