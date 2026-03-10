@@ -143,11 +143,18 @@ export function verifyCsrfToken(token: string, expected: string): boolean {
 }
 
 /**
- * Hash session token for storage (optional extra security layer)
+ * Hash session token for storage using HMAC-SHA256
+ * ✅ SECURITY FIX: Use HMAC-SHA256 with secret instead of plain SHA-256
  */
 export function hashSessionToken(token: string): string {
+  const secret = process.env.SESSION_SECRET || process.env.JWT_SECRET || 'fallback-secret-change-in-production';
+  
+  if (secret === 'fallback-secret-change-in-production' && process.env.NODE_ENV === 'production') {
+    console.error('[SECURITY] SESSION_SECRET not set in production! Using fallback.');
+  }
+  
   return crypto
-    .createHash('sha256')
+    .createHmac('sha256', secret)
     .update(token)
     .digest('hex');
 }

@@ -28,7 +28,14 @@ const RegisterSchema = z.object({
   idempotencyKey: z.string().max(100).optional(),
   
   // Team Info
-  track: z.enum(['IdeaSprint: Build MVP in 24 Hours', 'BuildStorm: Solve Problem Statement in 24 Hours', 'IDEA_SPRINT', 'BUILD_STORM']),
+  track: z.enum([
+    'Track 1: BuildStorm - Solve Problem Statement in 24 Hours',
+    'Track 2: IdeaSprint - Build MVP in 24 Hours',
+    'IdeaSprint: Build MVP in 24 Hours',
+    'BuildStorm: Solve Problem Statement in 24 Hours',
+    'IDEA_SPRINT',
+    'BUILD_STORM'
+  ]),
   teamName: z.string().min(2, 'Team name must be at least 2 characters').max(100),
   teamSize: z.string(),
   
@@ -313,6 +320,8 @@ export async function POST(req: Request) {
 
     // Map track names to enum values
     const trackMap: Record<string, 'IDEA_SPRINT' | 'BUILD_STORM'> = {
+      'Track 1: BuildStorm - Solve Problem Statement in 24 Hours': 'BUILD_STORM',
+      'Track 2: IdeaSprint - Build MVP in 24 Hours': 'IDEA_SPRINT',
       'IdeaSprint: Build MVP in 24 Hours': 'IDEA_SPRINT',
       'BuildStorm: Solve Problem Statement in 24 Hours': 'BUILD_STORM',
       'IDEA_SPRINT': 'IDEA_SPRINT',
@@ -667,6 +676,63 @@ export async function POST(req: Request) {
   }
 }
 
+/**
+ * Helper function to fetch current registration data for diff comparison
+ * Transforms database structure to flat RegistrationData format
+ */
+async function fetchCurrentRegistration(teamId: string) {
+  const team = await prisma.team.findUnique({
+    where: { id: teamId },
+    include: {
+      members: {
+        include: { user: true },
+        orderBy: { joinedAt: 'asc' },
+      },
+      submission: true,
+    },
+  });
+
+  if (!team) {
+    throw new Error('Team not found');
+  }
+
+  // Get members excluding leader (first member is leader)
+  const members = team.members.slice(1); // Skip leader
+
+  // Build flat registration data object
+  const registrationData: Record<string, any> = {
+    teamName: team.name,
+    hearAbout: team.hearAbout || '',
+    additionalNotes: team.additionalNotes || '',
+    track: team.track,
+  };
+
+  // Add member data (member2, member3, member4)
+  members.forEach((member, index) => {
+    const memberNum = index + 2; // member2, member3, member4
+    registrationData[`member${memberNum}Email`] = member.user.email || '';
+    registrationData[`member${memberNum}Name`] = member.user.name || '';
+    registrationData[`member${memberNum}College`] = member.user.college || '';
+    registrationData[`member${memberNum}Degree`] = member.user.degree || '';
+    registrationData[`member${memberNum}Gender`] = member.user.gender || '';
+  });
+
+  // Add submission fields if exists
+  if (team.submission) {
+    registrationData.ideaTitle = team.submission.ideaTitle || '';
+    registrationData.problemStatement = team.submission.problemStatement || '';
+    registrationData.proposedSolution = team.submission.proposedSolution || '';
+    registrationData.targetUsers = team.submission.targetUsers || '';
+    registrationData.expectedImpact = team.submission.expectedImpact || '';
+    registrationData.techStack = team.submission.techStack || '';
+    registrationData.docLink = team.submission.docLink || '';
+    registrationData.problemDesc = team.submission.problemDesc || '';
+    registrationData.githubLink = team.submission.githubLink || '';
+  }
+
+  return registrationData;
+}
+
 export async function PUT(req: Request) {
   try {
     const cookieStore = await cookies();
@@ -706,6 +772,8 @@ export async function PUT(req: Request) {
     const sanitizedData = sanitizeObject(validation.data, { sanitizeHtml: true, sanitizeUrls: true });
 
     const trackMap: Record<string, 'IDEA_SPRINT' | 'BUILD_STORM'> = {
+      'Track 1: BuildStorm - Solve Problem Statement in 24 Hours': 'BUILD_STORM',
+      'Track 2: IdeaSprint - Build MVP in 24 Hours': 'IDEA_SPRINT',
       'IdeaSprint: Build MVP in 24 Hours': 'IDEA_SPRINT',
       'BuildStorm: Solve Problem Statement in 24 Hours': 'BUILD_STORM',
       'IDEA_SPRINT': 'IDEA_SPRINT',
@@ -742,16 +810,56 @@ export async function PUT(req: Request) {
       }, { status: 403 });
     }
 
+    // Fetch current registration data before update for audit trail
+    const oldData = await fetchCurrentRegistration(teamId);
+
+    // Build new data object from sanitized input
+    const newData: Record<string, any> = {
+      teamName: sanitizedData.teamName,
+      hearAbout: sanitizedData.hearAbout || '',
+      additionalNotes: sanitizedData.additionalNotes || '',
+      track: trackEnum,
+    };
+
     const membersToUpdate: Array<{ email: string; name: string; gender: string; college: string; degree: string; phone: string }> = [];
     if (sanitizedData.member2Email && sanitizedData.member2Name) {
       membersToUpdate.push({ email: sanitizedData.member2Email.toLowerCase().trim(), name: sanitizedData.member2Name, gender: sanitizedData.member2Gender || '', college: sanitizedData.member2College || sanitizedData.leaderCollege, degree: sanitizedData.member2Degree || '', phone: '' });
+      newData.member2Email = sanitizedData.member2Email.toLowerCase().trim();
+      newData.member2Name = sanitizedData.member2Name;
+      newData.member2College = sanitizedData.member2College || sanitizedData.leaderCollege;
+      newData.member2Degree = sanitizedData.member2Degree || '';
+      newData.member2Gender = sanitizedData.member2Gender || '';
     }
     if (sanitizedData.member3Email && sanitizedData.member3Name) {
       membersToUpdate.push({ email: sanitizedData.member3Email.toLowerCase().trim(), name: sanitizedData.member3Name, gender: sanitizedData.member3Gender || '', college: sanitizedData.member3College || sanitizedData.leaderCollege, degree: sanitizedData.member3Degree || '', phone: '' });
+      newData.member3Email = sanitizedData.member3Email.toLowerCase().trim();
+      newData.member3Name = sanitizedData.member3Name;
+      newData.member3College = sanitizedData.member3College || sanitizedData.leaderCollege;
+      newData.member3Degree = sanitizedData.member3Degree || '';
+      newData.member3Gender = sanitizedData.member3Gender || '';
     }
     if (sanitizedData.member4Email && sanitizedData.member4Name) {
       membersToUpdate.push({ email: sanitizedData.member4Email.toLowerCase().trim(), name: sanitizedData.member4Name, gender: sanitizedData.member4Gender || '', college: sanitizedData.member4College || sanitizedData.leaderCollege, degree: sanitizedData.member4Degree || '', phone: '' });
+      newData.member4Email = sanitizedData.member4Email.toLowerCase().trim();
+      newData.member4Name = sanitizedData.member4Name;
+      newData.member4College = sanitizedData.member4College || sanitizedData.leaderCollege;
+      newData.member4Degree = sanitizedData.member4Degree || '';
+      newData.member4Gender = sanitizedData.member4Gender || '';
     }
+
+    // Add submission fields to newData
+    if (trackEnum === 'IDEA_SPRINT') {
+      newData.ideaTitle = sanitizedData.ideaTitle || '';
+      newData.problemStatement = sanitizedData.problemStatement || '';
+      newData.proposedSolution = sanitizedData.proposedSolution || '';
+      newData.targetUsers = sanitizedData.targetUsers || '';
+      newData.expectedImpact = sanitizedData.expectedImpact || '';
+      newData.techStack = sanitizedData.techStack || '';
+      newData.docLink = sanitizedData.docLink || '';
+    } else {
+      newData.problemDesc = sanitizedData.problemDesc || '';
+    }
+    newData.githubLink = sanitizedData.githubLink || sanitizedData.githubLinkIdea || '';
 
     const allEmails = membersToUpdate.map(m => m.email);
     if (allEmails.length > 0) {
@@ -779,6 +887,47 @@ export async function PUT(req: Request) {
         throw new Error('ALREADY_EDITED');
       }
 
+      // Capture changes for audit trail using AuditService
+      // Note: We call auditService.captureChanges which will create audit logs
+      // This must be done within the transaction to ensure atomicity
+      const ipAddress = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
+      const userAgent = req.headers.get('user-agent') || 'unknown';
+      
+      // Create audit logs manually within transaction (since auditService uses prisma directly)
+      // We need to use the transaction client (tx) instead
+      const { diffEngine } = await import('@/lib/diff-engine');
+      const { randomUUID } = await import('crypto');
+      
+      const submissionId = randomUUID();
+      const changes = diffEngine.diff(oldData, newData);
+      
+      // Create audit log entries for each change
+      for (const change of changes) {
+        await tx.auditLog.create({
+          data: {
+            teamId,
+            userId: user.id,
+            sessionId: session.id,
+            submissionId,
+            action: change.action,
+            fieldName: change.fieldName,
+            oldValue: change.oldValue === null || change.oldValue === undefined 
+              ? null 
+              : typeof change.oldValue === 'string' 
+                ? change.oldValue 
+                : JSON.stringify(change.oldValue),
+            newValue: change.newValue === null || change.newValue === undefined 
+              ? null 
+              : typeof change.newValue === 'string' 
+                ? change.newValue 
+                : JSON.stringify(change.newValue),
+            ipAddress,
+            userAgent,
+          },
+        });
+      }
+
+      // Update team data
       await tx.team.update({
         where: { id: teamId },
         data: {
@@ -790,6 +939,7 @@ export async function PUT(req: Request) {
         }
       });
 
+      // Update submission data
       await tx.submission.update({
         where: { teamId: teamId },
         data: {
@@ -811,23 +961,23 @@ export async function PUT(req: Request) {
       });
 
       for (const member of membersToUpdate) {
-        let user = await tx.user.findUnique({ where: { email: member.email } });
-        if (user) {
-          user = await tx.user.update({
+        let memberUser = await tx.user.findUnique({ where: { email: member.email } });
+        if (memberUser) {
+          memberUser = await tx.user.update({
             where: { email: member.email },
             data: { name: member.name, gender: member.gender, college: member.college, degree: member.degree }
           });
         } else {
-          user = await tx.user.create({
+          memberUser = await tx.user.create({
             data: { email: member.email, name: member.name, gender: member.gender, college: member.college, degree: member.degree, role: 'PARTICIPANT' }
           });
         }
         await tx.teamMember.create({
-          data: { userId: user.id, teamId: teamId, role: 'MEMBER' }
+          data: { userId: memberUser.id, teamId: teamId, role: 'MEMBER' }
         });
       }
 
-      // 📝 LOG CHANGE: Record the edit in activity logs
+      // 📝 LOG CHANGE: Record the edit in activity logs (keep for backward compatibility)
       await tx.activityLog.create({
         data: {
           userId: user.id,
@@ -840,12 +990,16 @@ export async function PUT(req: Request) {
             track: trackEnum,
             memberCount: membersToUpdate.length + 1,
             userAgent: req.headers.get('user-agent') || 'unknown',
-            registrationUpdate: true
+            registrationUpdate: true,
+            submissionId, // Link to audit trail submission
+            changeCount: changes.length,
           },
-          ipAddress: req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown',
-          userAgent: req.headers.get('user-agent') || 'unknown',
+          ipAddress,
+          userAgent,
         }
       });
+    }, {
+      timeout: 15000, // 15 seconds timeout for edit operations with audit logging
     });
 
     return NextResponse.json({ success: true, message: 'Registration updated successfully!' });

@@ -88,9 +88,11 @@ export async function POST(req: Request) {
       );
     }
 
-    // ✅ DEV BYPASS: Allow '000000' for demo emails
+    // ✅ DEV BYPASS: Allow '000000' for demo emails (exact match only)
+    // ✅ SECURITY FIX: Use exact email match instead of .includes() to prevent bypass
     const isDev = process.env.NODE_ENV === 'development';
-    const isDemoEmail = email.includes('demo.idea@example.com') || email.includes('demo.build@example.com');
+    const DEMO_EMAILS = ['demo.idea@example.com', 'demo.build@example.com'];
+    const isDemoEmail = DEMO_EMAILS.includes(email.toLowerCase());
     const isMasterOtp = otp === '000000';
 
     // Hash the provided OTP to compare with stored hash

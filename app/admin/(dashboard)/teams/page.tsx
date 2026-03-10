@@ -3,6 +3,7 @@
 
 import { useState } from "react";
 import { trpc } from "@/lib/trpc-client";
+import { useAdminRole } from "@/components/admin/AdminRoleContext";
 import { TeamsTable } from "@/components/admin/teams/TeamsTable";
 import { TeamsFilters } from "@/components/admin/teams/TeamsFilters";
 import { BulkActions } from "@/components/admin/teams/BulkActions";
@@ -10,6 +11,7 @@ import { Download, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 
 export default function TeamsManagementPage() {
+  const { role: _role, isLogistics, isOrganizer } = useAdminRole();
   const [filters, setFilters] = useState({
     status: "all",
     track: "all",
@@ -23,12 +25,8 @@ export default function TeamsManagementPage() {
   });
 
   const [selectedTeams, setSelectedTeams] = useState<string[]>([]);
-  const [userRole] = useState<string>(() => {
-    if (typeof document === 'undefined') return "ADMIN";
-    const roleElement = document.querySelector('[data-admin-role]');
-    return roleElement?.getAttribute('data-admin-role') || "ADMIN";
-  });
-  const isReadOnly = userRole === "LOGISTICS";
+  // ✅ SECURITY FIX: Use React Context instead of DOM attribute
+  const isReadOnly = isLogistics || isOrganizer;
 
   const { data, isLoading, refetch } = trpc.admin.getTeams.useQuery(filters);
   const exportMutation = trpc.admin.exportTeams.useMutation();

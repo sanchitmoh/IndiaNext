@@ -28,6 +28,7 @@ export default [
       "next-env.d.ts",
       "scripts/**",
       "node_modules/**",
+      "tests/**",
     ],
   },
   {

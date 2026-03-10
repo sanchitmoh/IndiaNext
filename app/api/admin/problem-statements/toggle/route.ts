@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
-import { requirePermission, type AdminRole } from '@/lib/rbac';
+import { hasPermission } from '@/lib/rbac-permissions';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { hashSessionToken } from '@/lib/session-security';
 
@@ -53,7 +53,7 @@ export async function POST(req: Request) {
     }
 
     // ✅ SECURITY FIX: Check RBAC permission for editing problem statements
-    if (!requirePermission(admin.role as AdminRole, 'editProblems')) {
+    if (!hasPermission(admin.role, 'EDIT_TEAMS')) {
       return NextResponse.json(
         { success: false, error: 'Insufficient permissions to toggle problem statements' },
         { status: 403 }

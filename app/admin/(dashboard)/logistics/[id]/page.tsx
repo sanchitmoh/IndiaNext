@@ -4,6 +4,7 @@
 import { use, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { trpc } from "@/lib/trpc-client";
+import { useAdminRole } from "@/components/admin/AdminRoleContext";
 import {
   ArrowLeft,
   CheckCircle2,
@@ -52,13 +53,10 @@ export default function LogisticsTeamDetailPage({ params }: { params: Promise<{ 
   const [attendanceNotes, setAttendanceNotes] = useState("");
   const [notesEditing, setNotesEditing] = useState(false);
 
-  // Get admin role from layout's data attribute
-  const adminRole = (() => {
-    if (typeof document === "undefined") return "LOGISTICS";
-    const el = document.querySelector("[data-admin-role]");
-    return el?.getAttribute("data-admin-role") || "LOGISTICS";
-  })();
-  const isAdmin = adminRole === "ADMIN" || adminRole === "SUPER_ADMIN";
+  // Get admin role from context
+  // ✅ SECURITY FIX: Use React Context instead of DOM attribute
+  const { isAdmin, isSuperAdmin } = useAdminRole();
+  const _canOverrideAttendance = isAdmin || isSuperAdmin;
 
   const { data: currentTeam, isLoading, refetch } = trpc.logistics.getTeamById.useQuery(
     { teamId: id },

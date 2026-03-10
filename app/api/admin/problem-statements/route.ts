@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
-import { requirePermission, type AdminRole } from '@/lib/rbac';
+import { hasPermission } from '@/lib/rbac-permissions';
 import { sanitizeHtml } from '@/lib/input-sanitizer';
 import { handleGenericError } from '@/lib/error-handler';
 import { hashSessionToken } from '@/lib/session-security';
@@ -54,7 +54,7 @@ export async function GET(req: Request) {
     }
 
     // ✅ SECURITY FIX (H-3): Check granular permission
-    if (!requirePermission(admin.role as AdminRole, 'viewProblems')) {
+    if (!hasPermission(admin.role, 'VIEW_ALL_TEAMS')) {
       return NextResponse.json({ success: false, error: 'Insufficient permissions' }, { status: 403 });
     }
 
@@ -106,7 +106,7 @@ export async function POST(req: Request) {
     }
 
     // ✅ SECURITY FIX (H-3): Check granular permission
-    if (!requirePermission(admin.role as AdminRole, 'createProblems')) {
+    if (!hasPermission(admin.role, 'EDIT_TEAMS')) {
       return NextResponse.json({ success: false, error: 'Insufficient permissions' }, { status: 403 });
     }
 
@@ -189,7 +189,7 @@ export async function PATCH(req: Request) {
     }
 
     // ✅ SECURITY FIX (H-3): Check granular permission
-    if (!requirePermission(admin.role as AdminRole, 'editProblems')) {
+    if (!hasPermission(admin.role, 'EDIT_TEAMS')) {
       return NextResponse.json({ success: false, error: 'Insufficient permissions' }, { status: 403 });
     }
 
@@ -263,7 +263,7 @@ export async function DELETE(req: NextRequest) {
     }
 
     // ✅ SECURITY FIX (H-3): Check granular permission
-    if (!requirePermission(admin.role as AdminRole, 'deleteProblems')) {
+    if (!hasPermission(admin.role, 'DELETE_TEAMS')) {
       return NextResponse.json({ success: false, error: 'Insufficient permissions' }, { status: 403 });
     }
 

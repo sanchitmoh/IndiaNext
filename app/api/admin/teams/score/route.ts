@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
-import { requirePermission, type AdminRole } from '@/lib/rbac';
+import { hasPermission } from '@/lib/rbac-permissions';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { createErrorResponse, getStatusCode, handleGenericError } from '@/lib/error-handler';
 
@@ -56,7 +56,7 @@ export async function POST(req: Request) {
     }
 
     // Check if admin has permission to score
-    if (!requirePermission(admin.role as AdminRole, 'scoreSubmissions')) {
+    if (!hasPermission(admin.role, 'SCORE_TEAMS')) {
       const err = createErrorResponse('FORBIDDEN', 'Insufficient permissions to score submissions', undefined, '/api/admin/teams/score');
       return NextResponse.json(err, { status: getStatusCode('FORBIDDEN') });
     }

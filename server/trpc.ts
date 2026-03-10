@@ -186,3 +186,57 @@ const rateLimitMutation = t.middleware(async ({ ctx, next }) => {
 
 export const rateLimitedAdminProcedure = adminProcedure.use(rateLimitMutation);
 export const rateLimitedProtectedProcedure = protectedProcedure.use(rateLimitMutation);
+
+// Export for use in custom procedure chains
+export { rateLimitMutation };
+
+// ═══════════════════════════════════════════════════════════
+// RBAC MIDDLEWARE GUARDS
+// ═══════════════════════════════════════════════════════════
+
+import { checkPermission } from '@/lib/rbac-permissions';
+
+/**
+ * Create a permission-based middleware guard
+ * Usage: requirePermission('viewTeams') or requirePermission('VIEW_ALL_TEAMS')
+ * 
+ * ✅ UNIFIED RBAC: Uses checkPermission which handles both tRPC-style and auth-admin-style names
+ */
+function requirePermission(permission: string) {
+  return t.middleware(({ ctx, next }) => {
+    if (!ctx.adminSession?.admin) {
+      throw new TRPCError({ code: "UNAUTHORIZED", message: "Admin access required" });
+    }
+    
+    if (!checkPermission(ctx.adminSession.admin.role, permission)) {
+      throw new TRPCError({ 
+        code: "FORBIDDEN", 
+        message: `Insufficient permissions. Required: ${permission}` 
+      });
+    }
+    
+    return next({
+      ctx: {
+        ...ctx,
+        admin: ctx.adminSession.admin,
+      },
+    });
+  });
+}
+
+/**
+ * Create role-specific middleware guards
+ * These use tRPC-style permission names which are mapped to auth-admin permissions
+ */
+export const canViewTeams = adminProcedure.use(requirePermission('viewTeams'));
+export const canEditTeams = adminProcedure.use(requirePermission('editTeams'));
+export const canDeleteTeams = adminProcedure.use(requirePermission('deleteTeams'));
+export const canExportTeams = adminProcedure.use(requirePermission('exportTeams'));
+export const canViewAnalytics = adminProcedure.use(requirePermission('viewAnalytics'));
+export const canManageUsers = adminProcedure.use(requirePermission('manageUsers'));
+export const canViewAuditLogs = adminProcedure.use(requirePermission('viewAuditLogs'));
+
+// Rate-limited versions
+export const canEditTeamsRateLimited = canEditTeams.use(rateLimitMutation);
+export const canDeleteTeamsRateLimited = canDeleteTeams.use(rateLimitMutation);
+export const canExportTeamsRateLimited = canExportTeams.use(rateLimitMutation);

@@ -83,6 +83,44 @@ export async function POST(req: Request) {
           { status: 409, headers: createRateLimitHeaders(rateLimit) }
         );
       }
+
+      // ✅ CHECK 1: Check if user exists and email is already verified
+      const existingUser = await prisma.user.findUnique({
+        where: { email },
+        select: { emailVerified: true },
+      });
+
+      if (existingUser && existingUser.emailVerified) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'ALREADY_VERIFIED',
+            message: 'This email has already been verified. Please proceed with registration.',
+          },
+          { status: 409, headers: createRateLimitHeaders(rateLimit) }
+        );
+      }
+
+      // ✅ CHECK 2: Check if there's a verified OTP record
+      const existingOtp = await prisma.otp.findUnique({
+        where: {
+          email_purpose: {
+            email,
+            purpose: purpose as OtpPurpose,
+          },
+        },
+      });
+
+      if (existingOtp && existingOtp.verified) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'ALREADY_VERIFIED',
+            message: 'This email has already been verified. Please proceed with registration.',
+          },
+          { status: 409, headers: createRateLimitHeaders(rateLimit) }
+        );
+      }
     }
 
     // Upsert OTP record with hashed value

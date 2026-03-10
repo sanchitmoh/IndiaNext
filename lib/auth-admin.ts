@@ -1,6 +1,7 @@
 // Admin Authentication & Authorization
-import { cookies } from 'next/headers';
-import { prisma } from './prisma';
+// NOTE: prisma and next/headers are imported dynamically inside server-only
+// functions so that client components importing this file for its pure utility
+// exports (hasPermission, getRoleLabel, etc.) do NOT pull in pg or fs.
 import type { UserRole } from '@prisma/client';
 
 // ═══════════════════════════════════════════════════════════
@@ -39,28 +40,28 @@ export const PERMISSIONS = {
   VIEW_SUBMISSIONS: ['ORGANIZER', 'JUDGE', 'ADMIN', 'SUPER_ADMIN'],
   VIEW_ANALYTICS: ['ORGANIZER', 'JUDGE', 'ADMIN', 'SUPER_ADMIN'],
   VIEW_AUDIT_LOGS: ['ADMIN', 'SUPER_ADMIN'],
-  
+
   // Team management
   APPROVE_TEAMS: ['ADMIN', 'SUPER_ADMIN'],
   REJECT_TEAMS: ['ADMIN', 'SUPER_ADMIN'],
   EDIT_TEAMS: ['ADMIN', 'SUPER_ADMIN'],
   DELETE_TEAMS: ['SUPER_ADMIN'],
-  
+
   // Communication
   SEND_EMAILS: ['ORGANIZER', 'ADMIN', 'SUPER_ADMIN'],
   CREATE_CAMPAIGNS: ['ORGANIZER', 'ADMIN', 'SUPER_ADMIN'],
-  
+
   // Comments & Scoring
   ADD_COMMENTS: ['ORGANIZER', 'JUDGE', 'ADMIN', 'SUPER_ADMIN'],
   SCORE_TEAMS: ['JUDGE', 'ADMIN', 'SUPER_ADMIN'],
-  
+
   // Data export
   EXPORT_DATA: ['ORGANIZER', 'JUDGE', 'ADMIN', 'SUPER_ADMIN'],
-  
+
   // User management
   MANAGE_USERS: ['SUPER_ADMIN'],
   ASSIGN_ROLES: ['SUPER_ADMIN'],
-  
+
   // Logistics (event-day)
   EDIT_TEAM_MEMBERS: ['LOGISTICS', 'ADMIN', 'SUPER_ADMIN'],
   SWAP_TEAM_MEMBERS: ['LOGISTICS', 'ADMIN', 'SUPER_ADMIN'],
@@ -95,6 +96,12 @@ export function isAdmin(userRole: UserRole): boolean {
 
 export async function getAdminSessionFull(): Promise<AdminSession | null> {
   try {
+    // Dynamic imports — keep prisma (pg/fs) and next/headers server-only.
+    // Client components importing this file for pure utilities won't bundle these.
+    const { cookies } = await import('next/headers');
+    const { prisma } = await import('./prisma');
+    const { hashSessionToken } = await import('@/lib/session-security');
+
     const cookieStore = await cookies();
     // ✅ SECURITY FIX (C-2): Read 'admin_token' cookie (matches what admin login sets)
     const sessionToken = cookieStore.get('admin_token')?.value;
@@ -104,8 +111,6 @@ export async function getAdminSessionFull(): Promise<AdminSession | null> {
     }
 
     // ✅ SECURITY FIX (C-2): Query AdminSession table (not Session)
-    // Hash the raw cookie token to match the stored hash
-    const { hashSessionToken } = await import('@/lib/session-security');
     const session = await prisma.adminSession.findUnique({
       where: { token: hashSessionToken(sessionToken) },
       include: {
@@ -151,31 +156,31 @@ export async function getAdminSessionFull(): Promise<AdminSession | null> {
 
 export async function requireAdminSession(): Promise<AdminSession> {
   const session = await getAdminSessionFull();
-  
+
   if (!session) {
     throw new Error('Unauthorized: Admin session required');
   }
-  
+
   return session;
 }
 
 export async function requirePermission(permission: Permission): Promise<AdminSession> {
   const session = await requireAdminSession();
-  
+
   if (!hasPermission(session.user.role, permission)) {
     throw new Error(`Forbidden: ${permission} permission required`);
   }
-  
+
   return session;
 }
 
 export async function requireRole(minimumRole: UserRole): Promise<AdminSession> {
   const session = await requireAdminSession();
-  
+
   if (!hasMinimumRole(session.user.role, minimumRole)) {
     throw new Error(`Forbidden: ${minimumRole} role or higher required`);
   }
-  
+
   return session;
 }
 
@@ -193,6 +198,7 @@ export async function logAdminAction(params: {
   userAgent?: string;
 }): Promise<void> {
   try {
+    const { prisma } = await import('./prisma');
     await prisma.activityLog.create({
       data: {
         userId: params.userId,
@@ -245,12 +251,12 @@ export function canPerformAction(
 ): boolean {
   // Super admin can do anything
   if (userRole === 'SUPER_ADMIN') return true;
-  
+
   // Can't perform actions on users with equal or higher role
   if (targetRole && ROLE_HIERARCHY[userRole] <= ROLE_HIERARCHY[targetRole]) {
     return false;
   }
-  
+
   // Role-specific permissions
   switch (action) {
     case 'view':

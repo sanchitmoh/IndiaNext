@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
-import { requirePermission, type AdminRole } from '@/lib/rbac';
+import { hasPermission } from '@/lib/rbac-permissions';
 import { sanitizeText } from '@/lib/input-sanitizer';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { hashSessionToken } from '@/lib/session-security';
@@ -57,7 +57,7 @@ export async function POST(req: Request) {
     }
 
     // Check if admin has permission to comment
-    if (!requirePermission(admin.role as AdminRole, 'commentOnSubmissions')) {
+    if (!hasPermission(admin.role, 'ADD_COMMENTS')) {
       return NextResponse.json(
         { success: false, error: 'Insufficient permissions to comment' },
         { status: 403 }

@@ -3,7 +3,6 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-
 import {
   motion,
   useScroll,
@@ -74,6 +73,9 @@ export default function RulesPage() {
 
       {/* Hero */}
       <RulesHero />
+
+      {/* General Rules */}
+      <GeneralRulesSection />
 
       {/* Tracks */}
       <IdeaSprintSection />
@@ -365,22 +367,76 @@ const EvalCard = ({ icon, title, accent, index }: EvalCardProps) => (
 );
 
 // ─────────────────────────────────────────────────────────────
-// Section 1 — IdeaSprint
+// Section 1 — General Rules
+// ─────────────────────────────────────────────────────────────
+const GeneralRulesSection = () => {
+  const generalRules = [
+    "Team Size: Teams must consist of 2 to 4 members. Cross-specialization (e.g., a mix of developers and designers) is highly encouraged.",
+    "Originality: All code and assets must be created during the 24-hour window. Using third-party APIs, open-source libraries, and frameworks is permitted, provided they are publicly available.",
+    "Conduct: We maintain a zero-tolerance policy for plagiarism, harassment, or unsportsmanlike behavior.",
+    "Hardware: Participants must bring their own laptops, chargers, and any specific hardware (microcontrollers, sensors, etc.) required for their project.",
+  ];
+
+  return (
+    <section className="py-16 md:py-32 relative z-10 bg-[#020202] border-t border-white/5">
+      <div className="max-w-5xl mx-auto px-4 md:px-6">
+        <SectionHeader
+          number="01"
+          title="General Rules"
+          subtitle="APPLIES_TO_ALL_TRACKS"
+          accent="#f59e0b"
+          icon={<Shield size={28} />}
+        />
+
+        {/* Objective */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="mb-16 p-8 border border-white/10 bg-white/[0.02] rounded-sm relative overflow-hidden"
+        >
+          <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-amber-500/50 to-transparent" />
+          <h3 className="font-mono text-[10px] font-black tracking-[0.5em] uppercase mb-4 text-amber-500">
+            🛠️ UNIVERSAL_PROTOCOL
+          </h3>
+          <p className="text-gray-300 leading-relaxed text-base">
+            These foundational rules apply to all participants across both IdeaSprint and BuildStorm tracks.
+            Adherence to these guidelines is mandatory for all teams.
+          </p>
+        </motion.div>
+
+        {/* Rules */}
+        <div className="mb-16">
+          <h3 className="font-mono text-[10px] font-black tracking-[0.5em] uppercase mb-6 text-gray-400">
+            📋 CORE_REQUIREMENTS
+          </h3>
+          <div className="flex flex-col gap-3">
+            {generalRules.map((rule, i) => (
+              <RuleCard key={i} index={i} text={rule} accent="#f59e0b" />
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────
+// Section 2 — IdeaSprint (Track 1: Idea-Based)
 // ─────────────────────────────────────────────────────────────
 const IdeaSprintSection = () => {
   const rules = [
-    "Fresh Start: Teams must initialize a brand new GitHub/GitLab repository at the start of the event (T-00:00).",
-    "Pre-work Protocols: UI mockups, wireframes, and architecture diagrams prepared beforehand are fully permitted.",
-    "No Legacy Code: Zero functional code from previous projects or repositories can be utilized during the sprint.",
-    "Open Tech Stack: No restrictions — participants can use any tools (React, Python, Flutter, AI models, etc.) that fit their vision.",
-    "Plagiarism Check: Any copied functional content or project impersonation will lead to immediate disqualification.",
-    "Final Outcome: A functional Minimum Viable Product (MVP) must be developed within the 24-hour window.",
+    "Focus: Bringing a pre-planned concept to life.",
+    "Fresh Repositories: All teams must initialize a new GitHub/GitLab repository at the official start time. No commits made before the start time are allowed.",
+    "The 'Working Prototype' Rule: While the idea is conceived beforehand, the actual code, UI/UX design, and integration must happen on-site.",
+    "Prior Work: Participants may bring 'Wireframes' or 'System Architecture' diagrams, but zero lines of functional code can be pre-written.",
+    "Submission: Final submission must include a link to the repository and a brief README explaining the problem the idea solves.",
   ];
 
   const submissions = [
     { icon: <FileText size={20} />, label: "Idea Deck", detail: "Max 10 slides" },
     { icon: <Video size={20} />, label: "Pitch Video", detail: "3 minutes max" },
-    { icon: <Layout size={20} />, label: "MVP Architecture", detail: "Figma / Wireframe / Demo / POC Code" },
+    { icon: <Layout size={20} />, label: "Prototype", detail: "Figma / Wireframe / Demo / POC Code" },
   ];
 
   const evalCriteria = [
@@ -388,17 +444,17 @@ const IdeaSprintSection = () => {
     { icon: <Target size={24} />, title: "Problem Relevance" },
     { icon: <Globe size={24} />, title: "Social Impact" },
     { icon: <Brain size={24} />, title: "Feasibility & Scalability" },
-    { icon: <Code size={24} />, title: "MVP / POC Quality" },
+    { icon: <Code size={24} />, title: "Prototype Quality" },
     { icon: <Presentation size={24} />, title: "Presentation" },
   ];
 
   return (
-    <section id="ideasprint" className="py-16 md:py-32 relative z-10 bg-[#020202] border-t border-white/5">
+    <section id="ideasprint" className="py-16 md:py-32 relative z-10 bg-black border-t border-white/5">
       <div className="max-w-5xl mx-auto px-4 md:px-6">
         <SectionHeader
-          number="01"
+          number="02"
           title="IdeaSprint"
-          subtitle="OPEN_INNOVATION_TRACK"
+          subtitle="TRACK_1_THE_VISIONARY_TRACK"
           accent={GREEN}
           icon={<Lightbulb size={28} />}
         />
@@ -412,12 +468,12 @@ const IdeaSprintSection = () => {
         >
           <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-green-500/50 to-transparent" />
           <h3 className="font-mono text-[10px] font-black tracking-[0.5em] uppercase mb-4" style={{ color: GREEN }}>
-             MISSION_OBJECTIVE
+            💡 TRACK_FOCUS
           </h3>
           <p className="text-gray-300 leading-relaxed text-base">
-            IdeaSprint is targeted at innovators who have a specific problem they want to solve through software. 
-            Participants must conceptualize, design, and implement a solution from scratch during the 24-hour sprint.
-            A functional MVP is the final requirement.
+            Bringing a pre-planned concept to life. Participants must conceptualize, design, and present an innovative solution 
+            addressing a real-world problem. Teams are expected to submit a prototype or proof-of-concept that demonstrates 
+            the feasibility of their idea.
           </p>
         </motion.div>
 
@@ -476,17 +532,15 @@ const IdeaSprintSection = () => {
 };
 
 // ─────────────────────────────────────────────────────────────
-// Section 2 — BuildStorm
+// Section 3 — BuildStorm (Track 2: Problem Statement-Based)
 // ─────────────────────────────────────────────────────────────
 const BuildStormSection = () => {
   const rules = [
-    "The Reveal: Problem statements are released exactly at the start of the event with no prior hints or previews.",
-    "Selection Window: Teams have exactly 60 minutes to review the provided problems and lock in their choice.",
-    "Commitment: Once a problem statement is selected and committed, no switching or track changes are permitted.",
-    "Constraint Driven: Scoring is heavily weighted on how accurately the specific technical constraints of the problem are met.",
-    "Precision Over Polish: Meeting the core functionality and edge-case requirements of the problem is prioritized over aesthetic polish.",
-    "Code Ethics: Usage of open-source libraries and public APIs is fully permitted, but project logic must be built live.",
-    "Fully Functional: A working demo is mandatory; projects must be 'run-ready' for live pitching to the jury.",
+    "Focus: Rapid innovation and adaptability.",
+    "The Reveal: The specific problem statements will be released exactly at the start of the 24-hour countdown. No hints will be provided beforehand.",
+    "Track Selection: Teams must choose one of the provided statements within the first 60 minutes of the event.",
+    "Fair Play: Since the problem is unknown, any 'pre-built' niche modules are prohibited. Only general-purpose boilerplate (authentication templates, CSS frameworks) is allowed.",
+    "Judging Weight: In this track, alignment with the specific constraints of the problem carries more weight than visual polish.",
   ];
 
   const evalCriteria = [
@@ -500,12 +554,12 @@ const BuildStormSection = () => {
   ];
 
   return (
-    <section id="buildstorm" className="py-16 md:py-32 relative z-10 bg-black border-t border-white/5">
+    <section id="buildstorm" className="py-16 md:py-32 relative z-10 bg-[#020202] border-t border-white/5">
       <div className="max-w-5xl mx-auto px-4 md:px-6">
         <SectionHeader
-          number="02"
+          number="03"
           title="BuildStorm"
-          subtitle="24HR_DEVELOPMENT_TRACK"
+          subtitle="TRACK_2_THE_SPRINT_TRACK"
           accent={ORANGE}
           icon={<Zap size={28} />}
         />
@@ -519,12 +573,11 @@ const BuildStormSection = () => {
         >
           <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-orange-500/50 to-transparent" />
           <h3 className="font-mono text-[10px] font-black tracking-[0.5em] uppercase mb-4" style={{ color: ORANGE }}>
-             MISSION_OBJECTIVE
+            🧩 TRACK_FOCUS
           </h3>
           <p className="text-gray-300 leading-relaxed text-base">
-            BuildStorm teams solve specific, complex problems provided by the organizers. 
-            Success is measured by how accurately and technically the team implements the specific solution 
-            parameters within the 24-hour limit.
+            Rapid innovation and adaptability. Participants must design and develop a working Minimum Viable Product (MVP) 
+            within 24 hours based on a problem statement revealed at the start of the event.
           </p>
         </motion.div>
 
@@ -573,7 +626,7 @@ const BuildStormSection = () => {
 };
 
 // ─────────────────────────────────────────────────────────────
-// Section 3 — AI Usage Policy
+// Section 4 — AI Usage Policy
 // ─────────────────────────────────────────────────────────────
 const AIUsagePolicySection = () => {
   const allowed = [
@@ -594,10 +647,10 @@ const AIUsagePolicySection = () => {
   ];
 
   return (
-    <section id="ai-policy" className="py-16 md:py-32 relative z-10 bg-[#020202] border-t border-white/5">
+    <section id="ai-policy" className="py-16 md:py-32 relative z-10 bg-black border-t border-white/5">
       <div className="max-w-5xl mx-auto px-4 md:px-6">
         <SectionHeader
-          number="03"
+          number="04"
           title="AI Policy"
           subtitle="APPLICABLE_TO_ALL_TRACKS"
           accent={CYAN}
@@ -679,16 +732,16 @@ const AIUsagePolicySection = () => {
 };
 
 // ─────────────────────────────────────────────────────────────
-// Section 4 — Code of Conduct
+// Section 5 — Code of Conduct
 // ─────────────────────────────────────────────────────────────
 const CodeOfConductSection = () => {
   const mustDo = [
     "Maintain respectful communication at all times.",
     "Avoid harassment, discrimination, or offensive behavior.",
-    "Bring your own gear: Laptops, chargers, and extension cords (power outlets provided).",
-    "Adhere to the submission window: 15 minutes before the 24-hour clock ends.",
-    "Follow instructions provided by the session mentors and organizing committee.",
-    "Respect intellectual property rights of other teams and open-source licenses.",
+    "Follow instructions provided by the organizing committee.",
+    "Refrain from cheating, plagiarism, or unethical practices.",
+    "Respect intellectual property rights.",
+    "Avoid disruptive or malicious technical activities.",
   ];
 
   const prohibited = [
@@ -706,10 +759,10 @@ const CodeOfConductSection = () => {
   ];
 
   return (
-    <section id="conduct" className="py-16 md:py-32 relative z-10 bg-black border-t border-white/5">
+    <section id="conduct" className="py-16 md:py-32 relative z-10 bg-[#020202] border-t border-white/5">
       <div className="max-w-5xl mx-auto px-4 md:px-6">
         <SectionHeader
-          number="04"
+          number="05"
           title="Code of Conduct"
           subtitle="MISSION_PROTOCOL"
           accent="#f59e0b"
@@ -831,7 +884,7 @@ const FinalAuthoritySection = () => (
         </h3>
         <div className="flex items-center justify-center gap-2 sm:gap-4 font-mono text-[8px] sm:text-[10px] tracking-[0.3em] sm:tracking-[0.5em] font-black uppercase text-amber-500 mb-6">
           <div className="w-8 h-px bg-amber-500/30" />
-          SECTION_05
+          SECTION_06
           <div className="w-8 h-px bg-amber-500/30" />
         </div>
         <p className="text-gray-300 leading-relaxed text-base max-w-xl mx-auto">
@@ -884,8 +937,6 @@ const FooterCTA = () => (
               ← BACK TO HOME
             </Link>
           </div>
-
-
         </div>
       </motion.div>
 

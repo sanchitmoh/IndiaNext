@@ -4,6 +4,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { trpc } from "@/lib/trpc-client";
+import { useAdminRole } from "@/components/admin/AdminRoleContext";
 import {
   Search,
   RefreshCw,
@@ -71,13 +72,9 @@ export default function LogisticsPage() {
   );
 
   // Detect admin role for attendance lock override
-  const isAdmin = (() => {
-    if (typeof document === "undefined") return false;
-    const el = document.querySelector("[data-admin-role]");
-    if (!el) return false;
-    const role = el.getAttribute("data-admin-role") || "";
-    return role === "ADMIN" || role === "SUPER_ADMIN";
-  })();
+  // ✅ SECURITY FIX: Use React Context instead of DOM attribute
+  const { isAdmin, isSuperAdmin } = useAdminRole();
+  const canOverrideAttendance = isAdmin || isSuperAdmin;
 
   // Monitor online status for offline support awareness
   useEffect(() => {
@@ -415,7 +412,7 @@ export default function LogisticsPage() {
 
                     {/* Quick actions */}
                     {(() => {
-                      const locked = team.attendance !== "NOT_MARKED" && !isAdmin;
+                      const locked = team.attendance !== "NOT_MARKED" && !canOverrideAttendance;
                       if (locked) {
                         return (
                           <span

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { checkAdminAuth } from "@/lib/auth";
 import { TRPCProvider } from "@/components/providers/TRPCProvider";
+import { AdminRoleProvider } from "@/components/admin/AdminRoleContext";
 import { Toaster } from "sonner";
 
 export default async function DashboardLayout({
@@ -41,9 +42,9 @@ export default async function DashboardLayout({
         <div className="fixed inset-0 pointer-events-none z-[60] opacity-[0.02] bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[size:100%_2px,3px_100%]" />
 
         <AdminShell user={safeAdmin}>
-          <div data-admin-role={safeAdmin.role}>
+          <AdminRoleProvider role={safeAdmin.role}>
             {children}
-          </div>
+          </AdminRoleProvider>
         </AdminShell>
       </div>
       <Toaster

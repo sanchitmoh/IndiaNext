@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
-import { requirePermission, type AdminRole } from '@/lib/rbac';
+import { hasPermission } from '@/lib/rbac-permissions';
 import { hashSessionToken } from '@/lib/session-security';
 
 async function verifyAdmin() {
@@ -37,7 +37,7 @@ export async function GET(req: Request) {
     }
 
     // Only admins/organizers can export — not judges
-    if (!requirePermission(admin.role as AdminRole, 'exportTeams')) {
+    if (!hasPermission(admin.role, 'EXPORT_DATA')) {
       return NextResponse.json(
         { success: false, error: 'Insufficient permissions to export scores' },
         { status: 403 }

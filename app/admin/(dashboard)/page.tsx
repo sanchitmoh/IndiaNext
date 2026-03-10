@@ -4,6 +4,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { trpc } from "@/lib/trpc-client";
+import { useAdminRole } from "@/components/admin/AdminRoleContext";
 import { StatsCards } from "@/components/admin/dashboard/StatsCards";
 import { RegistrationChart } from "@/components/admin/dashboard/RegistrationChart";
 import { RecentActivity } from "@/components/admin/dashboard/RecentActivity";
@@ -13,6 +14,7 @@ import { SkeletonCard } from "@/components/animations";
 
 export default function AdminDashboard() {
   const router = useRouter();
+  const { role } = useAdminRole();
   const { data: stats, isLoading: statsLoading } =
     trpc.admin.getStats.useQuery();
   const { data: analytics, isLoading: analyticsLoading } =
@@ -20,9 +22,7 @@ export default function AdminDashboard() {
 
   // Redirect judges to teams page, logistics to logistics page
   useEffect(() => {
-    // Check role from DOM attribute set by layout
-    const roleEl = document.querySelector("[data-admin-role]");
-    const role = roleEl?.getAttribute("data-admin-role");
+    // ✅ SECURITY FIX: Use React Context instead of DOM attribute
     if (role === "LOGISTICS") {
       router.replace("/admin/logistics");
       return;
@@ -31,7 +31,7 @@ export default function AdminDashboard() {
     if (!statsLoading && !stats) {
       router.push("/admin/teams");
     }
-  }, [stats, statsLoading, router]);
+  }, [stats, statsLoading, router, role]);
 
   if (statsLoading || analyticsLoading) {
     return (

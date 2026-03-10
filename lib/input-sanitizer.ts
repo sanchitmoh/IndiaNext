@@ -7,16 +7,20 @@
 /**
  * Sanitize HTML to prevent XSS attacks
  * Removes all HTML tags and dangerous characters
+ * ✅ SECURITY FIX: Escape &, ", ' characters to prevent attribute injection
  */
 export function sanitizeHtml(input: string): string {
   if (!input) return '';
   
-  // Only escape angle brackets (XSS vectors). Quotes don't need escaping
-  // because React's JSX auto-escapes text content, and Prisma parameterizes queries.
-  // Escaping quotes causes &#x27; / &quot; to appear as literal text in the UI.
+  // Escape all HTML special characters to prevent XSS
+  // This prevents both tag injection and attribute injection
   return input
+    .replace(/&/g, '&amp;')   // Must be first to avoid double-escaping
     .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;')
+    .replace(/\//g, '&#x2F;'); // Forward slash for </script> prevention
 }
 
 /**

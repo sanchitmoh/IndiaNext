@@ -57,8 +57,8 @@ export async function GET(req: Request) {
           name: m.team.name,
           track: m.team.track,
           trackDisplay: m.team.track === 'IDEA_SPRINT' 
-            ? 'IdeaSprint: Build MVP in 24 Hours' 
-            : 'BuildStorm: Solve Problem Statement in 24 Hours'
+            ? 'Track 2: IdeaSprint - Build MVP in 24 Hours'
+            : 'Track 1: BuildStorm - Solve Problem Statement in 24 Hours'
         }))
       });
     }
@@ -87,8 +87,8 @@ export async function GET(req: Request) {
     const otherMemberships = teamMembers.filter(m => m.id !== leaderMembership.id);
 
     const trackString = teamRecord.track === 'IDEA_SPRINT' 
-      ? 'IdeaSprint: Build MVP in 24 Hours' 
-      : 'BuildStorm: Solve Problem Statement in 24 Hours';
+      ? 'Track 2: IdeaSprint - Build MVP in 24 Hours'
+      : 'Track 1: BuildStorm - Solve Problem Statement in 24 Hours';
 
     // Map Prisma to HackathonForm 'Answers' format
     const answers: Record<string, any> = {

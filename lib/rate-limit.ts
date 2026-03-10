@@ -63,6 +63,10 @@ export const RATE_LIMITS = {
   'register': {
     ip:    (): RateLimitConfig => ({ limit: isDev() ? 50 : 50, window: 3600 }),
   },
+  /** Registration edit — IP only (tighter than POST to prevent abuse) */
+  'register-edit': {
+    ip:    (): RateLimitConfig => ({ limit: isDev() ? 20 : 10, window: 3600 }),
+  },
   /** Problem statement fetch — IP only (generous, read-only) */
   'problem-statement': {
     ip:    (): RateLimitConfig => ({ limit: isDev() ? 100 : 30, window: 60 }),
@@ -258,6 +262,12 @@ export async function rateLimitRoute(
 /** Rate limit the register endpoint (IP-only, uses centralised config). */
 export async function rateLimitRegister(req: Request): Promise<RateLimitResult> {
   const { limit, window } = RATE_LIMITS.register.ip();
+  return rateLimitByIP(req, limit, window);
+}
+
+/** Rate limit the register edit endpoint (IP-only, tighter than POST). */
+export async function rateLimitRegisterEdit(req: Request): Promise<RateLimitResult> {
+  const { limit, window } = RATE_LIMITS['register-edit'].ip();
   return rateLimitByIP(req, limit, window);
 }
 

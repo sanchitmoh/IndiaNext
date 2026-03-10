@@ -60,6 +60,7 @@ model User {
   otps            Otp[]
   sessions        Session[]
   activityLogs    ActivityLog[]
+  auditLogs       AuditLog[]
   notifications   Notification[]
   createdTeams    Team[]        @relation("TeamCreator")
 
@@ -157,6 +158,7 @@ model Team {
   submission Submission?
   comments   Comment[]
   tags       TeamTag[]
+  auditLogs  AuditLog[]
 
   @@index([track, status])
   @@index([college])
@@ -345,6 +347,37 @@ model ActivityLog {
   @@map("activity_logs")
 }
 
+model AuditLog {
+  id           String      @id @default(cuid())
+  teamId       String
+  userId       String
+  sessionId    String?
+  submissionId String      // Groups changes from same edit session
+  
+  timestamp    DateTime    @default(now())
+  action       AuditAction
+  
+  fieldName    String
+  oldValue     String?     @db.Text
+  newValue     String?     @db.Text
+  
+  ipAddress    String?
+  userAgent    String?
+  
+  metadata     Json?       // Additional context
+  
+  // Relations
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id])
+  
+  @@index([teamId, timestamp(sort: Desc)])
+  @@index([userId])
+  @@index([submissionId])
+  @@index([fieldName])
+  @@index([timestamp])
+  @@map("audit_logs")
+}
+
 // ═══════════════════════════════════════════════════════════
 // NOTIFICATIONS
 // ═══════════════════════════════════════════════════════════
@@ -388,27 +421,68 @@ model Metric {
 // ═══════════════════════════════════════════════════════════
 
 model EmailCampaign {
-  id          String   @id @default(cuid())
-  name        String
-  subject     String
-  body        String   @db.Text
-  status      CampaignStatus @default(DRAFT)
-  
-  // Filters for recipients
-  filters     Json?    // { track: "IDEA_SPRINT", status: "APPROVED" }
-  
-  // Stats
-  totalSent   Int      @default(0)
-  totalOpened Int      @default(0)
-  totalClicked Int     @default(0)
-  
-  createdBy   String
-  createdAt   DateTime @default(now())
-  sentAt      DateTime?
-  
+  id            String         @id @default(cuid())
+  name          String
+  subject       String
+  body          String         @db.Text
+  previewText   String?        // inbox preview snippet
+  status        CampaignStatus @default(DRAFT)
+
+  // Recipient targeting
+  audienceType  AudienceType   @default(ALL)
+  filters       Json?          // { track?, statuses?, college?, dateRange? }
+
+  // Stats (denormalized for fast reads)
+  totalRecipients Int          @default(0)
+  totalSent       Int          @default(0)
+  totalDelivered  Int          @default(0)
+  totalOpened     Int          @default(0)
+  totalFailed     Int          @default(0)
+
+  // Scheduling
+  scheduledAt   DateTime?
+  sentAt        DateTime?
+  completedAt   DateTime?
+
+  // Admin
+  createdBy     String
+  creator       Admin          @relation(fields: [createdBy], references: [id])
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  // Relations
+  recipients    CampaignRecipient[]
+
   @@index([status])
   @@index([createdAt])
+  @@index([createdBy])
   @@map("email_campaigns")
+}
+
+model CampaignRecipient {
+  id           String        @id @default(cuid())
+  campaignId   String
+  campaign     EmailCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  userId       String?       // FK to User (nullable for external emails)
+  email        String
+  name         String?
+  teamName     String?
+  memberRole   MemberRole?
+
+  // Delivery tracking
+  status       EmailStatus   @default(PENDING)
+  messageId    String?       @unique
+  sentAt       DateTime?
+  deliveredAt  DateTime?
+  openedAt     DateTime?
+  error        String?
+  attempts     Int           @default(0)
+
+  @@unique([campaignId, email])
+  @@index([campaignId, status])
+  @@index([userId])
+  @@map("campaign_recipients")
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -493,6 +567,7 @@ model Admin {
 
   sessions    AdminSession[]
   comments    Comment[]
+  campaigns   EmailCampaign[]
 
   @@index([email])
   @@index([role])
@@ -646,12 +721,24 @@ enum NotificationType {
   SYSTEM
 }
 
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+}
+
 enum CampaignStatus {
   DRAFT
   SCHEDULED
   SENDING
   SENT
   FAILED
+}
+
+enum AudienceType {
+  ALL            // all team members
+  LEADERS_ONLY   // only team leaders
+  CUSTOM         // hand-picked from UI
 }
 
 // ═══════════════════════════════════════════════════════════

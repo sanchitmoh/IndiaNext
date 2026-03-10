@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
-import { requirePermission, type AdminRole } from '@/lib/rbac';
+import { hasPermission } from '@/lib/rbac-permissions';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { hashSessionToken } from '@/lib/session-security';
 
@@ -50,7 +50,7 @@ export async function GET(req: Request) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    if (!requirePermission(admin.role as AdminRole, 'viewAnalytics')) {
+    if (!hasPermission(admin.role, 'VIEW_ANALYTICS')) {
       return NextResponse.json(
         { success: false, error: 'Insufficient permissions' },
         { status: 403 }

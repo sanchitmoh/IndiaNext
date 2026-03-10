@@ -1,6 +1,11 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { API_VERSION, getApiVersion, isVersionSupported, getVersionInfo } from '@/lib/api-versioning';
+import {
+  API_VERSION,
+  getApiVersion,
+  isVersionSupported,
+  getVersionInfo,
+} from '@/lib/api-versioning';
 
 // ═══════════════════════════════════════════════════════════
 // CSRF / Origin Validation Middleware
@@ -9,12 +14,33 @@ import { API_VERSION, getApiVersion, isVersionSupported, getVersionInfo } from '
 // originate from our own domain, preventing cross-site request forgery.
 
 export function middleware(request: NextRequest) {
+  const pathname = request.nextUrl.pathname;
+
+  // ═══════════════════════════════════════════════════════════
+  // ADMIN ROUTE PROTECTION
+  // ═══════════════════════════════════════════════════════════
+  // ✅ SECURITY FIX: Enforce authentication on /admin/* routes at edge level
+  if (pathname.startsWith('/admin') && !pathname.startsWith('/admin/login')) {
+    const adminToken = request.cookies.get('admin_token')?.value;
+
+    if (!adminToken) {
+      // Redirect to admin login if no token
+      return NextResponse.redirect(new URL('/admin/login', request.url));
+    }
+
+    // Note: Full session validation happens in tRPC middleware
+    // This is just a first-line defense to prevent unauthorized access
+  }
+
   // Build allowed origins from env + Vercel system URLs
   const origins: string[] = [
     process.env.NEXT_PUBLIC_APP_URL,
     'http://localhost:3000',
     'http://localhost:3001',
-    'https://india-next-one.vercel.app'
+    'https://indianext.vercel.app',
+    'https://www.indianexthackthon.online',
+    'https://india-next-one.vercel.app',
+
   ].filter(Boolean) as string[];
 
   // Vercel sets VERCEL_URL (e.g. my-app-abc123.vercel.app) for every deployment
@@ -68,7 +94,7 @@ export function middleware(request: NextRequest) {
   // ═══════════════════════════════════════════════════════════
   // API Versioning — reject unsupported versions, add version headers
   // ═══════════════════════════════════════════════════════════
-  const pathname = request.nextUrl.pathname;
+  // pathname already declared at the top of the function
   if (pathname.startsWith('/api/')) {
     const requestedVersion = getApiVersion(pathname);
     if (requestedVersion && !isVersionSupported(requestedVersion)) {
@@ -102,7 +128,10 @@ export function middleware(request: NextRequest) {
   response.headers.set('X-Frame-Options', 'DENY');
   response.headers.set('X-XSS-Protection', '1; mode=block');
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-  response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=()');
+  response.headers.set(
+    'Permissions-Policy',
+    'camera=(), microphone=(), geolocation=(), payment=()'
+  );
 
   // API version header on API responses
   if (pathname.startsWith('/api/')) {
@@ -115,24 +144,34 @@ export function middleware(request: NextRequest) {
       'Strict-Transport-Security',
       'max-age=63072000; includeSubDomains; preload'
     );
+
+    // ✅ SECURITY FIX: Remove unsafe-inline for scripts, use nonce-based CSP
+    // Note: Next.js requires 'unsafe-eval' for development, but we remove it in production
+    // For inline scripts, use nonce attribute: <script nonce={nonce}>
+    // Use Web Crypto API (available in Edge Runtime)
+    const nonceArray = new Uint8Array(16);
+    crypto.getRandomValues(nonceArray);
+    const nonce = Buffer.from(nonceArray).toString('base64');
     response.headers.set(
       'Content-Security-Policy',
       [
         "default-src 'self'",
-        // ✅ SECURITY FIX (M-9): Removed 'unsafe-eval'; kept 'unsafe-inline' for Next.js hydration
-        "script-src 'self' 'unsafe-inline'",
-        "style-src 'self' 'unsafe-inline'",                   // Tailwind/inline styles
-        "img-src 'self' res.cloudinary.com data: blob:",       // Cloudinary images
+        // ✅ SECURITY FIX: Removed 'unsafe-inline' - use nonce for inline scripts
+        `script-src 'self' 'nonce-${nonce}'`,
+        "style-src 'self' 'unsafe-inline'", // Tailwind/inline styles still need this
+        "img-src 'self' res.cloudinary.com data: blob:", // Cloudinary images
         "font-src 'self'",
         "connect-src 'self'",
         "frame-ancestors 'none'",
         "base-uri 'self'",
         "form-action 'self'",
-        // ✅ SECURITY FIX: Block plugin content and restrict workers
         "object-src 'none'",
         "worker-src 'self'",
       ].join('; ')
     );
+
+    // Store nonce in header for Next.js to use
+    response.headers.set('X-Nonce', nonce);
   }
 
   return response;
@@ -140,8 +179,5 @@ export function middleware(request: NextRequest) {
 
 // Only run middleware on API routes and pages (skip static assets)
 export const config = {
-  matcher: [
-    '/api/:path*',
-    '/((?!_next/static|_next/image|favicon.ico|.*\\..*|public).*)',
-  ],
+  matcher: ['/api/:path*', '/((?!_next/static|_next/image|favicon.ico|.*\\..*|public).*)'],
 };

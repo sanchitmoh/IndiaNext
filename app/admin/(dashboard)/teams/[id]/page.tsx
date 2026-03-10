@@ -4,6 +4,7 @@
 import { use, useState } from "react";
 import { useRouter } from "next/navigation";
 import { trpc } from "@/lib/trpc-client";
+import { useAdminRole } from "@/components/admin/AdminRoleContext";
 import { StatusOrScoring } from "@/components/admin/teams/StatusOrScoring";
 import {
   ArrowLeft,
@@ -31,6 +32,7 @@ import {
   ExternalLink,
   Crown,
   Shield,
+  History,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -103,17 +105,14 @@ export default function TeamDetailPage({
 }) {
   const { id } = use(params);
   const router = useRouter();
+  const { role } = useAdminRole();
   const [activeTab, setActiveTab] = useState<
     "members" | "submission" | "comments"
   >("members");
   const [statusNote, setStatusNote] = useState("");
   const [commentText, setCommentText] = useState("");
   const [newTag, setNewTag] = useState("");
-  const [userRole] = useState<string>(() => {
-    if (typeof document === 'undefined') return "ADMIN";
-    const roleElement = document.querySelector('[data-admin-role]');
-    return roleElement?.getAttribute('data-admin-role') || "ADMIN";
-  });
+  // ✅ SECURITY FIX: Use React Context instead of DOM attribute
 
   const {
     data: team,
@@ -293,16 +292,27 @@ export default function TeamDetailPage({
             </div>
           </div>
         </div>
-        {userRole !== "LOGISTICS" && (
-          <button
-            onClick={handleDelete}
-            disabled={deleteTeam.isPending}
-            className="ml-auto sm:ml-0 px-3 py-1.5 text-[10px] font-mono font-bold tracking-wider text-red-400 hover:bg-red-500/10 border border-red-500/20 rounded-md transition-all flex items-center gap-1.5 disabled:opacity-50 shrink-0"
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-            DELETE
-          </button>
-        )}
+        <div className="flex items-center gap-2 ml-auto sm:ml-0">
+          {role !== "LOGISTICS" && role !== "ORGANIZER" && (
+            <>
+              <button
+                onClick={() => router.push(`/admin/teams/${id}/audit`)}
+                className="px-3 py-1.5 text-[10px] font-mono font-bold tracking-wider text-cyan-400 hover:bg-cyan-500/10 border border-cyan-500/20 rounded-md transition-all flex items-center gap-1.5 shrink-0"
+              >
+                <History className="h-3.5 w-3.5" />
+                VIEW AUDIT TRAIL
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={deleteTeam.isPending}
+                className="px-3 py-1.5 text-[10px] font-mono font-bold tracking-wider text-red-400 hover:bg-red-500/10 border border-red-500/20 rounded-md transition-all flex items-center gap-1.5 disabled:opacity-50 shrink-0"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                DELETE
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
       {/* ── Tags ───────────────────────────────────────── */}
@@ -320,7 +330,7 @@ export default function TeamDetailPage({
             >
               <Tag className="h-2.5 w-2.5" />
               {tag.tag}
-              {userRole !== "LOGISTICS" && (
+              {role !== "LOGISTICS" && role !== "ORGANIZER" && (
                 <button
                   onClick={() => handleRemoveTag(tag.id)}
                   className="ml-0.5 hover:opacity-60"
@@ -332,7 +342,7 @@ export default function TeamDetailPage({
             </span>
           )
         )}
-        {userRole !== "LOGISTICS" && (
+        {role !== "LOGISTICS" && role !== "ORGANIZER" && (
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -362,7 +372,7 @@ export default function TeamDetailPage({
 
       {/* ── Status Management or Scoring ──────────────────────────── */}
       <StatusOrScoring
-        userRole={userRole}
+        userRole={role}
         teamId={id}
         teamStatus={team.status}
         teamTrack={team.track}
@@ -441,7 +451,7 @@ export default function TeamDetailPage({
           onCommentChange={setCommentText}
           onSubmit={handleAddComment}
           isSubmitting={addComment.isPending}
-          readOnly={userRole === "LOGISTICS"}
+          readOnly={role === "LOGISTICS" || role === "ORGANIZER"}
         />
       )}
     </div>
@@ -648,6 +658,13 @@ interface SubmissionData {
   challenges: string | null;
   futureScope: string | null;
   submittedAt: Date | string | null;
+  assignedProblemStatement: {
+    id: string;
+    title: string;
+    description: string | null;
+    objective: string;
+    order: number;
+  } | null;
   files: Array<{
     id: string;
     fileName: string;
@@ -688,14 +705,50 @@ function SubmissionTab({
           { label: "Competitors", value: submission.competitors },
         ]
       : [
-          { label: "Problem Description", value: submission.problemDesc },
+          { label: "Problem Statement Description - How you plan to solve the given problem", value: submission.problemDesc },
           { label: "Tech Stack Used", value: submission.techStackUsed },
-          { label: "Challenges", value: submission.challenges },
+          { label: "Challenges Faced", value: submission.challenges },
           { label: "Future Scope", value: submission.futureScope },
         ];
 
   return (
     <div className="space-y-4">
+      {/* Assigned Problem Statement for BuildStorm */}
+      {track === "BUILD_STORM" && submission.assignedProblemStatement && (
+        <div className="bg-gradient-to-br from-orange-500/10 to-orange-600/5 rounded-lg border border-orange-500/20 p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <FileText className="h-4 w-4 text-orange-400" />
+            <h3 className="text-[9px] font-mono font-bold text-orange-400 uppercase tracking-[0.3em]">
+              ASSIGNED_PROBLEM_STATEMENT
+            </h3>
+            <span className="text-[9px] font-mono font-bold px-2 py-0.5 rounded bg-orange-500/15 text-orange-400 border border-orange-500/20">
+              #{submission.assignedProblemStatement.order}
+            </span>
+          </div>
+          <h4 className="text-sm font-mono font-bold text-white mb-2">
+            {submission.assignedProblemStatement.title}
+          </h4>
+          <div className="mb-3">
+            <span className="text-[9px] font-mono font-bold text-gray-500 uppercase tracking-[0.2em]">
+              OBJECTIVE:
+            </span>
+            <p className="text-xs font-mono text-gray-300 mt-1">
+              {submission.assignedProblemStatement.objective}
+            </p>
+          </div>
+          {submission.assignedProblemStatement.description && (
+            <div>
+              <span className="text-[9px] font-mono font-bold text-gray-500 uppercase tracking-[0.2em]">
+                DESCRIPTION:
+              </span>
+              <p className="text-xs font-mono text-gray-300 whitespace-pre-wrap leading-relaxed mt-1">
+                {submission.assignedProblemStatement.description}
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="bg-[#0A0A0A] rounded-lg border border-white/[0.06] p-5">
         {submission.submittedAt && (
           <div className="text-[11px] font-mono text-gray-500 mb-4 flex items-center gap-1">

@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check } from 'lucide-react';
 import Link from 'next/link';
@@ -37,8 +37,8 @@ const QUESTIONS: Question[] = [
     question: "Choose Competition Track",
     subtext: "Select the track you wish to compete in.",
     options: [
-      "IdeaSprint: Build MVP in 24 Hours",
-      "BuildStorm: Solve Problem Statement in 24 Hours"
+      "Track 1: BuildStorm - Solve Problem Statement in 24 Hours",
+      "Track 2: IdeaSprint - Build MVP in 24 Hours"
     ],
     required: true,
   },
@@ -49,7 +49,7 @@ const QUESTIONS: Question[] = [
       type: 'dynamic-problem',
       question: "MISSION BRIEFING",
       subtext: "Your assigned problem statement (round-robin distribution).",
-      condition: (answers: Answers) => answers.track === "BuildStorm: Solve Problem Statement in 24 Hours",
+      condition: (answers: Answers) => answers.track === "Track 1: BuildStorm - Solve Problem Statement in 24 Hours",
   },
 
   // --- SECTION 3: TEAM DETAILS ---
@@ -258,7 +258,7 @@ const QUESTIONS: Question[] = [
     question: "Idea Title",
     placeholder: "Title of your idea",
     required: true,
-    condition: (answers: Answers) => answers.track === "IdeaSprint: Build MVP in 24 Hours",
+    condition: (answers: Answers) => answers.track === "Track 2: IdeaSprint - Build MVP in 24 Hours",
   },
   {
     id: 'problemStatement',
@@ -267,7 +267,7 @@ const QUESTIONS: Question[] = [
     subtext: "Describe the problem clearly in 4–6 lines.",
     placeholder: "The problem we are solving is...",
     required: true,
-    condition: (answers: Answers) => answers.track === "IdeaSprint: Build MVP in 24 Hours",
+    condition: (answers: Answers) => answers.track === "Track 2: IdeaSprint - Build MVP in 24 Hours",
   },
   {
     id: 'proposedSolution',
@@ -276,7 +276,7 @@ const QUESTIONS: Question[] = [
     subtext: "Explain your idea and approach.",
     placeholder: "Our solution is...",
     required: true,
-    condition: (answers: Answers) => answers.track === "IdeaSprint: Build MVP in 24 Hours",
+    condition: (answers: Answers) => answers.track === "Track 2: IdeaSprint - Build MVP in 24 Hours",
     noPaste: true,
     guidance: "Suggested Format:\n\n1. The Gap: What is missing today?\n2. The Solution: Your core value proposition.\n3. Implementation: How will you build it?\n4. Feasibility: Why is this possible now?",
   },
@@ -286,7 +286,7 @@ const QUESTIONS: Question[] = [
     question: "Target Users / Beneficiaries",
     placeholder: "e.g. Students, Hospitals, Small Businesses",
     required: true,
-    condition: (answers: Answers) => answers.track === "IdeaSprint: Build MVP in 24 Hours",
+    condition: (answers: Answers) => answers.track === "Track 2: IdeaSprint - Build MVP in 24 Hours",
   },
   {
     id: 'expectedImpact',
@@ -294,7 +294,7 @@ const QUESTIONS: Question[] = [
     question: "Expected Impact",
     placeholder: "Social or economic impact...",
     required: true,
-    condition: (answers: Answers) => answers.track === "IdeaSprint: Build MVP in 24 Hours",
+    condition: (answers: Answers) => answers.track === "Track 2: IdeaSprint - Build MVP in 24 Hours",
   },
   {
     id: 'techStack',
@@ -302,25 +302,16 @@ const QUESTIONS: Question[] = [
     question: "Technology Stack (Recommended)",
     placeholder: "e.g. React, Python, AI/ML, Blockchain",
     required: false,
-    condition: (answers: Answers) => answers.track === "IdeaSprint: Build MVP in 24 Hours",
+    condition: (answers: Answers) => answers.track === "Track 2: IdeaSprint - Build MVP in 24 Hours",
   },
   {
     id: 'docLink',
     type: 'url',
     question: "Supporting Documents (Link)",
-    subtext: "Upload Idea Deck (PDF), Research, or MVP Architecture to Drive/Dropbox and paste public link here. (Max 10 slides)",
+    subtext: "Upload Idea Deck (PDF), Prototype, or Research to Drive/Dropbox and paste public link here. (Max 10 slides)",
     placeholder: "https://drive.google.com/...",
     required: true,
-    condition: (answers: Answers) => answers.track === "IdeaSprint: Build MVP in 24 Hours",
-  },
-  {
-    id: 'githubLinkIdea',
-    type: 'url',
-    question: "GitHub Profile Link (Leader)",
-    subtext: "Kindly provide the GitHub profile link of the Team Leader for verification.",
-    placeholder: "https://github.com/username",
-    required: true,
-    condition: (answers: Answers) => answers.track === "IdeaSprint: Build MVP in 24 Hours",
+    condition: (answers: Answers) => answers.track === "Track 2: IdeaSprint - Build MVP in 24 Hours",
   },
   {
     id: 'ideaRules',
@@ -335,7 +326,7 @@ const QUESTIONS: Question[] = [
       "I agree to maintain respectful communication."
     ],
     required: true,
-    condition: (answers: Answers) => answers.track === "IdeaSprint: Build MVP in 24 Hours",
+    condition: (answers: Answers) => answers.track === "Track 2: IdeaSprint - Build MVP in 24 Hours",
   },
   {
       id: 'ideaAdditionalNotes',
@@ -343,7 +334,7 @@ const QUESTIONS: Question[] = [
       question: "Additional Notes / Message",
       placeholder: "Any special requirements...",
       required: false,
-      condition: (answers: Answers) => answers.track === "IdeaSprint: Build MVP in 24 Hours",
+      condition: (answers: Answers) => answers.track === "Track 2: IdeaSprint - Build MVP in 24 Hours",
   },
 
 
@@ -355,18 +346,17 @@ const QUESTIONS: Question[] = [
     subtext: "Describe how you plan to solve the given problem (without copy-paste).",
     placeholder: "Our approach...",
     required: true,
-    condition: (answers: Answers) => answers.track === "BuildStorm: Solve Problem Statement in 24 Hours",
+    condition: (answers: Answers) => answers.track === "Track 1: BuildStorm - Solve Problem Statement in 24 Hours",
     noPaste: true,
     guidance: "PROBLEM STATEMENT:\nDisaster Response Coordination - Build a real-time, offline-first system to connect flood victims with local rescue teams.\n\nSuggested Response Pattern:\n\n1. Analysis: Breakdown of the specific problem statement.\n2. Technical Approach: Architecture & Stack choice.\n3. Innovation: What makes your fix unique?\n4. Execution Plan: 24-hour timeline strategy.",
   },
   {
     id: 'githubLink',
     type: 'url',
-    question: "GitHub Profile Link (Leader)",
-    subtext: "Kindly provide the GitHub profile link of the Team Leader for verification.",
-    placeholder: "https://github.com/username",
-    required: true,
-    condition: (answers: Answers) => answers.track === "BuildStorm: Solve Problem Statement in 24 Hours",
+    question: "GitHub Team Repo Link",
+    placeholder: "https://github.com/...",
+    required: false,
+    condition: (answers: Answers) => answers.track === "Track 1: BuildStorm - Solve Problem Statement in 24 Hours",
   },
   {
     id: 'buildRules',
@@ -383,7 +373,7 @@ const QUESTIONS: Question[] = [
       "I agree organizers decision is final."
     ],
     required: true,
-    condition: (answers: Answers) => answers.track === "BuildStorm: Solve Problem Statement in 24 Hours",
+    condition: (answers: Answers) => answers.track === "Track 1: BuildStorm - Solve Problem Statement in 24 Hours",
   },
     {
       id: 'buildAdditionalNotes',
@@ -391,7 +381,7 @@ const QUESTIONS: Question[] = [
       question: "Additional Notes / Special Requirements",
       placeholder: "Any special requirements...",
       required: false,
-      condition: (answers: Answers) => answers.track === "BuildStorm: Solve Problem Statement in 24 Hours",
+      condition: (answers: Answers) => answers.track === "Track 1: BuildStorm - Solve Problem Statement in 24 Hours",
   },
 
   // --- COMMON FINAL SECTION ---
@@ -418,7 +408,7 @@ const QUESTIONS: Question[] = [
 
 // Subcomponents
 
-const WelcomeScreen = ({ onStart, isLocked }: { onStart: () => void; isLocked: boolean }) => (
+const WelcomeScreen = ({ onStart }: { onStart: () => void }) => (
   <div className="min-h-screen w-full flex flex-col justify-center items-center bg-slate-950 text-white relative overflow-hidden font-mono">
      {/* Grid Background */}
      <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
@@ -441,13 +431,8 @@ const WelcomeScreen = ({ onStart, isLocked }: { onStart: () => void; isLocked: b
           onClick={onStart}
           className="group relative inline-flex items-center justify-center px-10 py-3 font-bold text-white transition-all duration-200 bg-orange-600 font-mono tracking-widest border border-orange-500 hover:bg-orange-500 focus:outline-none ring-offset-2 focus:ring-2"
         >
-           {isLocked ? '[ VIEW_DOSSIER_LOCKED ]' : '[ OPEN_DOSSIER ]'}
+           [ OPEN_DOSSIER ]
         </button>
-        {isLocked && (
-          <p className="mt-4 text-[10px] text-red-500 font-bold uppercase tracking-widest animate-pulse">
-             Access Restricted: Single-Edit Protocol Already Exhausted
-          </p>
-        )}
      </div>
   </div>
 );
@@ -497,13 +482,92 @@ const ThankYouScreen = ({ track }: { track: string }) => (
    </div>
 );
 
+// ── Team Member Manager (for selective removal) ──
+const TeamMemberManager = ({ 
+  currentSize, 
+  newSize, 
+  answers, 
+  onRemoveMember,
+  onCancel 
+}: { 
+  currentSize: number;
+  newSize: number;
+  answers: Answers;
+  onRemoveMember: (memberIndex: number) => void;
+  onCancel?: () => void;
+}) => {
+  const members = [];
+  
+  // Build list of current members (excluding leader)
+  for (let i = 2; i <= currentSize; i++) {
+    const name = answers[`member${i}Name`] as string;
+    const email = answers[`member${i}Email`] as string;
+    if (name || email) {
+      members.push({ index: i, name, email });
+    }
+  }
+
+  const membersToRemove = currentSize - newSize;
+
+  return (
+    <div className="w-full space-y-4 mb-6">
+      <div className="bg-yellow-950/40 border border-yellow-500/30 p-4 rounded">
+        <p className="text-yellow-400 text-xs font-mono uppercase tracking-wider font-bold mb-2">
+          ⚠ Team Size Reduction
+        </p>
+        <p className="text-yellow-300/80 text-sm font-mono leading-relaxed">
+          You&apos;re reducing team size from {currentSize} to {newSize} members. 
+          Please select which {membersToRemove} member{membersToRemove > 1 ? 's' : ''} to remove:
+        </p>
+      </div>
+
+      <div className="space-y-3">
+        {members.map((member) => (
+          <div
+            key={member.index}
+            className="flex items-center justify-between gap-4 bg-slate-900 border border-slate-700 p-4 rounded hover:border-slate-600 transition-colors"
+          >
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-mono text-slate-400 uppercase tracking-wider mb-1">
+                Member {member.index}
+              </div>
+              <div className="text-lg font-mono text-white truncate">
+                {member.name || 'No name'}
+              </div>
+              <div className="text-xs font-mono text-slate-500 truncate">
+                {member.email || 'No email'}
+              </div>
+            </div>
+            <button
+              onClick={() => onRemoveMember(member.index)}
+              className="px-4 py-2 border border-red-500/50 text-red-400 text-xs font-mono uppercase tracking-wider hover:bg-red-500/10 transition-colors shrink-0"
+            >
+              Remove
+            </button>
+          </div>
+        ))}
+      </div>
+
+      {onCancel && (
+        <div className="flex justify-end">
+          <button
+            onClick={onCancel}
+            className="px-4 py-2 border border-slate-600 text-slate-400 text-xs font-mono uppercase tracking-wider hover:bg-slate-800 transition-colors"
+          >
+            Cancel Size Change
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
+
 // ── Combobox (searchable dropdown + free text) ──
-const ComboboxInput = ({ value, onChange, suggestions, placeholder, disabled }: {
+const ComboboxInput = ({ value, onChange, suggestions, placeholder }: {
   value: string;
   onChange: (val: string) => void;
   suggestions: string[];
   placeholder: string;
-  disabled?: boolean;
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [highlightIndex, setHighlightIndex] = useState(-1);
@@ -581,8 +645,7 @@ const ComboboxInput = ({ value, onChange, suggestions, placeholder, disabled }: 
         onKeyDown={handleKeyDown}
         placeholder={placeholder.toUpperCase()}
         autoComplete="off"
-        disabled={disabled}
-        className={`w-full bg-transparent border-b-2 border-slate-700 text-xl md:text-2xl py-2 focus:outline-none focus:border-orange-500 transition-colors placeholder-slate-800 font-mono text-orange-400 tracking-wide ${disabled ? 'opacity-50 cursor-not-allowed border-slate-800' : ''}`}
+        className="w-full bg-transparent border-b-2 border-slate-700 text-xl md:text-2xl py-2 focus:outline-none focus:border-orange-500 transition-colors placeholder-slate-800 font-mono text-orange-400 tracking-wide"
       />
 
       {/* Dropdown */}
@@ -622,7 +685,7 @@ const ComboboxInput = ({ value, onChange, suggestions, placeholder, disabled }: 
   );
 };
 
-const InputRenderer = ({ question, value, onChange, onCheckbox, answers, emailVerified, verifiedEmail, onResetVerification, showChangeEmailWarning, onChangeEmailClick, onCancelChangeEmail, assignedProblem, problemLoading, problemError, fetchAssignedProblem, isEditMode }: { 
+const InputRenderer = ({ question, value, onChange, onCheckbox, answers, emailVerified, verifiedEmail, onResetVerification, showChangeEmailWarning, onChangeEmailClick, onCancelChangeEmail, assignedProblem, problemLoading, problemError, fetchAssignedProblem, isEditMode, initialData }: { 
   question: Question; 
   value: string | string[] | undefined; 
   onChange: (val: string | string[]) => void; 
@@ -639,8 +702,8 @@ const InputRenderer = ({ question, value, onChange, onCheckbox, answers, emailVe
   problemError?: string;
   fetchAssignedProblem?: () => void;
   isEditMode?: boolean;
+  initialData?: Record<string, any>;
 }) => {
-  const isInputDisabled = isEditMode && ['track', 'leaderName', 'leaderGender', 'leaderEmail', 'leaderMobile', 'leaderCollege', 'leaderDegree'].includes(question.id);
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -650,8 +713,39 @@ const InputRenderer = ({ question, value, onChange, onCheckbox, answers, emailVe
     return () => clearTimeout(timer);
   }, [question]);
 
-  // Special handling for verified email field
-  if (question.id === 'leaderEmail' && emailVerified && verifiedEmail) {
+  // Lock leader email in edit mode
+  if (question.id === 'leaderEmail' && isEditMode) {
+    return (
+      <div className="w-full space-y-4">
+        {/* Locked Email Display */}
+        <div className="border-2 border-slate-700 bg-slate-900/50 rounded p-6">
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-xs uppercase tracking-wider text-slate-500 font-bold">
+              Team Leader Email
+            </div>
+            <div className="flex items-center gap-2 text-xs text-slate-500 font-mono">
+              <span>🔒</span>
+              <span>LOCKED</span>
+            </div>
+          </div>
+          <div className="text-xl md:text-2xl font-mono text-slate-300 tracking-wide">
+            {value || initialData?.leaderEmail}
+          </div>
+        </div>
+        
+        <div className="bg-slate-800/50 border border-slate-700 rounded p-4">
+          <p className="text-xs text-slate-400 leading-relaxed">
+            <strong className="text-orange-400">Security Notice:</strong> The team leader email 
+            cannot be changed after registration. This ensures account security and prevents 
+            unauthorized access. If you need to transfer team leadership, please contact support.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Special handling for verified email field (only in new registration mode)
+  if (question.id === 'leaderEmail' && emailVerified && verifiedEmail && !isEditMode) {
     return (
       <div className="w-full space-y-4">
         {/* Locked Email Display */}
@@ -717,22 +811,18 @@ const InputRenderer = ({ question, value, onChange, onCheckbox, answers, emailVe
         ) : (
           <>
             {/* Change Email Button */}
-            {!isEditMode && (
-              <button
-                onClick={onChangeEmailClick}
-                className="text-sm text-orange-500 hover:text-orange-400 font-mono uppercase tracking-wider border border-orange-500/30 hover:border-orange-500/50 px-4 py-2 transition-all flex items-center gap-2 group"
-              >
-                <span>⚠</span>
-                <span>Change Email</span>
-              </button>
-            )}
+            <button
+              onClick={onChangeEmailClick}
+              className="text-sm text-orange-500 hover:text-orange-400 font-mono uppercase tracking-wider border border-orange-500/30 hover:border-orange-500/50 px-4 py-2 transition-all flex items-center gap-2 group"
+            >
+              <span>⚠</span>
+              <span>Change Email</span>
+            </button>
 
             {/* Info Box */}
             <div className="bg-slate-800/50 border border-slate-700 p-3 text-xs text-slate-400 font-mono">
               <div className="text-orange-400 font-bold mb-1">🔒 SECURITY NOTICE</div>
-              {isEditMode 
-                ? "Your email is tied to your team registration and cannot be changed."
-                : "Your email has been verified and secured. Changing it will require re-verification."}
+              Your email has been verified and secured. Changing it will require re-verification.
             </div>
           </>
         )}
@@ -741,6 +831,36 @@ const InputRenderer = ({ question, value, onChange, onCheckbox, answers, emailVe
   }
 
   if (question.type === 'choice') {
+    // Lock track selection in edit mode
+    if (question.id === 'track' && isEditMode) {
+      return (
+        <div className="w-full max-w-lg">
+          <div className="border-2 border-slate-700 bg-slate-900/50 rounded p-6">
+            <div className="flex items-center justify-between mb-3">
+              <div className="text-xs uppercase tracking-wider text-slate-500 font-bold">
+                Competition Track
+              </div>
+              <div className="flex items-center gap-2 text-xs text-slate-500 font-mono">
+                <span>🔒</span>
+                <span>LOCKED</span>
+              </div>
+            </div>
+            <div className="text-xl md:text-2xl font-bold text-orange-400 uppercase tracking-tight">
+              {value}
+            </div>
+          </div>
+          
+          <div className="mt-4 bg-slate-800/50 border border-slate-700 rounded p-4">
+            <p className="text-xs text-slate-400 leading-relaxed">
+              The competition track cannot be changed after registration. 
+              Each track has different requirements and judging criteria.
+            </p>
+          </div>
+        </div>
+      );
+    }
+    
+    // Normal choice rendering
     return (
       <div className="flex flex-col gap-2 max-w-lg w-full">
         {question.options?.map((opt: string, _idx: number) => (
@@ -749,9 +869,19 @@ const InputRenderer = ({ question, value, onChange, onCheckbox, answers, emailVe
             opt={opt} 
             selected={value === opt} 
             onSelect={() => onChange(opt)} 
-            disabled={isInputDisabled}
           />
         ))}
+        {question.id === 'track' && !isEditMode && (
+          <div className="mt-4 text-xs text-slate-500 font-mono border-t border-slate-800 pt-3">
+            <p className="mb-2">Need to edit your registration?</p>
+            <Link 
+              href="/login"
+              className="text-orange-500 hover:text-orange-400 underline transition-colors"
+            >
+              Login to edit your form
+            </Link>
+          </div>
+        )}
       </div>
     );
   }
@@ -783,12 +913,10 @@ const InputRenderer = ({ question, value, onChange, onCheckbox, answers, emailVe
         {allOptions.map((opt: string, idx: number) => (
            <button
              key={idx}
-             onClick={() => !isInputDisabled && onCheckbox(opt)}
-             disabled={isInputDisabled}
+             onClick={() => onCheckbox(opt)}
              className={`text-left px-4 py-3 border text-sm md:text-base font-mono transition-all flex items-start gap-4 w-full
-                ${isInputDisabled ? 'opacity-50 cursor-not-allowed' : ''}
-                ${selected.includes(opt)
-                    ? 'bg-orange-500/10 border-orange-500 text-white'
+                ${selected.includes(opt) 
+                    ? 'bg-orange-500/10 border-orange-500 text-white' 
                     : 'bg-transparent border-slate-700 text-slate-400 hover:border-slate-500'}
              `}
            >
@@ -831,7 +959,6 @@ const InputRenderer = ({ question, value, onChange, onCheckbox, answers, emailVe
            <textarea
               ref={inputRef as React.RefObject<HTMLTextAreaElement & HTMLInputElement>}
               value={value || ''}
-              disabled={isInputDisabled}
               onChange={(e) => onChange(e.target.value)}
               onPaste={(e) => {
                   if (question.noPaste) {
@@ -840,9 +967,9 @@ const InputRenderer = ({ question, value, onChange, onCheckbox, answers, emailVe
                   }
               }}
               placeholder={question.placeholder ? question.placeholder.toUpperCase() : ''}
-              className={`flex-1 bg-slate-900/50 border border-slate-700 p-4 text-xl font-mono text-white placeholder-slate-700 focus:outline-none focus:border-orange-500 transition-all resize-none h-48 md:h-64 tracking-tight leading-relaxed ${isInputDisabled ? 'opacity-50 cursor-not-allowed border-slate-800' : ''}`}
+              className="flex-1 bg-slate-900/50 border border-slate-700 p-4 text-xl font-mono text-white placeholder-slate-700 focus:outline-none focus:border-orange-500 transition-all resize-none h-48 md:h-64 tracking-tight leading-relaxed"
            />
-
+           
            {/* Guidance Panel */}
            {(question.guidance || (question.id === 'problemDesc' && assignedProblem)) && (
                <div className="md:w-64 shrink-0 bg-slate-900 border border-slate-800 p-4 rounded text-sm text-slate-400 font-mono hidden md:block">
@@ -874,19 +1001,18 @@ const InputRenderer = ({ question, value, onChange, onCheckbox, answers, emailVe
             <span className="text-xl">🇮🇳</span>
             <span className="text-xl md:text-2xl text-slate-400 font-mono">+91</span>
          </div>
-          <input
-             ref={inputRef as React.RefObject<HTMLTextAreaElement & HTMLInputElement>}
-             type="tel"
-             value={value || ''}
-             disabled={isInputDisabled}
-             maxLength={10}
-             onChange={(e) => {
-                 const val = e.target.value.replace(/[^0-9]/g, '');
-                 onChange(val);
-             }}
-             placeholder="9876543210"
-             className={`w-full bg-transparent focus:outline-none text-xl md:text-3xl text-orange-400 font-mono tracking-[0.2em] placeholder-slate-800 ${isInputDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-          />
+         <input
+            ref={inputRef as React.RefObject<HTMLTextAreaElement & HTMLInputElement>}
+            type="tel"
+            value={value || ''}
+            maxLength={10}
+            onChange={(e) => {
+                const val = e.target.value.replace(/[^0-9]/g, '');
+                onChange(val);
+            }}
+            placeholder="9876543210"
+            className="w-full bg-transparent focus:outline-none text-xl md:text-3xl text-orange-400 font-mono tracking-[0.2em] placeholder-slate-800"
+         />
       </div>
     );
   }
@@ -1009,7 +1135,6 @@ const InputRenderer = ({ question, value, onChange, onCheckbox, answers, emailVe
           <ComboboxInput
             value={(value as string) || ''}
             onChange={onChange}
-            disabled={isInputDisabled}
             suggestions={question.suggestions}
             placeholder={question.placeholder || ''}
           />
@@ -1028,21 +1153,19 @@ const InputRenderer = ({ question, value, onChange, onCheckbox, answers, emailVe
       ref={inputRef as React.RefObject<HTMLTextAreaElement & HTMLInputElement>}
       type={question.type}
       value={value || ''}
-      disabled={isInputDisabled}
       onChange={(e) => onChange(e.target.value)}
       placeholder={question.placeholder ? question.placeholder.toUpperCase() : ''}
-      className={`w-full bg-transparent border-b-2 border-slate-700 text-xl md:text-2xl py-2 focus:outline-none focus:border-orange-500 transition-colors placeholder-slate-800 font-mono text-orange-400 tracking-wide ${isInputDisabled ? 'opacity-50 cursor-not-allowed border-slate-800' : ''}`}
+      className={`w-full bg-transparent border-b-2 border-slate-700 text-xl md:text-2xl py-2 focus:outline-none focus:border-orange-500 transition-colors placeholder-slate-800 font-mono text-orange-400 tracking-wide
+      `}
     />
   );
 };
 
-const OptionButton = ({ opt, selected, onSelect, disabled }: { opt: string; selected: boolean; onSelect: () => void; disabled?: boolean }) => {
+const OptionButton = ({ opt, selected, onSelect }: { opt: string; selected: boolean; onSelect: () => void }) => {
    return (
       <button
-        onClick={() => !disabled && onSelect()}
-        disabled={disabled}
+        onClick={onSelect}
         className={`text-left px-4 py-3 border flex items-center gap-4 w-full transition-all
-           ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
            ${selected 
              ? 'bg-orange-500 border-orange-500 text-black' 
              : 'bg-transparent border-slate-700 text-slate-400 hover:border-slate-500 hover:text-white'}
@@ -1058,38 +1181,39 @@ const OptionButton = ({ opt, selected, onSelect, disabled }: { opt: string; sele
    );
 };
 
-export default function HackathonForm({
-  initialData = {},
-  isEditMode = false,
-  isLocked = false,
-  initialAssignedProblem = null
-}: {
-  initialData?: Answers;
+// ── Component Props ───────────────────────────────────────
+interface HackathonFormProps {
+  initialData?: Record<string, any>;
   isEditMode?: boolean;
   isLocked?: boolean;
-  initialAssignedProblem?: any;
-}) {
-  const [started, setStarted] = useState(isEditMode);
+  initialAssignedProblem?: {
+    id: string;
+    title: string;
+    objective: string;
+    description?: string | null;
+    extensionsRemaining: number;
+  } | null;
+}
+
+export default function HackathonForm({ 
+  initialData, 
+  isEditMode = false, 
+  isLocked = false,
+  initialAssignedProblem 
+}: HackathonFormProps = {}) {
+  const [started, setStarted] = useState(isEditMode); // Skip welcome in edit mode
   const [currentStep, setCurrentStep] = useState(0);
-  const [answers, setAnswers] = useState<Answers>(initialData);
-  const [isLockedFlag] = useState(isLocked || !!initialData.isLocked);
+  const [answers, setAnswers] = useState<Answers>(initialData || {}); // Pre-fill with initial data
   const [isCompleted, setIsCompleted] = useState(false);
   const [direction, setDirection] = useState(0);
 
-  // Derivations
-  const visibleQuestions = useMemo(() => {
-    return QUESTIONS.filter(q => !q.condition || q.condition(answers));
-  }, [answers]);
-
-  const totalSteps = visibleQuestions.length;
-  const isLastStep = currentStep === totalSteps - 1;
-  const currentQuestion = visibleQuestions[currentStep];
-
-  // OTP State
+  // OTP State - Pre-verified in edit mode
   const [showOtpInput, setShowOtpInput] = useState(false);
   const [otpValue, setOtpValue] = useState("");
-  const [emailVerified, setEmailVerified] = useState(isEditMode);
-  const [verifiedEmail, setVerifiedEmail] = useState<string | null>(isEditMode ? String(initialData.leaderEmail || "") : null);
+  const [emailVerified, setEmailVerified] = useState(isEditMode); // Auto-verified in edit mode
+  const [verifiedEmail, setVerifiedEmail] = useState<string | null>(
+    isEditMode ? (initialData?.leaderEmail as string) : null
+  );
   const [showChangeEmailWarning, setShowChangeEmailWarning] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -1101,27 +1225,51 @@ export default function HackathonForm({
     objective: string;
     description?: string | null;
     extensionsRemaining: number;
-  } | null>(initialAssignedProblem);
+  } | null>(initialAssignedProblem || null); // Use initial problem in edit mode
   const [problemLoading, setProblemLoading] = useState(false);
   const [problemError, setProblemError] = useState("");
 
+  // Track changed fields for diff view
+  const [changedFields, setChangedFields] = useState<Set<string>>(new Set());
+  
+  // Session expiry warning
+  const [sessionWarning, setSessionWarning] = useState(false);
+
+  // Team size management state
+  const [showMemberManager, setShowMemberManager] = useState(false);
+  const [previousTeamSize, setPreviousTeamSize] = useState<number | null>(null);
+  const [pendingTeamSize, setPendingTeamSize] = useState<string | null>(null);
+
   // ✅ NEW: Generate idempotency key once per form session
   const [idempotencyKey] = useState(() => {
-    return `reg_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+    // Use crypto.randomUUID() if available
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+      return crypto.randomUUID();
+    }
+    // Fallback for older browsers
+    return `${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
   });
 
+  const totalSteps = QUESTIONS.length;
+
+  // Compute visible step count (questions whose conditions are met)
+  const visibleSteps = React.useMemo(() => {
+    return QUESTIONS.filter(q => !q.condition || q.condition(answers)).length;
+  }, [answers]);
+
   // Compute visible step index (1-based) for current position
-  const visibleStepIndex = useMemo(() => {
-    let idx = 1;
-    for (let i = 0; i < currentStep; i++) {
-        // This is a bit complex since step numbers should only count non-hidden steps
-        // Simplified for this form:
-        idx++;
+  const visibleStepIndex = React.useMemo(() => {
+    let idx = 0;
+    for (let i = 0; i <= currentStep; i++) {
+      const q = QUESTIONS[i];
+      if (!q.condition || q.condition(answers)) idx++;
     }
     return idx;
-  }, [currentStep]);
+  }, [currentStep, answers]);
 
+  const currentQuestion = QUESTIONS[currentStep];
 
+  const handleStart = () => setStarted(true);
 
   // Fetch assigned problem statement from round-robin API
   const fetchAssignedProblem = React.useCallback(async () => {
@@ -1135,6 +1283,31 @@ export default function HackathonForm({
         localStorage.setItem('anonymous_id', anonymousId);
       }
 
+      // FIRST: Check if there's already an assigned problem (from previous reservation or registration)
+      // This prevents creating duplicate reservations after OTP verification
+      const checkParams = new URLSearchParams();
+      if (anonymousId) checkParams.set('anonymousId', anonymousId);
+      
+      const checkRes = await fetch(`/api/my-problem?${checkParams.toString()}`, {
+        credentials: 'include',
+      });
+      const checkResponse = await checkRes.json();
+
+      if (checkResponse.success && checkResponse.data) {
+        // Found existing assignment - use it instead of creating new reservation
+        setAssignedProblem({
+          id: checkResponse.data.id,
+          title: checkResponse.data.title,
+          objective: checkResponse.data.objective,
+          description: checkResponse.data.description || null,
+          extensionsRemaining: 0,
+        });
+        console.log(`[fetchAssignedProblem] Using existing problem assignment: "${checkResponse.data.title}" (source: ${checkResponse.data.source})`);
+        setProblemLoading(false);
+        return;
+      }
+
+      // No existing assignment found - create new reservation
       const res = await fetch('/api/reserve-problem', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1164,6 +1337,7 @@ export default function HackathonForm({
           description: response.data.description || null,
           extensionsRemaining: response.data.extensionsRemaining ?? 0,
         });
+        console.log(`[fetchAssignedProblem] Created new problem reservation: "${response.data.title}"`);
       }
     } catch (err) {
       setProblemError(err instanceof Error ? err.message : "Network error. Please try again.");
@@ -1172,17 +1346,18 @@ export default function HackathonForm({
     }
   }, []);
 
-  // Auto-fetch problem when reaching buildBrief step
+  // Auto-fetch problem when reaching buildBrief step (only in new registration mode)
   useEffect(() => {
     if (
       currentQuestion?.id === 'buildBrief' &&
       currentQuestion?.type === 'dynamic-problem' &&
       !assignedProblem &&
-      !problemLoading
+      !problemLoading &&
+      !isEditMode // Don't re-fetch in edit mode
     ) {
       fetchAssignedProblem();
     }
-  }, [currentQuestion, assignedProblem, problemLoading, fetchAssignedProblem]);
+  }, [currentQuestion, assignedProblem, problemLoading, fetchAssignedProblem, isEditMode]);
 
   // ✅ AUTO-RESTORE: Check for existing problem assignment on mount
   // Industry standard — returning users see their previously assigned problem
@@ -1241,10 +1416,93 @@ export default function HackathonForm({
     return () => clearInterval(heartbeat);
   }, [assignedProblem]);
 
+  // L-1: Restore draft if session expired during edit
+  useEffect(() => {
+    if (isEditMode) {
+      const draft = localStorage.getItem('draft_edit');
+      if (draft) {
+        try {
+          const parsed = JSON.parse(draft);
+          // Only restore if it's for the same team and less than 1 hour old
+          if (parsed.teamId === initialData?.teamId && 
+              Date.now() - parsed.timestamp < 3600000) {
+            const shouldRestore = window.confirm(
+              "We found unsaved changes from a previous session. " +
+              "Would you like to restore them?"
+            );
+            if (shouldRestore) {
+              setAnswers(parsed.answers);
+            }
+          }
+          // Clean up draft
+          localStorage.removeItem('draft_edit');
+        } catch (err) {
+          console.error('Failed to restore draft:', err);
+          localStorage.removeItem('draft_edit');
+        }
+      }
+    }
+  }, [isEditMode, initialData]);
+
+  // L-1: Periodic session check in edit mode (every 2 minutes)
+  useEffect(() => {
+    if (!isEditMode) return;
+    
+    const checkSession = async () => {
+      try {
+        const res = await fetch('/api/user/me', { credentials: 'include' });
+        if (!res.ok) {
+          setSessionWarning(true);
+        } else {
+          setSessionWarning(false);
+        }
+      } catch (err) {
+        console.error('Session check failed:', err);
+      }
+    };
+    
+    // Check immediately
+    checkSession();
+    
+    // Then check every 2 minutes
+    const interval = setInterval(checkSession, 2 * 60 * 1000);
+    
+    return () => clearInterval(interval);
+  }, [isEditMode]);
+
+  // L-1: Auto-save draft in edit mode (debounced)
+  useEffect(() => {
+    if (!isEditMode || changedFields.size === 0) return;
+    
+    const timeoutId = setTimeout(() => {
+      try {
+        localStorage.setItem('draft_edit', JSON.stringify({
+          answers,
+          teamId: initialData?.teamId,
+          timestamp: Date.now()
+        }));
+        console.log('[Auto-save] Draft saved to localStorage');
+      } catch (err) {
+        console.error('[Auto-save] Failed to save draft:', err);
+      }
+    }, 2000); // Save 2 seconds after last change
+    
+    return () => clearTimeout(timeoutId);
+  }, [answers, isEditMode, changedFields, initialData]);
+
   // Logic Helpers
-  const getNextValidStep = React.useCallback((current: number, dir: number) => {
-    return current + dir;
-  }, []);
+  const getNextValidStep = React.useCallback((current: number, dir: number, currentAnswers: Answers) => {
+    let nextStep = current + dir;
+    while (nextStep >= 0 && nextStep < totalSteps) {
+       const q = QUESTIONS[nextStep];
+       if (q.condition && !q.condition(currentAnswers)) {
+         nextStep += dir;
+       } else {
+         return nextStep;
+       }
+    }
+    return nextStep;
+  }, [totalSteps]);
 
   const sendOtp = React.useCallback(async () => {
       setLoading(true);
@@ -1286,6 +1544,33 @@ export default function HackathonForm({
   const submitForm = React.useCallback(async () => {
       setLoading(true);
 
+      // L-1: Check session validity before submission (especially important in edit mode)
+      if (isEditMode) {
+        try {
+          const sessionCheck = await fetch('/api/user/me', { credentials: 'include' });
+          if (!sessionCheck.ok) {
+            // Session expired - save draft and redirect to login
+            localStorage.setItem('draft_edit', JSON.stringify({
+              answers,
+              teamId: initialData?.teamId,
+              timestamp: Date.now()
+            }));
+            setErrorMsg(
+              "Your session has expired. Your changes have been saved. " +
+              "Please log in again to continue."
+            );
+            setLoading(false);
+            setTimeout(() => {
+              window.location.href = '/login';
+            }, 3000);
+            return;
+          }
+        } catch (err) {
+          console.error('Session check failed:', err);
+          // Continue anyway - let the register API handle it
+        }
+      }
+
       // Client-side duplicate email check
       const emailFields = [
         answers.leaderEmail,
@@ -1308,16 +1593,11 @@ export default function HackathonForm({
           const finalAnswers = { ...answers };
           // "Same as Leader" college values are already set inline by the combobox checkbox
 
-          if (finalAnswers.track === "IdeaSprint: Build MVP in 24 Hours") finalAnswers.additionalNotes = finalAnswers.ideaAdditionalNotes;
-          if (finalAnswers.track === "BuildStorm: Solve Problem Statement in 24 Hours") finalAnswers.additionalNotes = finalAnswers.buildAdditionalNotes;
-
-          // Normalise IdeaSprint github link field (uses different id to avoid duplicate-key collision)
-          if (finalAnswers.track === "IdeaSprint: Build MVP in 24 Hours" && finalAnswers.githubLinkIdea) {
-            finalAnswers.githubLink = finalAnswers.githubLinkIdea;
-          }
+          if (finalAnswers.track === "Track 2: IdeaSprint - Build MVP in 24 Hours") finalAnswers.additionalNotes = finalAnswers.ideaAdditionalNotes;
+          if (finalAnswers.track === "Track 1: BuildStorm - Solve Problem Statement in 24 Hours") finalAnswers.additionalNotes = finalAnswers.buildAdditionalNotes;
 
           // Include assigned problem statement ID for BuildStorm track
-          if (assignedProblem?.id && finalAnswers.track === "BuildStorm: Solve Problem Statement in 24 Hours") {
+          if (assignedProblem?.id && finalAnswers.track === "Track 1: BuildStorm - Solve Problem Statement in 24 Hours") {
             finalAnswers.assignedProblemStatementId = assignedProblem.id;
           }
 
@@ -1343,13 +1623,20 @@ export default function HackathonForm({
           }
           
           console.log('Registration successful:', response.data);
+          
+          // Clear draft on successful submission
+          if (isEditMode) {
+            localStorage.removeItem('draft_edit');
+          }
+          
           setIsCompleted(true);
       } catch (err: unknown) {
           setErrorMsg(err instanceof Error ? err.message : 'Network error. Please try again.');
       } finally {
           setLoading(false);
       }
-  }, [answers, idempotencyKey, assignedProblem, setIsCompleted, isEditMode]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [answers, idempotencyKey, assignedProblem, setIsCompleted]);
 
   const handleNext = React.useCallback(async () => {
     // --- VALIDATIONS ---
@@ -1367,12 +1654,32 @@ export default function HackathonForm({
         return;
       }
       // Problem assigned — proceed
-      const nextStep = getNextValidStep(currentStep, 1);
+      const nextStep = getNextValidStep(currentStep, 1, answers);
       if (nextStep < totalSteps) {
         setDirection(1);
         setCurrentStep(nextStep);
         setErrorMsg("");
       } else {
+        // Check if locked before final submission
+        if (isLocked) {
+          setErrorMsg(
+            "This registration is locked and cannot be modified. " +
+            "You have already used your one-time edit."
+          );
+          return;
+        }
+        
+        // Show confirmation in edit mode
+        if (isEditMode) {
+          const confirmed = window.confirm(
+            "⚠️ FINAL WARNING\n\n" +
+            "After submitting these changes, your registration will be PERMANENTLY LOCKED.\n" +
+            "You will NOT be able to edit it again.\n\n" +
+            "Are you absolutely sure you want to proceed?"
+          );
+          if (!confirmed) return;
+        }
+        
         await submitForm();
       }
       return;
@@ -1486,16 +1793,36 @@ export default function HackathonForm({
         return;
     }
 
-    const nextStep = getNextValidStep(currentStep, 1);
+    const nextStep = getNextValidStep(currentStep, 1, answers);
     
     if (nextStep < totalSteps) {
       setDirection(1);
       setCurrentStep(nextStep);
       setErrorMsg(""); 
     } else {
+      // Check if locked before final submission
+      if (isLocked) {
+        setErrorMsg(
+          "This registration is locked and cannot be modified. " +
+          "You have already used your one-time edit."
+        );
+        return;
+      }
+      
+      // Show confirmation in edit mode
+      if (isEditMode) {
+        const confirmed = window.confirm(
+          "⚠️ FINAL WARNING\n\n" +
+          "After submitting these changes, your registration will be PERMANENTLY LOCKED.\n" +
+          "You will NOT be able to edit it again.\n\n" +
+          "Are you absolutely sure you want to proceed?"
+        );
+        if (!confirmed) return;
+      }
+      
       await submitForm();
     }
-  }, [currentQuestion, answers, emailVerified, currentStep, totalSteps, sendOtp, submitForm, getNextValidStep, assignedProblem, problemLoading]);
+  }, [currentQuestion, answers, emailVerified, currentStep, totalSteps, sendOtp, submitForm, getNextValidStep, assignedProblem, problemLoading, isLocked, isEditMode]);
 
   const verifyOtp = React.useCallback(async () => {
       setLoading(true);
@@ -1566,7 +1893,7 @@ export default function HackathonForm({
           setVerifiedEmail(answers.leaderEmail as string); // Store verified email
           setShowOtpInput(false);
           setTimeout(() => {
-             const nextStep = getNextValidStep(currentStep, 1);
+             const nextStep = getNextValidStep(currentStep, 1, answers);
              setDirection(1);
              setCurrentStep(nextStep);
           }, 500);
@@ -1610,10 +1937,149 @@ export default function HackathonForm({
 
   const handlePrev = () => {
     if (showOtpInput) { setShowOtpInput(false); return; }
-    const prevStep = getNextValidStep(currentStep, -1);
+    const prevStep = getNextValidStep(currentStep, -1, answers);
     if (prevStep >= 0) { setDirection(-1); setCurrentStep(prevStep); setErrorMsg(""); }
   };
-  const handleAnswer = (value: string | string[]) => { setAnswers((prev: Answers) => ({ ...prev, [currentQuestion.id]: value })); setErrorMsg(""); };
+
+  // Helper to get current team size as number
+  const getCurrentTeamSize = (teamSizeStr: string): number => {
+    if (teamSizeStr === "2 Members") return 2;
+    if (teamSizeStr === "3 Members") return 3;
+    if (teamSizeStr === "4 Members") return 4;
+    return 0;
+  };
+
+  // Handle team member removal
+  const handleRemoveMember = (memberIndex: number) => {
+    setAnswers((prev: Answers) => {
+      const updated = { ...prev };
+      
+      // Clear the removed member's data
+      delete updated[`member${memberIndex}Name`];
+      delete updated[`member${memberIndex}Gender`];
+      delete updated[`member${memberIndex}Email`];
+      delete updated[`member${memberIndex}College`];
+      delete updated[`member${memberIndex}Degree`];
+      
+      // Shift remaining members down
+      const currentSize = previousTeamSize || 4;
+      for (let i = memberIndex + 1; i <= currentSize; i++) {
+        if (updated[`member${i}Name`]) {
+          updated[`member${i-1}Name`] = updated[`member${i}Name`];
+          updated[`member${i-1}Gender`] = updated[`member${i}Gender`];
+          updated[`member${i-1}Email`] = updated[`member${i}Email`];
+          updated[`member${i-1}College`] = updated[`member${i}College`];
+          updated[`member${i-1}Degree`] = updated[`member${i}Degree`];
+          
+          // Clear the old position
+          delete updated[`member${i}Name`];
+          delete updated[`member${i}Gender`];
+          delete updated[`member${i}Email`];
+          delete updated[`member${i}College`];
+          delete updated[`member${i}Degree`];
+        }
+      }
+      
+      return updated;
+    });
+
+    // Check if we've removed enough members
+    if (pendingTeamSize) {
+      const newSize = getCurrentTeamSize(pendingTeamSize);
+      const _currentSize = previousTeamSize || 4;
+      const remainingMembers = Object.keys(answers).filter(k => 
+        k.match(/^member\d+Name$/) && answers[k]
+      ).length - 1; // -1 because we just removed one
+      
+      if (remainingMembers <= newSize - 1) { // -1 for leader
+        // Apply the team size change
+        setAnswers((prev: Answers) => ({ ...prev, teamSize: pendingTeamSize }));
+        setShowMemberManager(false);
+        setPendingTeamSize(null);
+        setPreviousTeamSize(null);
+      }
+    }
+  };
+
+  // Handle canceling team size change
+  const handleCancelSizeChange = () => {
+    setShowMemberManager(false);
+    setPendingTeamSize(null);
+    setPreviousTeamSize(null);
+  };
+  
+  const handleAnswer = (value: string | string[]) => {
+    // Special handling for team size changes (ONLY in edit mode)
+    if (currentQuestion.id === 'teamSize' && typeof value === 'string' && isEditMode) {
+      const currentSize = answers.teamSize ? getCurrentTeamSize(answers.teamSize as string) : 0;
+      const newSize = getCurrentTeamSize(value);
+      
+      // Check if we're reducing team size and have existing member data
+      if (currentSize > newSize && currentSize > 0) {
+        const hasExistingMembers = Object.keys(answers).some(k => 
+          k.match(/^member[2-4]Name$/) && answers[k]
+        );
+        
+        if (hasExistingMembers) {
+          // Show member manager instead of directly applying change
+          setPreviousTeamSize(currentSize);
+          setPendingTeamSize(value);
+          setShowMemberManager(true);
+          setErrorMsg("");
+          return; // Don't apply the change yet
+        }
+      }
+    }
+    
+    setAnswers((prev: Answers) => ({ 
+      ...prev, 
+      [currentQuestion.id]: value 
+    })); 
+    
+    // Track changes in edit mode
+    if (isEditMode && initialData) {
+      const isChanged = JSON.stringify(initialData[currentQuestion.id]) !== JSON.stringify(value);
+      setChangedFields(prev => {
+        const updated = new Set(prev);
+        if (isChanged) {
+          updated.add(currentQuestion.id);
+        } else {
+          updated.delete(currentQuestion.id);
+        }
+        return updated;
+      });
+    }
+    
+    setErrorMsg(""); 
+  };
+  
+  const handleCheckbox = (opt: string) => {
+    const current = answers[currentQuestion.id] as string[] || [];
+    const updated = current.includes(opt) 
+      ? current.filter((item: string) => item !== opt)
+      : [...current, opt];
+    
+    setAnswers((prev: Answers) => ({ 
+      ...prev, 
+      [currentQuestion.id]: updated 
+    }));
+    
+    // Track changes in edit mode
+    if (isEditMode && initialData) {
+      const isChanged = JSON.stringify(initialData[currentQuestion.id]) !== JSON.stringify(updated);
+      setChangedFields(prev => {
+        const updated = new Set(prev);
+        if (isChanged) {
+          updated.add(currentQuestion.id);
+        } else {
+          updated.delete(currentQuestion.id);
+        }
+        return updated;
+      });
+    }
+    
+    setErrorMsg("");
+  };
 
 
   // Keys
@@ -1633,7 +2099,7 @@ export default function HackathonForm({
   }, [started, isCompleted, currentStep, answers, currentQuestion, showOtpInput, otpValue, loading, handleNext, verifyOtp]);
 
 
-  if (!started) return <WelcomeScreen onStart={() => setStarted(true)} isLocked={isLockedFlag} />;
+  if (!started) return <WelcomeScreen onStart={handleStart} />;
   if (isCompleted) return <ThankYouScreen track={typeof answers.track === 'string' ? answers.track : ''} />;
 
   // FOLDER THEME UI
@@ -1645,11 +2111,37 @@ export default function HackathonForm({
       {/* Main Folder Container */}
       <div className="w-full max-w-6xl relative z-10 flex flex-col">
           
+          {/* Logout Button (Edit Mode Only) */}
+          {isEditMode && (
+            <div className="absolute top-0 right-0 z-50">
+              <button
+                onClick={async () => {
+                  if (confirm("Are you sure you want to logout? Any unsaved changes will be lost.")) {
+                    try {
+                      await fetch('/api/logout', { 
+                        method: 'POST',
+                        credentials: 'include'
+                      });
+                      window.location.href = '/';
+                    } catch (err) {
+                      console.error('Logout failed:', err);
+                      window.location.href = '/';
+                    }
+                  }
+                }}
+                className="flex items-center gap-2 text-xs text-slate-500 hover:text-orange-400 font-mono uppercase tracking-wider border border-slate-700 hover:border-orange-500 bg-slate-900 px-4 py-2 transition-all rounded"
+              >
+                <span>🚪</span>
+                <span>[ LOGOUT ]</span>
+              </button>
+            </div>
+          )}
+          
           {/* Tabs */}
           <div className="flex pl-8">
               <div className="bg-slate-800 text-orange-500 text-xs font-bold px-6 py-2 rounded-t-lg border-t border-l border-r border-slate-700 tracking-widest uppercase flex items-center gap-2">
                  <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse" />
-                 Registration Protocol
+                 {isEditMode ? 'Edit Registration' : 'Registration Protocol'}
               </div>
               <div className="bg-slate-900/50 text-slate-600 text-xs font-bold px-6 py-2 rounded-t-lg border-t border-r border-slate-800 tracking-widest uppercase ml-[-1px] z-[-1]">
                  Classified // V.2.0
@@ -1660,6 +2152,62 @@ export default function HackathonForm({
           <div className="bg-slate-800 border-2 border-slate-700 rounded-b-lg rounded-tr-lg p-1 shadow-2xl relative min-h-[500px] md:min-h-[600px] flex flex-col">
               {/* Inner 'Paper' or Interface */}
               <div className="bg-slate-900 flex-1 rounded border border-slate-700/50 p-6 md:p-12 relative overflow-hidden flex flex-col">
+                 
+                 {/* Edit Mode Banner */}
+                 {isEditMode && (
+                   <motion.div
+                     initial={{ opacity: 0, y: -20 }}
+                     animate={{ opacity: 1, y: 0 }}
+                     className="mb-6 bg-orange-900/20 border-2 border-orange-500 rounded p-6"
+                   >
+                     <div className="flex items-center gap-3 mb-3">
+                       <span className="text-3xl">✏️</span>
+                       <h3 className="text-xl md:text-2xl font-bold text-orange-400 uppercase tracking-tight">
+                         Edit Mode - Updating Registration
+                       </h3>
+                     </div>
+                     
+                     <div className="space-y-2 text-sm">
+                       <p className="text-slate-300">
+                         You are editing your existing registration for team: 
+                         <strong className="text-white ml-2">{answers.teamName}</strong>
+                       </p>
+                       
+                       {!isLocked ? (
+                         <div className="bg-yellow-900/30 border border-yellow-500/50 rounded p-4 mt-4">
+                           <div className="flex items-start gap-3">
+                             <span className="text-2xl">⚠️</span>
+                             <div>
+                               <p className="text-yellow-300 font-bold mb-1 uppercase text-xs tracking-wider">
+                                 One-Time Edit Warning
+                               </p>
+                               <p className="text-yellow-200 text-xs leading-relaxed">
+                                 You can only edit your registration <strong>ONCE</strong>. 
+                                 After submitting these changes, your form will be permanently locked. 
+                                 Make sure all information is correct before proceeding.
+                               </p>
+                             </div>
+                           </div>
+                         </div>
+                       ) : (
+                         <div className="bg-red-900/30 border border-red-500/50 rounded p-4 mt-4">
+                           <div className="flex items-start gap-3">
+                             <span className="text-2xl">🔒</span>
+                             <div>
+                               <p className="text-red-300 font-bold mb-1 uppercase text-xs tracking-wider">
+                                 Registration Locked
+                               </p>
+                               <p className="text-red-200 text-xs leading-relaxed">
+                                 This registration has already been edited once and is now permanently locked. 
+                                 No further changes can be made. If you need to make changes, please contact support.
+                               </p>
+                             </div>
+                           </div>
+                         </div>
+                       )}
+                     </div>
+                   </motion.div>
+                 )}
                  
                  {/* Decor elements */}
                  <div className="absolute top-4 right-4 text-[10px] text-slate-600 font-mono tracking-widest">
@@ -1682,7 +2230,7 @@ export default function HackathonForm({
                        >
                            <div className="flex items-center gap-2 mb-6">
                                <span className="text-orange-500 font-bold text-sm bg-orange-500/10 px-2 py-0.5 rounded border border-orange-500/20">
-                                   STEP {visibleStepIndex} / {totalSteps}
+                                   STEP {visibleStepIndex} / {visibleSteps}
                                </span>
                                {currentQuestion.required && <span className="text-red-500 text-xs uppercase tracking-wider">* Mandatory</span>}
                            </div>
@@ -1690,32 +2238,33 @@ export default function HackathonForm({
                            <h2 className="text-2xl md:text-4xl font-bold mb-2 uppercase tracking-tight text-slate-100">
                                {currentQuestion.question}
                            </h2>
-                            
-                            {currentQuestion.subtext && (
+                           
+                           {currentQuestion.subtext && (
                                <p className="text-slate-400 text-sm md:text-base mb-8 border-l-2 border-slate-700 pl-4 py-1 italic">
                                    {currentQuestion.subtext}
                                </p>
-                            )}
+                           )}
 
-                            {isLockedFlag && (
-                               <div className="mb-6 p-3 border border-red-500/30 bg-red-500/5">
-                                  <span className="text-[10px] text-red-500 font-bold uppercase tracking-tighter">🔒 Registration locked — no further edits permitted.</span>
-                               </div>
-                            )}
-
-                            <div className="mt-4 mb-8">
-                               <InputRenderer
-                                    question={currentQuestion}
-                                    value={answers[currentQuestion.id]}
-                                    onChange={handleAnswer}
-                                    onCheckbox={(opt) => {
-                                        const current = (answers[currentQuestion.id] as string[]) || [];
-                                        const updated = current.includes(opt)
-                                          ? current.filter((o) => o !== opt)
-                                          : [...current, opt];
-                                        setAnswers((prev) => ({ ...prev, [currentQuestion.id]: updated }));
-                                    }}
+                           <div className="mt-4 mb-8">
+                               {/* Team Member Manager for selective removal */}
+                               {showMemberManager && previousTeamSize && pendingTeamSize && (
+                                 <TeamMemberManager
+                                   currentSize={previousTeamSize}
+                                   newSize={getCurrentTeamSize(pendingTeamSize)}
+                                   answers={answers}
+                                   onRemoveMember={handleRemoveMember}
+                                   onCancel={handleCancelSizeChange}
+                                 />
+                               )}
+                               
+                               <InputRenderer 
+                                    question={currentQuestion} 
+                                    value={answers[currentQuestion.id]} 
+                                    onChange={handleAnswer} 
+                                    onCheckbox={handleCheckbox}
                                     answers={answers}
+                                    isEditMode={isEditMode}
+                                    initialData={initialData}
                                     emailVerified={emailVerified}
                                     verifiedEmail={verifiedEmail}
                                     onResetVerification={resetVerification}
@@ -1726,10 +2275,53 @@ export default function HackathonForm({
                                     problemLoading={problemLoading}
                                     problemError={problemError}
                                     fetchAssignedProblem={fetchAssignedProblem}
-                                    isEditMode={isEditMode || isLockedFlag}
                                />
                            </div>
-
+                           
+                           {/* Change Summary in Edit Mode */}
+                           {isEditMode && changedFields.size > 0 && (
+                             <div className="bg-blue-900/20 border border-blue-500/50 rounded p-4 mb-6">
+                               <div className="flex items-center gap-2 mb-3">
+                                 <span className="text-blue-400 text-lg">📝</span>
+                                 <h4 className="text-sm font-bold text-blue-400 uppercase tracking-wider">
+                                   Changes Detected ({changedFields.size})
+                                 </h4>
+                               </div>
+                               <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                                 {Array.from(changedFields).map(fieldId => {
+                                   const question = QUESTIONS.find(q => q.id === fieldId);
+                                   return question ? (
+                                     <div key={fieldId} className="text-xs text-blue-300 bg-blue-900/30 px-2 py-1 rounded">
+                                       • {question.question}
+                                     </div>
+                                   ) : null;
+                                 })}
+                               </div>
+                             </div>
+                           )}
+                           
+                           {/* Session Expiry Warning */}
+                           {sessionWarning && (
+                             <div className="bg-yellow-900/20 border border-yellow-500/50 rounded p-4 mb-6">
+                               <div className="flex items-center gap-3">
+                                 <span className="text-yellow-400 text-2xl">⏰</span>
+                                 <div>
+                                   <h4 className="text-sm font-bold text-yellow-400 uppercase tracking-wider mb-1">
+                                     Session Expiring Soon
+                                   </h4>
+                                   <p className="text-yellow-200 text-xs leading-relaxed">
+                                     Your session may have expired. Please save your changes soon or 
+                                     <button 
+                                       onClick={() => window.location.reload()}
+                                       className="underline ml-1 hover:text-yellow-100"
+                                     >
+                                       refresh to re-authenticate
+                                     </button>.
+                                   </p>
+                                 </div>
+                               </div>
+                             </div>
+                           )}
                            
                            {errorMsg && (
                                <div className="bg-red-900/20 border-l-2 border-red-500 text-red-400 p-3 mb-6 text-sm font-bold flex items-center gap-2">
@@ -1741,13 +2333,29 @@ export default function HackathonForm({
                                <button 
                                   onClick={handleNext}
                                   className="bg-orange-600 hover:bg-orange-500 text-white text-sm font-bold uppercase tracking-widest px-8 py-3 clip-path-polygon disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                                  disabled={loading || isLockedFlag}
+                                  disabled={loading}
                                >
-                                   {loading ? "PROCESSING..." : isLockedFlag ? "LOCKED" : (isLastStep ? "CONFIRM DATA >>" : "NEXT >>")}
+                                  {loading ? "PROCESSING..." : (isEditMode ? "SAVE CHANGES >>" : "CONFIRM DATA >>")}
                                </button>
                                {currentStep > 0 && (
                                    <button onClick={handlePrev} className="text-slate-500 hover:text-slate-300 text-sm uppercase tracking-wider">
                                        [ BACK ]
+                                   </button>
+                               )}
+                               {isEditMode && (
+                                   <button 
+                                     onClick={() => {
+                                       if (changedFields.size > 0) {
+                                         const confirmed = window.confirm(
+                                           "You have unsaved changes. Are you sure you want to discard them and return to dashboard?"
+                                         );
+                                         if (!confirmed) return;
+                                       }
+                                       window.location.href = '/dashboard';
+                                     }}
+                                     className="text-slate-500 hover:text-orange-400 text-sm uppercase tracking-wider border border-slate-700 hover:border-orange-500 px-4 py-2 transition-all"
+                                   >
+                                       [ CANCEL & RETURN ]
                                    </button>
                                )}
                            </div>
