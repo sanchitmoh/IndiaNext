@@ -28,6 +28,7 @@ interface TeamSubmission {
   id: string;
   submittedAt: Date | string | null;
   ideaTitle: string | null;
+  assignedProblemStatement?: { title: string } | null;
   _count: { files: number };
 }
 
@@ -237,6 +238,12 @@ export function TeamsTable({
                           </span>
                         )}
                       </div>
+                      {/* Problem Statement Display */}
+                      {team.submission?.assignedProblemStatement?.title && (
+                        <div className="mt-1.5 text-[10px] font-mono text-cyan-400 line-clamp-1 border border-cyan-500/20 bg-cyan-500/5 px-1.5 py-0.5 rounded w-fit max-w-full truncate" title={team.submission.assignedProblemStatement.title}>
+                          PS: {team.submission.assignedProblemStatement.title}
+                        </div>
+                      )}
                       {/* Tags */}
                       {team.tags.length > 0 && (
                         <div className="flex gap-1 mt-2 flex-wrap">
@@ -391,6 +398,12 @@ export function TeamsTable({
                                 {tag.tag}
                               </span>
                             ))}
+                          </div>
+                        )}
+                        {/* Problem Statement Display */}
+                        {team.submission?.assignedProblemStatement?.title && (
+                          <div className="mt-1.5 text-[10px] font-mono text-cyan-400 line-clamp-1 border border-cyan-500/20 bg-cyan-500/5 px-1.5 py-0.5 rounded w-fit max-w-full truncate" title={team.submission.assignedProblemStatement.title}>
+                            PS: {team.submission.assignedProblemStatement.title}
                           </div>
                         )}
                       </div>

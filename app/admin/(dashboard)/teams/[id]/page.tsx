@@ -657,6 +657,7 @@ interface SubmissionData {
   techStackUsed: string | null;
   challenges: string | null;
   futureScope: string | null;
+  assignedProblemStatement?: { title: string } | null;
   submittedAt: Date | string | null;
   assignedProblemStatement: {
     id: string;
@@ -705,6 +706,7 @@ function SubmissionTab({
           { label: "Competitors", value: submission.competitors },
         ]
       : [
+          { label: "Selected Problem Statement", value: submission.assignedProblemStatement?.title || null },
           { label: "Problem Statement Description - How you plan to solve the given problem", value: submission.problemDesc },
           { label: "Tech Stack Used", value: submission.techStackUsed },
           { label: "Challenges Faced", value: submission.challenges },

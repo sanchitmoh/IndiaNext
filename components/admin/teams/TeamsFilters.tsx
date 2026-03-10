@@ -30,6 +30,7 @@ const trackOptions = [
   { value: "all", label: "All Tracks" },
   { value: "IDEA_SPRINT", label: "Idea Sprint" },
   { value: "BUILD_STORM", label: "Build Storm" },
+  { value: "BOTH", label: "Applied Both Tracks" },
 ];
 
 const sortOptions = [

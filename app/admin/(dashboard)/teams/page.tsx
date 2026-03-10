@@ -179,6 +179,7 @@ interface ExportTeam {
     id: string;
     ideaTitle?: string | null;
     problemStatement?: string | null;
+    assignedProblemStatement?: { title: string } | null;
     proposedSolution?: string | null;
     targetUsers?: string | null;
     expectedImpact?: string | null;
@@ -261,7 +262,7 @@ function convertToCSV(teams: ExportTeam[]): string {
     // Submission Details
     "Submission ID",
     "Idea Title",
-    "Problem Statement",
+    "Problem Statement / Assigned PS",
     "Proposed Solution",
     "Target Users",
     "Expected Impact",
@@ -321,7 +322,7 @@ function convertToCSV(teams: ExportTeam[]): string {
       // Submission
       team.submission?.id || "",
       team.submission?.ideaTitle || "",
-      team.submission?.problemStatement || "",
+      team.submission?.assignedProblemStatement?.title || team.submission?.problemStatement || "",
       team.submission?.proposedSolution || "",
       team.submission?.targetUsers || "",
       team.submission?.expectedImpact || "",
