@@ -896,7 +896,7 @@ async function sendApprovalEmail(
               <table style="width: 100%; border-collapse: collapse;">
                 <tr>
                   <td style="padding: 10px 0; color: #666; font-size: 12px; width: 100px; vertical-align: top;">[DATE] Date</td>
-                  <td style="padding: 10px 0; color: #ededed; font-size: 13px; font-weight: 600;">March 15 – 16, 2026</td>
+                  <td style="padding: 10px 0; color: #ededed; font-size: 13px; font-weight: 600;">March 16 – 17, 2026</td>
                 </tr>
                 <tr>
                   <td style="padding: 10px 0; color: #666; font-size: 12px; border-top: 1px solid #222; vertical-align: top;">[TIME] Duration</td>
@@ -921,11 +921,11 @@ async function sendApprovalEmail(
             <div class="sec-card" style="background: #0a0a0a; border: 1px solid #333; border-radius: 10px; padding: 22px; margin-bottom: 20px;">
               <h2 style="color: #00CCFF; margin: 0 0 16px 0; font-size: 16px; text-transform: uppercase; letter-spacing: 2px;">[SCHEDULE] Event Schedule</h2>
               
-              <p style="color: #FF6600; margin: 0 0 10px 0; font-size: 12px; font-weight: bold; letter-spacing: 1px;">DAY 1 — MARCH 15, 2026</p>
+              <p style="color: #FF6600; margin: 0 0 10px 0; font-size: 12px; font-weight: bold; letter-spacing: 1px;">DAY 1 — MARCH 16, 2026</p>
               <table style="width: 100%; border-collapse: collapse; margin-bottom: 16px;">
                 <tr>
-                  <td class="sch-time" style="padding: 7px 10px; color: #FF6600; font-size: 12px; font-weight: bold; width: 90px; background: rgba(255,102,0,0.06); border-radius: 4px 0 0 4px;">Morning</td>
-                  <td class="sch-desc" style="padding: 7px 10px; color: #ededed; font-size: 12px; background: rgba(255,102,0,0.03); border-radius: 0 4px 4px 0;">Check-in & Breakfast</td>
+                  <td class="sch-time" style="padding: 7px 10px; color: #FF6600; font-size: 12px; font-weight: bold; width: 90px; background: rgba(255,102,0,0.06); border-radius: 4px 0 0 4px;">08:00 AM</td>
+                  <td class="sch-desc" style="padding: 7px 10px; color: #ededed; font-size: 12px; background: rgba(255,102,0,0.03); border-radius: 0 4px 4px 0;">Check-in & Breakfast (8:00 - 9:00 AM)</td>
                 </tr>
                 <tr><td colspan="2" style="padding: 2px;"></td></tr>
                 <tr>
@@ -939,27 +939,27 @@ async function sendApprovalEmail(
                 </tr>
                 <tr><td colspan="2" style="padding: 2px;"></td></tr>
                 <tr>
-                  <td class="sch-time" style="padding: 7px 10px; color: #FF6600; font-size: 12px; font-weight: bold; background: rgba(255,102,0,0.06); border-radius: 4px 0 0 4px;">12:30 PM</td>
-                  <td class="sch-desc" style="padding: 7px 10px; color: #ededed; font-size: 12px; background: rgba(255,102,0,0.03); border-radius: 0 4px 4px 0;">Lunch Break (12:30 - 2:00 PM)</td>
+                  <td class="sch-time" style="padding: 7px 10px; color: #FF6600; font-size: 12px; font-weight: bold; background: rgba(255,102,0,0.06); border-radius: 4px 0 0 4px;">11:00 AM</td>
+                  <td class="sch-desc" style="padding: 7px 10px; color: #10b981; font-size: 12px; font-weight: bold; background: rgba(16,185,129,0.06); border-radius: 0 4px 4px 0;">[START] Development Begins</td>
                 </tr>
                 <tr><td colspan="2" style="padding: 2px;"></td></tr>
                 <tr>
                   <td class="sch-time" style="padding: 7px 10px; color: #FF6600; font-size: 12px; font-weight: bold; background: rgba(255,102,0,0.06); border-radius: 4px 0 0 4px;">02:00 PM</td>
-                  <td class="sch-desc" style="padding: 7px 10px; color: #10b981; font-size: 12px; font-weight: bold; background: rgba(16,185,129,0.06); border-radius: 0 4px 4px 0;">[START] Development Begins (2:00 - 9:00 PM)</td>
+                  <td class="sch-desc" style="padding: 7px 10px; color: #ededed; font-size: 12px; background: rgba(255,102,0,0.03); border-radius: 0 4px 4px 0;">Lunch Break (2:00 - 5:00 PM)</td>
                 </tr>
                 <tr><td colspan="2" style="padding: 2px;"></td></tr>
                 <tr>
-                  <td class="sch-time" style="padding: 7px 10px; color: #FF6600; font-size: 12px; font-weight: bold; background: rgba(255,102,0,0.06); border-radius: 4px 0 0 4px;">—</td>
-                  <td class="sch-desc" style="padding: 7px 10px; color: #ededed; font-size: 12px; background: rgba(255,102,0,0.03); border-radius: 0 4px 4px 0;">Mentorship Round 1 (during development)</td>
+                  <td class="sch-time" style="padding: 7px 10px; color: #FF6600; font-size: 12px; font-weight: bold; background: rgba(255,102,0,0.06); border-radius: 4px 0 0 4px;">07:00 PM</td>
+                  <td class="sch-desc" style="padding: 7px 10px; color: #ededed; font-size: 12px; background: rgba(255,102,0,0.03); border-radius: 0 4px 4px 0;">Mentorship Round 1 (7:00 - 9:00 PM)</td>
                 </tr>
                 <tr><td colspan="2" style="padding: 2px;"></td></tr>
                 <tr>
-                  <td class="sch-time" style="padding: 7px 10px; color: #FF6600; font-size: 12px; font-weight: bold; background: rgba(255,102,0,0.06); border-radius: 4px 0 0 4px;">—</td>
-                  <td class="sch-desc" style="padding: 7px 10px; color: #ededed; font-size: 12px; background: rgba(255,102,0,0.03); border-radius: 0 4px 4px 0;">Dinner (during development)</td>
+                  <td class="sch-time" style="padding: 7px 10px; color: #FF6600; font-size: 12px; font-weight: bold; background: rgba(255,102,0,0.06); border-radius: 4px 0 0 4px;">09:00 PM</td>
+                  <td class="sch-desc" style="padding: 7px 10px; color: #ededed; font-size: 12px; background: rgba(255,102,0,0.03); border-radius: 0 4px 4px 0;">Night Dinner (9:00 PM - 12:00 AM)</td>
                 </tr>
               </table>
 
-              <p style="color: #00CCFF; margin: 0 0 10px 0; font-size: 12px; font-weight: bold; letter-spacing: 1px;">DAY 2 — MARCH 16, 2026</p>
+              <p style="color: #00CCFF; margin: 0 0 10px 0; font-size: 12px; font-weight: bold; letter-spacing: 1px;">DAY 2 — MARCH 17, 2026</p>
               <table style="width: 100%; border-collapse: collapse;">
                 <tr>
                   <td class="sch-time" style="padding: 7px 10px; color: #00CCFF; font-size: 12px; font-weight: bold; width: 90px; background: rgba(0,204,255,0.06); border-radius: 4px 0 0 4px;">08:00 AM</td>
