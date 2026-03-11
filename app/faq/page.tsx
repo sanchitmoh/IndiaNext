@@ -5,7 +5,6 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { motion, useScroll, useSpring, AnimatePresence } from 'framer-motion';
 import {
-  ArrowRight,
   ArrowLeft,
   HelpCircle,
   ChevronDown,
