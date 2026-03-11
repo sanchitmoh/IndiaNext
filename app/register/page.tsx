@@ -1,5 +1,4 @@
-import { X, Calendar, Clock, AlertTriangle, Users, ChevronRight } from 'lucide-react';
-import Link from 'next/link';
+import { X, Calendar, Clock, AlertTriangle } from 'lucide-react';
 
 export default function Register() {
   return (
@@ -66,36 +65,14 @@ export default function Register() {
             </div>
           </div>
 
-          {/* Contact Info & Login Link */}
-          <div className="text-center space-y-4">
-            <div className="bg-cyan-500/10 border border-cyan-500/20 rounded-lg p-6">
-              <div className="flex items-center justify-center gap-3 mb-4">
-                <Users className="w-6 h-6 text-cyan-400" />
-                <span className="text-cyan-400 font-mono text-sm tracking-widest uppercase font-bold">
-                  Already Registered?
-                </span>
-              </div>
-              <p className="text-gray-300 leading-relaxed mb-4">
-                If you&apos;re already registered, you can still access your team dashboard to modify team members or add additional members.
-              </p>
-              <Link
-                href="/login"
-                className="inline-flex items-center gap-3 px-6 py-3 bg-cyan-500 hover:bg-cyan-600 text-black font-mono text-sm font-bold tracking-widest uppercase rounded-md transition-all active:scale-95 shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:shadow-[0_0_30px_rgba(6,182,212,0.6)]"
-              >
-                <Users className="w-4 h-4" />
-                ACCESS TEAM DASHBOARD
-                <ChevronRight className="w-4 h-4" />
-              </Link>
-            </div>
-            
-            <div>
-              <p className="text-sm text-gray-500 font-mono mb-2">
-                For other inquiries, contact the organizing team
-              </p>
-              <p className="text-xs text-gray-600 font-mono tracking-widest">
-                K.E.S. SHROFF COLLEGE OF ARTS & COMMERCE
-              </p>
-            </div>
+          {/* Contact Info */}
+          <div className="text-center">
+            <p className="text-sm text-gray-500 font-mono mb-2">
+              For inquiries, contact the organizing team
+            </p>
+            <p className="text-xs text-gray-600 font-mono tracking-widest">
+              K.E.S. SHROFF COLLEGE OF ARTS & COMMERCE
+            </p>
           </div>
         </div>
       </div>

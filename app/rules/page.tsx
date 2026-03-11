@@ -181,16 +181,11 @@ const RulesNavbar = () => {
                 <span className="absolute -bottom-1 left-0 w-0 h-px bg-orange-500 transition-all group-hover:w-full" />
               </Link>
             ))}
-            <Link
-              href="/register"
-              className="group relative px-6 py-2.5 overflow-hidden rounded-sm bg-orange-500 text-black font-black hover:text-white transition-all active:scale-95 shadow-[0_0_20px_rgba(249,115,22,0.3)] hover:shadow-[0_0_30px_rgba(249,115,22,0.6)]"
-            >
-              <div className="absolute inset-0 w-full h-full bg-[#020202] translate-y-[101%] group-hover:translate-y-0 transition-transform duration-300 ease-out" />
-              <span className="relative z-10 flex items-center gap-2 text-[10px] tracking-widest uppercase italic">
-                REGISTER{' '}
-                <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+            <div className="relative px-6 py-2.5 rounded-sm bg-gray-700 text-gray-400 font-black cursor-not-allowed opacity-60">
+              <span className="flex items-center gap-2 text-[10px] tracking-widest uppercase italic">
+                REGISTRATION CLOSED
               </span>
-            </Link>
+            </div>
             <div className="flex items-center gap-5 ml-2 pl-6 border-l border-white/10 group/kes cursor-pointer pointer-events-auto">
               <Image
                 src="/kessc-logo-Photoroom.png"
@@ -276,13 +271,9 @@ const RulesNavbar = () => {
                   transition={{ delay: 0.3 }}
                   className="mt-6 px-4"
                 >
-                  <Link
-                    href="/register"
-                    onClick={() => setSidebarOpen(false)}
-                    className="flex items-center justify-center gap-2 w-full py-3 bg-orange-500 text-black font-mono text-xs font-black tracking-widest uppercase rounded-sm active:scale-95 transition-transform shadow-[0_0_20px_rgba(249,115,22,0.3)]"
-                  >
-                    REGISTER <ArrowRight size={14} />
-                  </Link>
+                  <div className="flex items-center justify-center gap-2 w-full py-3 bg-gray-700 text-gray-400 font-mono text-xs font-black tracking-widest uppercase rounded-sm cursor-not-allowed opacity-60">
+                    REGISTRATION CLOSED
+                  </div>
                 </motion.div>
               </div>
               <div className="px-5 py-6 border-t border-white/5">
@@ -1078,16 +1069,11 @@ const FooterCTA = () => (
 
         <div className="flex flex-col items-center justify-center gap-6">
           <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
-            <Link
-              href="/register"
-              className="group relative px-10 py-4 overflow-hidden rounded-sm bg-orange-500 text-black font-black hover:text-white transition-all active:scale-95 shadow-[0_0_20px_rgba(249,115,22,0.3)] hover:shadow-[0_0_30px_rgba(249,115,22,0.6)]"
-            >
-              <div className="absolute inset-0 w-full h-full bg-[#020202] translate-y-[101%] group-hover:translate-y-0 transition-transform duration-300 ease-out" />
-              <span className="relative z-10 flex items-center gap-3 text-sm tracking-widest uppercase italic">
-                REGISTER NOW{' '}
-                <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+            <div className="relative px-10 py-4 rounded-sm bg-gray-700 text-gray-400 font-black cursor-not-allowed opacity-60">
+              <span className="flex items-center gap-3 text-sm tracking-widest uppercase italic">
+                REGISTRATION CLOSED
               </span>
-            </Link>
+            </div>
 
             <Link
               href="/"
