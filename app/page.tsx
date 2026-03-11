@@ -12,7 +12,6 @@ import {
   AnimatePresence,
 } from 'framer-motion';
 import {
-  ArrowRight,
   Code,
   Globe,
   Rocket,

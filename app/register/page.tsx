@@ -76,7 +76,7 @@ export default function Register() {
                 </span>
               </div>
               <p className="text-gray-300 leading-relaxed mb-4">
-                If you're already registered, you can still access your team dashboard to modify team members or add additional members.
+                If you&apos;re already registered, you can still access your team dashboard to modify team members or add additional members.
               </p>
               <Link
                 href="/login"

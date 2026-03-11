@@ -159,7 +159,6 @@ export function renderCampaignEmail(
 
   // Track which placeholders were found and replaced
   const replacedPlaceholders: string[] = [];
-  const unreplacedPlaceholders: string[] = [];
 
   for (const [key, value] of Object.entries(variables)) {
     const pattern = new RegExp(`\\{\\{${key}\\}\\}`, 'g');

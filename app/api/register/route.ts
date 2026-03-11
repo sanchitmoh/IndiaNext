@@ -153,15 +153,15 @@ async function storeIdempotency(key: string, response: IdempotencyResponse) {
 
 export async function POST(req: Request) {
   try {
-    // ✅ REGISTRATION CLOSED - Return early with closed message
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'REGISTRATION_CLOSED',
-        message: 'Registration for IndiaNext 2026 has been closed. Thank you for your interest.',
-      },
-      { status: 403 }
-    );
+    // ✅ REGISTRATION CLOSED - Uncomment to close registration
+    // return NextResponse.json(
+    //   {
+    //     success: false,
+    //     error: 'REGISTRATION_CLOSED',
+    //     message: 'Registration for IndiaNext 2026 has been closed. Thank you for your interest.',
+    //   },
+    //   { status: 403 }
+    // );
 
     // ✅ Sliding-window rate limiting (IP only)
     // Limits centralised in lib/rate-limit.ts → RATE_LIMITS['register']
@@ -191,7 +191,7 @@ export async function POST(req: Request) {
         {
           success: false,
           error: 'VALIDATION_ERROR',
-          message: validation.error.errors[0].message,
+          message: validation.error.errors[0]?.message ?? 'Validation failed',
           details: validation.error.errors,
         },
         {
@@ -204,10 +204,10 @@ export async function POST(req: Request) {
     const data = validation.data;
 
     // ✅ SANITIZE INPUT to prevent XSS and injection attacks
-    const sanitizedData = sanitizeObject(data, {
+    const sanitizedData: typeof data = sanitizeObject(data, {
       sanitizeHtml: true,
       sanitizeUrls: true,
-    });
+    }) as typeof data;
 
     // ✅ SECURITY FIX (L-1): Expanded XSS check to cover all user-supplied string fields
     const criticalFields = [
@@ -290,7 +290,18 @@ export async function POST(req: Request) {
       include: { user: true },
     });
 
-    if (!session || session.expiresAt < new Date()) {
+    if (!session) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'SESSION_NOT_FOUND',
+          message: 'Session not found. Please verify your email again.',
+        },
+        { status: 401 }
+      );
+    }
+
+    if (session.expiresAt < new Date()) {
       return NextResponse.json(
         {
           success: false,
@@ -330,7 +341,18 @@ export async function POST(req: Request) {
       },
     });
 
-    if (!otpRecord || !otpRecord.verified) {
+    if (!otpRecord) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'EMAIL_NOT_VERIFIED',
+          message: 'Email not verified. Please verify OTP first.',
+        },
+        { status: 403 }
+      );
+    }
+
+    if (!otpRecord.verified) {
       return NextResponse.json(
         {
           success: false,
@@ -776,15 +798,15 @@ async function fetchCurrentRegistration(teamId: string) {
 
 export async function PUT(req: Request) {
   try {
-    // ✅ REGISTRATION CLOSED - Return early with closed message
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'REGISTRATION_CLOSED',
-        message: 'Registration updates are no longer allowed. Registration has been closed.',
-      },
-      { status: 403 }
-    );
+    // ✅ REGISTRATION CLOSED - Uncomment to close registration updates
+    // return NextResponse.json(
+    //   {
+    //     success: false,
+    //     error: 'REGISTRATION_CLOSED',
+    //     message: 'Registration updates are no longer allowed. Registration has been closed.',
+    //   },
+    //   { status: 403 }
+    // );
 
     const cookieStore = await cookies();
     const sessionToken = cookieStore.get('session_token')?.value;
@@ -806,7 +828,11 @@ export async function PUT(req: Request) {
       },
     });
 
-    if (!session || session.expiresAt < new Date()) {
+    if (!session) {
+      return NextResponse.json({ success: false, error: 'SESSION_NOT_FOUND' }, { status: 401 });
+    }
+
+    if (session.expiresAt < new Date()) {
       return NextResponse.json({ success: false, error: 'SESSION_EXPIRED' }, { status: 401 });
     }
 
@@ -815,7 +841,7 @@ export async function PUT(req: Request) {
 
     if (!validation.success) {
       return NextResponse.json(
-        { success: false, error: 'VALIDATION_ERROR', message: validation.error.errors[0].message },
+        { success: false, error: 'VALIDATION_ERROR', message: validation.error.errors[0]?.message ?? 'Validation failed' },
         { status: 400 }
       );
     }
@@ -823,7 +849,7 @@ export async function PUT(req: Request) {
     const sanitizedData = sanitizeObject(validation.data, {
       sanitizeHtml: true,
       sanitizeUrls: true,
-    });
+    }) as typeof validation.data;
 
     const trackMap: Record<string, 'IDEA_SPRINT' | 'BUILD_STORM'> = {
       'Track 1: BuildStorm - Solve Problem Statement in 24 Hours': 'BUILD_STORM',
@@ -841,7 +867,7 @@ export async function PUT(req: Request) {
     }
 
     // Find the membership for the requested track
-    const targetMembership = user.teamMemberships.find((m) => m.team.track === trackEnum);
+    const targetMembership = user.teamMemberships?.find((m) => m.team.track === trackEnum);
     if (!targetMembership) {
       return NextResponse.json(
         {
