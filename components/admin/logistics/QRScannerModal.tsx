@@ -82,15 +82,34 @@ export function QRScannerModal({ onClose, onResult }: QRScannerModalProps) {
    * This triggers the browser's native "Allow / Block" permission popup.
    */
   const startCamera = useCallback(async () => {
+    console.log('[QR Scanner] Starting camera...');
+    console.log('[QR Scanner] Protocol:', window.location.protocol);
+    console.log('[QR Scanner] Hostname:', window.location.hostname);
+    
     // Check if mediaDevices API is available (requires HTTPS or localhost)
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      console.error('[QR Scanner] MediaDevices API not available');
+      console.log('[QR Scanner] navigator.mediaDevices:', navigator.mediaDevices);
       setCameraState('unsupported');
       setCameraError("Camera API not available. Make sure you're using HTTPS.");
       return;
     }
 
+    console.log('[QR Scanner] MediaDevices API available');
+    
+    // Check permissions API if available
+    if (navigator.permissions) {
+      try {
+        const permissionStatus = await navigator.permissions.query({ name: 'camera' as PermissionName });
+        console.log('[QR Scanner] Camera permission status:', permissionStatus.state);
+      } catch (e) {
+        console.log('[QR Scanner] Could not query camera permission:', e);
+      }
+    }
+
     setCameraState('requesting');
     setCameraError('');
+    console.log('[QR Scanner] Requesting camera access...');
 
     try {
       // This is the call that triggers the browser's system permission popup
@@ -98,17 +117,29 @@ export function QRScannerModal({ onClose, onResult }: QRScannerModalProps) {
         video: { facingMode: 'environment', width: { ideal: 640 }, height: { ideal: 480 } },
       });
 
+      console.log('[QR Scanner] Camera access granted!');
+      console.log('[QR Scanner] Stream tracks:', stream.getTracks().map(t => ({ kind: t.kind, label: t.label, enabled: t.enabled })));
+
       // User clicked "Allow" — start video feed
       streamRef.current = stream;
       setCameraState('active');
 
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
+        console.log('[QR Scanner] Video element srcObject set');
         await videoRef.current.play();
+        console.log('[QR Scanner] Video playing');
         setScanning(true);
+      } else {
+        console.error('[QR Scanner] Video ref is null');
       }
     } catch (err) {
+      console.error('[QR Scanner] Camera access error:', err);
+      
       if (err instanceof DOMException) {
+        console.log('[QR Scanner] DOMException name:', err.name);
+        console.log('[QR Scanner] DOMException message:', err.message);
+        
         switch (err.name) {
           case 'NotAllowedError':
             setCameraState('denied');
@@ -130,9 +161,11 @@ export function QRScannerModal({ onClose, onResult }: QRScannerModalProps) {
             break;
 
           case 'OverconstrainedError':
+            console.log('[QR Scanner] Retrying with basic constraints...');
             // Retry with basic video constraint (no facingMode)
             try {
               const fallbackStream = await navigator.mediaDevices.getUserMedia({ video: true });
+              console.log('[QR Scanner] Fallback camera access granted');
               streamRef.current = fallbackStream;
               setCameraState('active');
               if (videoRef.current) {
@@ -140,7 +173,8 @@ export function QRScannerModal({ onClose, onResult }: QRScannerModalProps) {
                 await videoRef.current.play();
                 setScanning(true);
               }
-            } catch {
+            } catch (fallbackErr) {
+              console.error('[QR Scanner] Fallback camera access failed:', fallbackErr);
               setCameraState('error');
               setCameraError('Camera not available: ' + err.message);
             }
@@ -151,6 +185,7 @@ export function QRScannerModal({ onClose, onResult }: QRScannerModalProps) {
             setCameraError('Camera not available: ' + err.message);
         }
       } else {
+        console.error('[QR Scanner] Non-DOMException error:', err);
         setCameraState('error');
         setCameraError('Could not access camera. Use manual entry.');
       }
@@ -171,18 +206,23 @@ export function QRScannerModal({ onClose, onResult }: QRScannerModalProps) {
   useEffect(() => {
     if (!scanning || cameraState !== 'active') return;
 
+    console.log('[QR Scanner] Starting barcode detection...');
     let active = true;
 
     async function detectQR() {
       // Check if BarcodeDetector is available
       if (!('BarcodeDetector' in window)) {
+        console.warn('[QR Scanner] BarcodeDetector API not available in this browser');
         setCameraError('QR scanning not supported in this browser. Use manual entry.');
         return;
       }
 
+      console.log('[QR Scanner] BarcodeDetector API available');
+
       try {
         // @ts-expect-error BarcodeDetector is not yet in TS types
         const detector = new BarcodeDetector({ formats: ['qr_code'] });
+        console.log('[QR Scanner] BarcodeDetector created');
 
         const scan = async () => {
           if (!active || !videoRef.current || videoRef.current.readyState < 2) {
@@ -193,17 +233,22 @@ export function QRScannerModal({ onClose, onResult }: QRScannerModalProps) {
           try {
             const barcodes = await detector.detect(videoRef.current);
             if (barcodes.length > 0) {
+              console.log('[QR Scanner] QR code detected:', barcodes[0].rawValue);
               const value = barcodes[0].rawValue;
               if (value) {
                 // Extract shortCode from QR (could be just the code or a URL containing it)
                 const codeMatch = value.match(/([A-Z0-9]{6,10})/i);
                 if (codeMatch) {
+                  console.log('[QR Scanner] Extracted code:', codeMatch[1]);
                   handleLookup(codeMatch[1]);
                   return; // Stop scanning after finding
+                } else {
+                  console.log('[QR Scanner] No valid code pattern found in:', value);
                 }
               }
             }
-          } catch {
+          } catch (detectErr) {
+            console.error('[QR Scanner] Detection error:', detectErr);
             // Detection failed, continue scanning
           }
 
@@ -213,7 +258,8 @@ export function QRScannerModal({ onClose, onResult }: QRScannerModalProps) {
         };
 
         requestAnimationFrame(scan);
-      } catch {
+      } catch (detectorErr) {
+        console.error('[QR Scanner] BarcodeDetector creation failed:', detectorErr);
         setCameraError('QR detection failed. Use manual entry.');
       }
     }
@@ -221,6 +267,7 @@ export function QRScannerModal({ onClose, onResult }: QRScannerModalProps) {
     detectQR();
 
     return () => {
+      console.log('[QR Scanner] Stopping barcode detection');
       active = false;
     };
   }, [scanning, cameraState, handleLookup]);
