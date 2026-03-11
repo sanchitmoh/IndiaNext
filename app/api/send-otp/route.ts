@@ -65,15 +65,15 @@ export async function POST(req: Request) {
     const expiresAt = new Date(Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000);
 
     if (purpose === 'REGISTRATION') {
-      // ✅ REGISTRATION CLOSED - Uncomment to block registration OTPs
-      // return NextResponse.json(
-      //   {
-      //     success: false,
-      //     error: 'REGISTRATION_CLOSED',
-      //     message: 'Registration for IndiaNext 2026 has been closed. Thank you for your interest.',
-      //   },
-      //   { status: 403, headers: createRateLimitHeaders(rateLimit) }
-      // );
+      // ✅ REGISTRATION CLOSED - Block registration OTPs
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'REGISTRATION_CLOSED',
+          message: 'Registration for IndiaNext 2026 has been closed. Thank you for your interest.',
+        },
+        { status: 403, headers: createRateLimitHeaders(rateLimit) }
+      );
 
       const existingMembership = await prisma.teamMember.findFirst({
         where: {
