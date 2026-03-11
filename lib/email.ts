@@ -383,10 +383,8 @@ export async function sendOtpEmail(
               <!-- Header with theme colors -->
               <div class="email-hdr" style="background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%); padding: 32px 20px; border-radius: 12px 12px 0 0; text-align: center; border: 2px solid #222; border-bottom: none;">
                 <h1 style="color: #FF6600; margin: 0; font-size: 28px; font-weight: bold; text-shadow: 0 0 20px rgba(255, 102, 0, 0.5);">IndiaNext</h1>
-                <p style="color: #ededed; margin: 10px 0 0 0; font-size: 14px; letter-spacing: 2px;">HACKATHON 2025</p>
-                ${
-                  trackInfo
-                    ? `
+                <p style="color: #ededed; margin: 10px 0 0 0; font-size: 14px; letter-spacing: 2px;">HACKATHON 2026</p>
+                ${trackInfo ? `
                   <div class="badge-wrap" style="margin-top: 20px; padding: 10px 20px; background: rgba(${trackInfo.color === '#00CC44' ? '0, 204, 68' : '34, 102, 255'}, 0.1); border: 1px solid ${trackInfo.color}; border-radius: 8px; display: inline-block;">
                     <span style="font-size: 14px; margin-right: 6px; color: ${trackInfo.color}; font-weight: bold;">[${trackInfo.icon}]</span>
                     <span class="badge-txt" style="color: ${trackInfo.color}; font-weight: bold; font-size: 13px; letter-spacing: 1px;">${trackInfo.label.toUpperCase()}</span>
@@ -486,7 +484,7 @@ export async function sendConfirmationEmail(
               <!-- Header -->
               <div class="email-hdr" style="background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%); padding: 32px 20px; border-radius: 12px 12px 0 0; text-align: center; border: 2px solid #222; border-bottom: none;">
                 <h1 style="color: #FF6600; margin: 0; font-size: 28px; font-weight: bold; text-shadow: 0 0 20px rgba(255, 102, 0, 0.5);">IndiaNext</h1>
-                <p style="color: #ededed; margin: 10px 0 0 0; font-size: 14px; letter-spacing: 2px;">HACKATHON 2025</p>
+                <p style="color: #ededed; margin: 10px 0 0 0; font-size: 14px; letter-spacing: 2px;">HACKATHON 2026</p>
                 
                 <div class="badge-wrap" style="margin-top: 20px; padding: 10px 20px; background: rgba(16, 185, 129, 0.1); border: 1px solid #10b981; border-radius: 8px; display: inline-block;">
                   <span style="color: #10b981; font-size: 18px; margin-right: 6px;">[CONFIRMED]</span>
@@ -499,7 +497,7 @@ export async function sendConfirmationEmail(
                 
                 <p class="body-text" style="color: #ccc; margin: 0 0 24px 0; font-size: 15px; line-height: 1.7;">
                   Congratulations! Your team has been successfully registered for 
-                  <strong style="color: #FF6600;">IndiaNext Hackathon 2025</strong>.
+                  <strong style="color: #FF6600;">IndiaNext Hackathon 2026</strong>.
                   Please keep your Team ID safe for future communication.
                 </p>
 
@@ -646,7 +644,7 @@ export async function sendTeamMemberNotification(
                 </h1>
 
                 <p style="color: #ededed; margin: 10px 0 0 0; font-size: 14px; letter-spacing: 2px;">
-                  HACKATHON 2025
+                  HACKATHON 2026
                 </p>
 
                 <div class="badge-wrap" style="margin-top: 18px; padding: 10px 20px; background: rgba(255, 102, 0, 0.08); border: 1px solid rgba(255, 102, 0, 0.6); border-radius: 8px; display: inline-block;">
@@ -666,7 +664,7 @@ export async function sendTeamMemberNotification(
 
                 <p class="body-text" style="color: #ccc; margin: 0 0 20px 0; font-size: 14px; line-height: 1.7;">
                   Great news!  You have been officially added to a registered team for the 
-                  <strong style="color: #FF6600;">IndiaNext Hackathon 2025</strong>.
+                  <strong style="color: #FF6600;">IndiaNext Hackathon 2026</strong>.
                   Please review your team details below and stay connected with your team leader.
                 </p>
 
@@ -938,7 +936,7 @@ async function sendApprovalEmail(
               <table style="width: 100%; border-collapse: collapse;">
                 <tr>
                   <td style="padding: 10px 0; color: #666; font-size: 12px; width: 100px; vertical-align: top;">[DATE] Date</td>
-                  <td style="padding: 10px 0; color: #ededed; font-size: 13px; font-weight: 600;">March 15 – 16, 2026</td>
+                  <td style="padding: 10px 0; color: #ededed; font-size: 13px; font-weight: 600;">March 16 – 17, 2026</td>
                 </tr>
                 <tr>
                   <td style="padding: 10px 0; color: #666; font-size: 12px; border-top: 1px solid #222; vertical-align: top;">[TIME] Duration</td>
@@ -963,11 +961,11 @@ async function sendApprovalEmail(
             <div class="sec-card" style="background: #0a0a0a; border: 1px solid #333; border-radius: 10px; padding: 22px; margin-bottom: 20px;">
               <h2 style="color: #00CCFF; margin: 0 0 16px 0; font-size: 16px; text-transform: uppercase; letter-spacing: 2px;">[SCHEDULE] Event Schedule</h2>
               
-              <p style="color: #FF6600; margin: 0 0 10px 0; font-size: 12px; font-weight: bold; letter-spacing: 1px;">DAY 1 — MARCH 15, 2026</p>
+              <p style="color: #FF6600; margin: 0 0 10px 0; font-size: 12px; font-weight: bold; letter-spacing: 1px;">DAY 1 — MARCH 16, 2026</p>
               <table style="width: 100%; border-collapse: collapse; margin-bottom: 16px;">
                 <tr>
-                  <td class="sch-time" style="padding: 7px 10px; color: #FF6600; font-size: 12px; font-weight: bold; width: 90px; background: rgba(255,102,0,0.06); border-radius: 4px 0 0 4px;">Morning</td>
-                  <td class="sch-desc" style="padding: 7px 10px; color: #ededed; font-size: 12px; background: rgba(255,102,0,0.03); border-radius: 0 4px 4px 0;">Check-in & Breakfast</td>
+                  <td class="sch-time" style="padding: 7px 10px; color: #FF6600; font-size: 12px; font-weight: bold; width: 90px; background: rgba(255,102,0,0.06); border-radius: 4px 0 0 4px;">08:00 AM</td>
+                  <td class="sch-desc" style="padding: 7px 10px; color: #ededed; font-size: 12px; background: rgba(255,102,0,0.03); border-radius: 0 4px 4px 0;">Check-in & Breakfast (8:00 - 9:00 AM)</td>
                 </tr>
                 <tr><td colspan="2" style="padding: 2px;"></td></tr>
                 <tr>
@@ -981,27 +979,27 @@ async function sendApprovalEmail(
                 </tr>
                 <tr><td colspan="2" style="padding: 2px;"></td></tr>
                 <tr>
-                  <td class="sch-time" style="padding: 7px 10px; color: #FF6600; font-size: 12px; font-weight: bold; background: rgba(255,102,0,0.06); border-radius: 4px 0 0 4px;">12:30 PM</td>
-                  <td class="sch-desc" style="padding: 7px 10px; color: #ededed; font-size: 12px; background: rgba(255,102,0,0.03); border-radius: 0 4px 4px 0;">Lunch Break (12:30 - 2:00 PM)</td>
+                  <td class="sch-time" style="padding: 7px 10px; color: #FF6600; font-size: 12px; font-weight: bold; background: rgba(255,102,0,0.06); border-radius: 4px 0 0 4px;">11:00 AM</td>
+                  <td class="sch-desc" style="padding: 7px 10px; color: #10b981; font-size: 12px; font-weight: bold; background: rgba(16,185,129,0.06); border-radius: 0 4px 4px 0;">[START] Development Begins</td>
                 </tr>
                 <tr><td colspan="2" style="padding: 2px;"></td></tr>
                 <tr>
                   <td class="sch-time" style="padding: 7px 10px; color: #FF6600; font-size: 12px; font-weight: bold; background: rgba(255,102,0,0.06); border-radius: 4px 0 0 4px;">02:00 PM</td>
-                  <td class="sch-desc" style="padding: 7px 10px; color: #10b981; font-size: 12px; font-weight: bold; background: rgba(16,185,129,0.06); border-radius: 0 4px 4px 0;">[START] Development Begins (2:00 - 9:00 PM)</td>
+                  <td class="sch-desc" style="padding: 7px 10px; color: #ededed; font-size: 12px; background: rgba(255,102,0,0.03); border-radius: 0 4px 4px 0;">Lunch Break (2:00 - 5:00 PM)</td>
                 </tr>
                 <tr><td colspan="2" style="padding: 2px;"></td></tr>
                 <tr>
-                  <td class="sch-time" style="padding: 7px 10px; color: #FF6600; font-size: 12px; font-weight: bold; background: rgba(255,102,0,0.06); border-radius: 4px 0 0 4px;">—</td>
-                  <td class="sch-desc" style="padding: 7px 10px; color: #ededed; font-size: 12px; background: rgba(255,102,0,0.03); border-radius: 0 4px 4px 0;">Mentorship Round 1 (during development)</td>
+                  <td class="sch-time" style="padding: 7px 10px; color: #FF6600; font-size: 12px; font-weight: bold; background: rgba(255,102,0,0.06); border-radius: 4px 0 0 4px;">07:00 PM</td>
+                  <td class="sch-desc" style="padding: 7px 10px; color: #ededed; font-size: 12px; background: rgba(255,102,0,0.03); border-radius: 0 4px 4px 0;">Mentorship Round 1 (7:00 - 9:00 PM)</td>
                 </tr>
                 <tr><td colspan="2" style="padding: 2px;"></td></tr>
                 <tr>
-                  <td class="sch-time" style="padding: 7px 10px; color: #FF6600; font-size: 12px; font-weight: bold; background: rgba(255,102,0,0.06); border-radius: 4px 0 0 4px;">—</td>
-                  <td class="sch-desc" style="padding: 7px 10px; color: #ededed; font-size: 12px; background: rgba(255,102,0,0.03); border-radius: 0 4px 4px 0;">Dinner (during development)</td>
+                  <td class="sch-time" style="padding: 7px 10px; color: #FF6600; font-size: 12px; font-weight: bold; background: rgba(255,102,0,0.06); border-radius: 4px 0 0 4px;">09:00 PM</td>
+                  <td class="sch-desc" style="padding: 7px 10px; color: #ededed; font-size: 12px; background: rgba(255,102,0,0.03); border-radius: 0 4px 4px 0;">Night Dinner (9:00 PM - 12:00 AM)</td>
                 </tr>
               </table>
 
-              <p style="color: #00CCFF; margin: 0 0 10px 0; font-size: 12px; font-weight: bold; letter-spacing: 1px;">DAY 2 — MARCH 16, 2026</p>
+              <p style="color: #00CCFF; margin: 0 0 10px 0; font-size: 12px; font-weight: bold; letter-spacing: 1px;">DAY 2 — MARCH 17, 2026</p>
               <table style="width: 100%; border-collapse: collapse;">
                 <tr>
                   <td class="sch-time" style="padding: 7px 10px; color: #00CCFF; font-size: 12px; font-weight: bold; width: 90px; background: rgba(0,204,255,0.06); border-radius: 4px 0 0 4px;">08:00 AM</td>
@@ -1507,7 +1505,7 @@ function buildConfirmationHtml(data: {
               <!-- Header -->
               <div class="email-hdr" style="background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%); padding: 32px 20px; border-radius: 12px 12px 0 0; text-align: center; border: 2px solid #222; border-bottom: none;">
                 <h1 style="color: #FF6600; margin: 0; font-size: 28px; font-weight: bold; text-shadow: 0 0 20px rgba(255, 102, 0, 0.5);">IndiaNext</h1>
-                <p style="color: #ededed; margin: 10px 0 0 0; font-size: 14px; letter-spacing: 2px;">HACKATHON 2025</p>
+                <p style="color: #ededed; margin: 10px 0 0 0; font-size: 14px; letter-spacing: 2px;">HACKATHON 2026</p>
                 
                 <div class="badge-wrap" style="margin-top: 20px; padding: 10px 20px; background: rgba(16, 185, 129, 0.1); border: 1px solid #10b981; border-radius: 8px; display: inline-block;">
                   <span style="color: #10b981; font-size: 18px; margin-right: 6px;">[CONFIRMED]</span>
@@ -1520,7 +1518,7 @@ function buildConfirmationHtml(data: {
                 
                 <p class="body-text" style="color: #ccc; margin: 0 0 20px 0; font-size: 14px; line-height: 1.7;">
                    Congratulations! Your team has been successfully registered for 
-                  <strong style="color: #FF6600;">IndiaNext Hackathon 2025</strong>.
+                  <strong style="color: #FF6600;">IndiaNext Hackathon 2026</strong>.
                   Please keep your Team ID safe for future communication.
                 </p>
 
@@ -1640,7 +1638,7 @@ function buildMemberNotificationHtml(data: {
                 </h1>
 
                 <p style="color: #ededed; margin: 10px 0 0 0; font-size: 14px; letter-spacing: 2px;">
-                  HACKATHON 2025
+                  HACKATHON 2026
                 </p>
 
                 <div class="badge-wrap" style="margin-top: 18px; padding: 10px 20px; background: rgba(255, 102, 0, 0.08); border: 1px solid rgba(255, 102, 0, 0.6); border-radius: 8px; display: inline-block;">
@@ -1660,7 +1658,7 @@ function buildMemberNotificationHtml(data: {
 
                 <p class="body-text" style="color: #ccc; margin: 0 0 20px 0; font-size: 14px; line-height: 1.7;">
                   Great news!  You have been officially added to a registered team for the 
-                  <strong style="color: #FF6600;">IndiaNext Hackathon 2025</strong>.
+                  <strong style="color: #FF6600;">IndiaNext Hackathon 2026</strong>.
                   Please review your team details below and stay connected with your team leader.
                 </p>
 
@@ -1916,7 +1914,7 @@ function buildSubmissionDetailsHtml(data: SubmissionDetailsData): string {
               <!-- Header -->
               <div class="email-hdr" style="background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%); padding: 32px 20px; border-radius: 12px 12px 0 0; text-align: center; border: 2px solid #222; border-bottom: none;">
                 <h1 style="color: #FF6600; margin: 0; font-size: 28px; font-weight: bold; text-shadow: 0 0 20px rgba(255, 102, 0, 0.5);">IndiaNext</h1>
-                <p style="color: #ededed; margin: 10px 0 0 0; font-size: 14px; letter-spacing: 2px;">HACKATHON 2025</p>
+                <p style="color: #ededed; margin: 10px 0 0 0; font-size: 14px; letter-spacing: 2px;">HACKATHON 2026</p>
 
                 <div class="badge-wrap" style="margin-top: 20px; padding: 10px 20px; background: rgba(34, 102, 255, 0.08); border: 1px solid rgba(34, 102, 255, 0.5); border-radius: 8px; display: inline-block;">
                   <span style="color: #2266FF; font-size: 16px; margin-right: 6px;">[INFO]</span>
@@ -1930,7 +1928,7 @@ function buildSubmissionDetailsHtml(data: SubmissionDetailsData): string {
                 <p class="body-text" style="color: #ccc; margin: 0 0 20px 0; font-size: 14px; line-height: 1.7;">
                   Hi <strong style="color: #ededed;">${escapeHtml(data.leaderName)}</strong>,
                   here is a complete record of your registration for 
-                  <strong style="color: #FF6600;">IndiaNext Hackathon 2025</strong>.
+                  <strong style="color: #FF6600;">IndiaNext Hackathon 2026</strong>.
                   Save this email for your reference.
                 </p>
 

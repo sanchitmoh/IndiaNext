@@ -92,8 +92,8 @@ export default function ComposeEmailPage() {
   // TipTap editor
   const editor = useEditor({
     extensions: [StarterKit],
-    content: '',
-    onUpdate: ({ editor }) => setBody(editor.getHTML()),
+    content: "",
+    onUpdate: ({ editor }: { editor: any }) => setBody(editor.getHTML()),
     immediatelyRender: false,
   });
 

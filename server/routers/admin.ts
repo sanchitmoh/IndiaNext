@@ -146,8 +146,24 @@ export const adminRouter = router({
       }
 
       // Track filter
-      if (input.track && input.track !== 'all') {
-        where.track = input.track;
+      if (input.track && input.track !== "all") {
+        if (input.track === "BOTH") {
+          // Both tracks means we want teams whose leader is in teams of both tracks
+          // Get all leaders
+          const leadersInBoth = await ctx.prisma.user.findMany({
+            where: {
+              AND: [
+                { teamMemberships: { some: { team: { track: "IDEA_SPRINT", deletedAt: null }, role: "LEADER" } } },
+                { teamMemberships: { some: { team: { track: "BUILD_STORM", deletedAt: null }, role: "LEADER" } } }
+              ]
+            },
+            select: { id: true }
+          });
+          const leaderIds = leadersInBoth.map(u => u.id);
+          where.createdBy = { in: leaderIds };
+        } else {
+          where.track = input.track;
+        }
       }
 
       // College filter
@@ -207,6 +223,9 @@ export const adminRouter = router({
                 id: true,
                 submittedAt: true,
                 ideaTitle: true,
+                assignedProblemStatement: {
+                  select: { title: true },
+                },
                 _count: {
                   select: { files: true },
                 },
@@ -815,8 +834,22 @@ export const adminRouter = router({
         where.status = input.status;
       }
 
-      if (input.track && input.track !== 'all') {
-        where.track = input.track;
+      if (input.track && input.track !== "all") {
+        if (input.track === "BOTH") {
+          const leadersInBoth = await ctx.prisma.user.findMany({
+            where: {
+              AND: [
+                { teamMemberships: { some: { team: { track: "IDEA_SPRINT", deletedAt: null }, role: "LEADER" } } },
+                { teamMemberships: { some: { team: { track: "BUILD_STORM", deletedAt: null }, role: "LEADER" } } }
+              ]
+            },
+            select: { id: true }
+          });
+          const leaderIds = leadersInBoth.map(u => u.id);
+          where.createdBy = { in: leaderIds };
+        } else {
+          where.track = input.track;
+        }
       }
 
       const teams = await ctx.prisma.team.findMany({
@@ -847,6 +880,9 @@ export const adminRouter = router({
               id: true,
               ideaTitle: true,
               problemStatement: true,
+              assignedProblemStatement: {
+                select: { title: true },
+              },
               proposedSolution: true,
               targetUsers: true,
               expectedImpact: true,
