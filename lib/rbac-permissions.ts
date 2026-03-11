@@ -239,7 +239,7 @@ export function getAllowedNavItems(role: AdminRole): NavItem[] {
       case 'TEAMS':
         return hasPermission(role as UserRole, 'VIEW_ALL_TEAMS');
       case 'PROBLEMS':
-        return hasPermission(role as UserRole, 'VIEW_ALL_TEAMS');
+        return hasPermission(role as UserRole, 'EDIT_TEAMS'); // Only ADMIN and SUPER_ADMIN can manage problems
       case 'ANALYTICS':
         return hasPermission(role as UserRole, 'VIEW_ANALYTICS');
       case 'LOGISTICS':

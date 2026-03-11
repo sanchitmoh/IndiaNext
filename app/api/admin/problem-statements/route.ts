@@ -53,8 +53,8 @@ export async function GET(req: Request) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    // ✅ SECURITY FIX (H-3): Check granular permission
-    if (!hasPermission(admin.role, 'VIEW_ALL_TEAMS')) {
+    // ✅ SECURITY FIX (H-3): Check granular permission - only ADMIN and SUPER_ADMIN can manage problems
+    if (!hasPermission(admin.role, 'EDIT_TEAMS')) {
       return NextResponse.json(
         { success: false, error: 'Insufficient permissions' },
         { status: 403 }

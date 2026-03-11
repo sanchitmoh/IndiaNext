@@ -163,20 +163,7 @@ export function QRScannerModal({ onClose, onResult }: QRScannerModalProps) {
    */
   const handleScanQRClick = useCallback(async () => {
     setMode('camera');
-
-    // Check if permission is already granted (avoids re-prompting)
-    try {
-      const permResult = await navigator.permissions.query({ name: 'camera' as PermissionName });
-      if (permResult.state === 'granted') {
-        // Already have permission — start camera directly
-        await startCamera();
-        return;
-      }
-    } catch {
-      // Permissions API not supported, proceed with getUserMedia
-    }
-
-    // Call getUserMedia directly from this click handler
+    // Start camera immediately when switching to camera mode
     await startCamera();
   }, [startCamera]);
 
@@ -323,7 +310,10 @@ export function QRScannerModal({ onClose, onResult }: QRScannerModalProps) {
                       CAMERA ACCESS REQUIRED
                     </p>
                     <p className="text-[10px] font-mono text-gray-400 max-w-[260px] leading-relaxed">
-                      Tap the button below to enable your camera for QR code scanning.
+                      Your browser will ask for camera permission. Please allow access to scan QR codes.
+                    </p>
+                    <p className="text-[9px] font-mono text-amber-400/70 max-w-[260px] leading-relaxed">
+                      Note: Camera requires HTTPS or localhost
                     </p>
                   </div>
                   <button

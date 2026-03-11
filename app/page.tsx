@@ -331,17 +331,6 @@ const Navbar = () => {
               </Link>
             ))}
 
-            <Link
-              href="/register"
-              className="group relative px-6 py-2.5 overflow-hidden rounded-sm bg-orange-500 text-black font-black hover:text-white transition-all active:scale-95 shadow-[0_0_20px_rgba(249,115,22,0.3)] hover:shadow-[0_0_30px_rgba(249,115,22,0.6)]"
-            >
-              <div className="absolute inset-0 w-full h-full bg-[#020202] translate-y-[101%] group-hover:translate-y-0 transition-transform duration-300 ease-out" />
-              <span className="relative z-10 flex items-center gap-2 text-[10px] tracking-widest uppercase italic">
-                REGISTER{' '}
-                <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
-              </span>
-            </Link>
-
             <div className="flex items-center gap-5 ml-2 pl-6 border-l border-white/10 group/kes cursor-pointer pointer-events-auto">
               <Image
                 src="/kessc-logo-Photoroom.png"
@@ -427,22 +416,6 @@ const Navbar = () => {
                     </motion.div>
                   ))}
                 </div>
-
-                {/* Register Button */}
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 }}
-                  className="mt-6 px-4"
-                >
-                  <Link
-                    href="/register"
-                    onClick={() => setSidebarOpen(false)}
-                    className="flex items-center justify-center gap-2 w-full py-3 bg-orange-500 text-black font-mono text-xs font-black tracking-widest uppercase rounded-sm active:scale-95 transition-transform shadow-[0_0_20px_rgba(249,115,22,0.3)]"
-                  >
-                    REGISTER <ArrowRight size={14} />
-                  </Link>
-                </motion.div>
               </div>
 
               {/* Sidebar Footer with KES Logos */}
@@ -567,24 +540,20 @@ const HeroSection = () => {
           variants={fadeInUp}
           className="flex flex-col items-center justify-center gap-6 mt-4"
         >
-          <Link
-            href="/register"
-            className="relative group overflow-hidden active:scale-95 transition-all duration-200 w-auto"
-          >
-            <div className="absolute -inset-1 bg-gradient-to-r from-orange-500 to-green-500 rounded-sm blur opacity-0 group-hover:opacity-100 transition duration-300"></div>
-            <button className="relative px-8 md:px-12 py-4 md:py-6 bg-[#0a0a0a] border border-white/20 rounded-sm leading-none flex items-center justify-center gap-4 md:gap-6 group-hover:bg-zinc-900 transition-all overflow-hidden shadow-[0_0_40px_rgba(249,115,22,0.1)]">
-              <div className="absolute inset-0 bg-white/5 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-500 italic" />
+          <div className="relative group overflow-hidden w-auto">
+            <div className="absolute -inset-1 bg-gradient-to-r from-red-500 to-gray-500 rounded-sm blur opacity-30"></div>
+            <div className="relative px-8 md:px-12 py-4 md:py-6 bg-[#0a0a0a] border border-red-500/30 rounded-sm leading-none flex items-center justify-center gap-4 md:gap-6 shadow-[0_0_40px_rgba(239,68,68,0.1)]">
               <span className="flex flex-col items-start text-left">
-                <span className="text-[0.6rem] md:text-[0.7rem] text-orange-500/70 font-mono tracking-widest mb-1 italic uppercase font-bold group-hover:text-orange-500">
-                  ACCESS_PROTOCOLS_V2
+                <span className="text-[0.6rem] md:text-[0.7rem] text-red-500/70 font-mono tracking-widest mb-1 italic uppercase font-bold">
+                  ACCESS_DENIED_V1
                 </span>
-                <span className="text-2xl md:text-4xl text-orange-500 font-black tracking-tight group-hover:text-white transition-colors uppercase drop-shadow-[0_0_10px_rgba(249,115,22,0.3)]">
-                  Register Now
+                <span className="text-2xl md:text-4xl text-red-500 font-black tracking-tight uppercase drop-shadow-[0_0_10px_rgba(239,68,68,0.3)]">
+                  Registration Closed
                 </span>
               </span>
-              <ChevronRight className="w-6 h-6 md:w-10 md:h-10 text-orange-500 group-hover:translate-x-2 transition-transform" />
-            </button>
-          </Link>
+              <X className="w-6 h-6 md:w-10 md:h-10 text-red-500" />
+            </div>
+          </div>
         </motion.div>
       </motion.div>
 

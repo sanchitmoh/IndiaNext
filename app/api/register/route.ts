@@ -153,6 +153,16 @@ async function storeIdempotency(key: string, response: IdempotencyResponse) {
 
 export async function POST(req: Request) {
   try {
+    // ✅ REGISTRATION CLOSED - Return early with closed message
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'REGISTRATION_CLOSED',
+        message: 'Registration for IndiaNext 2026 has been closed. Thank you for your interest.',
+      },
+      { status: 403 }
+    );
+
     // ✅ Sliding-window rate limiting (IP only)
     // Limits centralised in lib/rate-limit.ts → RATE_LIMITS['register']
     const rateLimit = await rateLimitRegister(req);
@@ -766,6 +776,16 @@ async function fetchCurrentRegistration(teamId: string) {
 
 export async function PUT(req: Request) {
   try {
+    // ✅ REGISTRATION CLOSED - Return early with closed message
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'REGISTRATION_CLOSED',
+        message: 'Registration updates are no longer allowed. Registration has been closed.',
+      },
+      { status: 403 }
+    );
+
     const cookieStore = await cookies();
     const sessionToken = cookieStore.get('session_token')?.value;
 

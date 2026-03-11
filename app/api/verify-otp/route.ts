@@ -59,6 +59,18 @@ export async function POST(req: Request) {
 
     const { email: rawEmail, otp, purpose } = validation.data;
 
+    // ✅ REGISTRATION CLOSED - Block registration OTP verifications
+    if (purpose === 'REGISTRATION') {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'REGISTRATION_CLOSED',
+          message: 'Registration for IndiaNext 2026 has been closed. Thank you for your interest.',
+        },
+        { status: 403, headers: createRateLimitHeaders(rateLimit) }
+      );
+    }
+
     // Normalize email to lowercase and trim for consistent lookups
     const email = rawEmail.toLowerCase().trim();
 
