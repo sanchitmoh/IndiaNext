@@ -5,6 +5,7 @@ import type { UserRole } from '@prisma/client';
 
 interface AdminRoleContextValue {
   role: UserRole;
+  desk?: string | null;
   isAdmin: boolean;
   isSuperAdmin: boolean;
   isJudge: boolean;
@@ -16,13 +17,16 @@ const AdminRoleContext = createContext<AdminRoleContextValue | null>(null);
 
 export function AdminRoleProvider({
   role,
+  desk,
   children,
 }: {
   role: UserRole;
+  desk?: string | null;
   children: React.ReactNode;
 }) {
   const value: AdminRoleContextValue = {
     role,
+    desk,
     isAdmin: role === 'ADMIN',
     isSuperAdmin: role === 'SUPER_ADMIN',
     isJudge: role === 'JUDGE',

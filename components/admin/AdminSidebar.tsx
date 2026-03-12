@@ -15,6 +15,7 @@ import {
   ClipboardCheck,
   Mail,
   Star,
+  QrCode,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { getAllowedNavItems, type AdminRole } from '@/lib/rbac';
@@ -86,6 +87,7 @@ export function AdminSidebar({
     PROBLEMS: FileQuestion,
     ANALYTICS: BarChart3,
     LOGISTICS: ClipboardCheck,
+    'CHECK-IN': QrCode,
     EMAILS: Mail,
   };
 

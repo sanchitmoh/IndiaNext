@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { trpc } from '@/lib/trpc-client';
 import { toast } from 'sonner';
+import { assignDesk, DESKS } from '@/lib/logistics-utils';
 import {
   Star,
   Mail,
@@ -21,11 +22,6 @@ import {
   Building2,
   UserCheck,
 } from 'lucide-react';
-
-const DESKS = ['A', 'B', 'D', 'C'] as const;
-function assignDesk(teamIndex: number) {
-  return DESKS[teamIndex % 4];
-}
 
 const deskColors: Record<string, string> = {
   A: 'text-orange-400 bg-orange-500/10 border-orange-500/25',

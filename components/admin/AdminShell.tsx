@@ -9,6 +9,7 @@ interface AdminUser {
   name: string;
   email: string;
   role: string;
+  desk?: string | null;
 }
 
 export function AdminShell({ user, children }: { user: AdminUser; children: React.ReactNode }) {

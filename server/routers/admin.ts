@@ -395,11 +395,15 @@ export const adminRouter = router({
       });
 
       // Send email to team leader only (non-blocking)
-      // NOTE: SHORTLISTED emails are sent manually from the Shortlisted Teams page
+      // NOTE: SHORTLISTED and APPROVED emails are sent manually from the UI
       const leader = team.members.find(
         (m: { role: string; user: { email: string; name: string | null } }) => m.role === 'LEADER'
       );
-      if (leader?.user?.email && input.status !== 'SHORTLISTED') {
+      if (
+        leader?.user?.email &&
+        input.status !== 'SHORTLISTED' &&
+        input.status !== 'APPROVED'
+      ) {
         sendStatusUpdateEmail(
           leader.user.email,
           team.name,
@@ -474,10 +478,14 @@ export const adminRouter = router({
         },
       });
 
-      // NOTE: SHORTLISTED emails are sent manually from the Shortlisted Teams page
+      // NOTE: SHORTLISTED and APPROVED emails are sent manually from the UI
       for (const t of teams) {
         const leaderEmail = t.members[0]?.user?.email;
-        if (leaderEmail && input.status !== 'SHORTLISTED') {
+        if (
+          leaderEmail &&
+          input.status !== 'SHORTLISTED' &&
+          input.status !== 'APPROVED'
+        ) {
           sendStatusUpdateEmail(
             leaderEmail,
             t.name,
@@ -561,7 +569,7 @@ export const adminRouter = router({
       await sendStatusUpdateEmail(
         leader.user.email,
         team.name,
-        'SHORTLISTED',
+        team.status as any,
         input.notes,
         team.shortCode ?? undefined
       );
@@ -1090,5 +1098,120 @@ export const adminRouter = router({
       });
 
       return { teams, count: teams.length };
+    }),
+
+  // ═══════════════════════════════════════════════════════════
+  // CHECK-IN & LOGISTICS
+  // ═══════════════════════════════════════════════════════════
+
+  getTeamByShortCode: canViewTeams
+    .input(z.object({ shortCode: z.string(), deskId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const team = await ctx.prisma.team.findUnique({
+        where: { shortCode: input.shortCode, deletedAt: null },
+        include: {
+          members: {
+            include: { user: { select: { name: true, email: true } } },
+          },
+          submission: {
+            include: { assignedProblemStatement: true }
+          }
+        },
+      });
+
+      if (!team) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Team not found with this short code',
+        });
+      }
+
+      // Calculate index for desk assignment
+      const teamIndex = await ctx.prisma.team.count({
+        where: {
+          status: 'SHORTLISTED',
+          reviewedAt: { lt: team.reviewedAt || new Date() },
+          deletedAt: null
+        },
+      });
+
+      // Emit event for real-time dashboard on desk-specific channel
+      const { pusherServer } = await import('@/lib/pusher');
+      await pusherServer.trigger(`admin-checkin-${input.deskId}`, 'qr:scanned', {
+        team: {
+          ...team,
+          teamIndex
+        }
+      });
+
+      return {
+        ...team,
+        teamIndex
+      };
+    }),
+
+  confirmCheckIn: canEditTeamsRateLimited
+    .input(z.object({ 
+      teamId: z.string(), 
+      deskId: z.string(),
+      desk: z.string().optional(),
+      notes: z.string().optional() 
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const team = await ctx.prisma.team.update({
+        where: { id: input.teamId },
+        data: {
+          attendance: 'PRESENT',
+          checkedInAt: new Date(),
+          checkedInBy: ctx.admin.id,
+          attendanceNotes: input.notes,
+        },
+      });
+
+      // Emit confirmed event on desk-specific channel
+      const { pusherServer } = await import('@/lib/pusher');
+      await pusherServer.trigger(`admin-checkin-${input.deskId}`, 'checkin:confirmed', {
+        teamId: input.teamId,
+        teamName: team.name,
+        desk: input.desk,
+        adminName: ctx.admin.name
+      });
+
+      return { success: true };
+    }),
+
+  flagCheckInIssue: canEditTeamsRateLimited
+    .input(z.object({ 
+      teamId: z.string(), 
+      deskId: z.string(),
+      reason: z.string() 
+    }))
+    .mutation(async ({ ctx, input }) => {
+      await ctx.prisma.team.update({
+        where: { id: input.teamId },
+        data: {
+          attendanceNotes: `FLAGGED: ${input.reason}`,
+        },
+      });
+
+      // Emit flagged event on desk-specific channel
+      const { pusherServer } = await import('@/lib/pusher');
+      await pusherServer.trigger(`admin-checkin-${input.deskId}`, 'checkin:flagged', {
+        teamId: input.teamId,
+        reason: input.reason,
+        adminName: ctx.admin.name
+      });
+
+      return { success: true };
+    }),
+
+  getCheckInStats: canViewTeams
+    .query(async ({ ctx }) => {
+      const [total, checkedIn] = await Promise.all([
+        ctx.prisma.team.count({ where: { status: 'SHORTLISTED', deletedAt: null } }),
+        ctx.prisma.team.count({ where: { attendance: 'PRESENT', deletedAt: null } })
+      ]);
+
+      return { total, checkedIn };
     }),
 });

@@ -30,19 +30,28 @@ if (!SEED_PASSWORD) {
 
 const LOGISTICS_ACCOUNTS = [
   {
-    email: 'logistic1@indianext.in',
-    name: 'Logistics Officer 1',
+    email: 'desk.a@indianext.in',
+    name: 'Logistics Station A',
     password: SEED_PASSWORD,
+    desk: 'A',
   },
   {
-    email: 'logistic2@indianext.in',
-    name: 'Logistics Officer 2',
+    email: 'desk.b@indianext.in',
+    name: 'Logistics Station B',
     password: SEED_PASSWORD,
+    desk: 'B',
   },
   {
-    email: 'logistic3@indianext.in',
-    name: 'Logistics Officer 3',
+    email: 'desk.c@indianext.in',
+    name: 'Logistics Station C',
     password: SEED_PASSWORD,
+    desk: 'C',
+  },
+  {
+    email: 'desk.d@indianext.in',
+    name: 'Logistics Station D',
+    password: SEED_PASSWORD,
+    desk: 'D',
   },
 ];
 
@@ -66,7 +75,8 @@ async function seedLogistics() {
         email: account.email,
         name: account.name,
         password: hashedPassword,
-        role: 'LOGISTICS' as any, // LOGISTICS is valid in schema but may not be in generated types yet
+        role: 'LOGISTICS' as any,
+        desk: account.desk,
         isActive: true,
       },
     });

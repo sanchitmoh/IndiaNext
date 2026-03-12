@@ -22,8 +22,12 @@ import {
   ChevronDown,
   ChevronUp,
   Star,
+  Mail,
+  Loader2,
 } from 'lucide-react';
 import { ScoringRubric } from './ScoringRubric';
+import { trpc } from '@/lib/trpc-client';
+import { toast } from 'sonner';
 
 interface StatusOrScoringProps {
   userRole: string;
@@ -94,6 +98,15 @@ export function StatusOrScoring({
   const [existingScores, setExistingScores] = useState<any[]>([]);
   const [multiJudge, setMultiJudge] = useState<any>(null);
   const [isLoadingRubric, setIsLoadingRubric] = useState(false);
+
+  const sendEmailMutation = trpc.admin.sendShortlistConfirmationEmail.useMutation({
+    onSuccess: () => {
+      toast.success('Email sent successfully!');
+    },
+    onError: (err) => {
+      toast.error(`Failed to send email: ${err.message}`);
+    },
+  });
 
   // Load rubric data for judges AND admins (admins see all judge scores)
   useEffect(() => {
@@ -269,6 +282,39 @@ export function StatusOrScoring({
           <div className="mt-3 text-xs font-mono text-gray-400 bg-white/[0.02] border border-white/[0.04] rounded-md p-3">
             <span className="text-gray-500 font-bold">LAST_NOTE: </span>
             {reviewNotes}
+          </div>
+        )}
+
+        {/* Manual Email Button */}
+        {(teamStatus === 'SHORTLISTED' || teamStatus === 'APPROVED') && (
+          <div className="mt-4 pt-4 border-t border-white/[0.04] flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-[10px] font-mono text-gray-500">
+                {teamStatus === 'SHORTLISTED'
+                  ? 'Ready to send final confirmation with QR Check-In Pass'
+                  : 'Ready to send approval notice with event details'}
+              </span>
+            </div>
+            <button
+              onClick={async () => {
+                try {
+                  await sendEmailMutation.mutateAsync({ 
+                    teamId, 
+                    notes: statusNote || undefined 
+                  });
+                } catch (err) {}
+              }}
+              disabled={sendEmailMutation.isPending}
+              className="inline-flex items-center gap-2 px-4 py-2 text-[10px] font-mono font-bold tracking-wider text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-md hover:bg-emerald-500/20 disabled:opacity-40"
+            >
+              {sendEmailMutation.isPending ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Mail className="h-3.5 w-3.5" />
+              )}
+              SEND {teamStatus === 'SHORTLISTED' ? 'CONFIRMATION' : 'APPROVAL'} EMAIL
+            </button>
           </div>
         )}
       </div>
