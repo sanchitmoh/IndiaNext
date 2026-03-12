@@ -1070,7 +1070,9 @@ export function buildShortlistEmailHtml(data: ShortlistEmailData): string {
 
     <!-- SCHEDULE -->
     <div style="margin-bottom: 24px;">
-      ${isBS ? `
+      ${
+        isBS
+          ? `
       <!-- BUILDSTORM SCHEDULE -->
       <div style="background: #0d0d0d; border: 1.5px solid #2a2a2a; border-radius: 12px; margin-bottom: 24px;">
         <div style="background: rgba(34,102,255,0.07); border-bottom: 1px solid #2a2a2a; padding: 14px 18px; border-radius: 12px 12px 0 0;">
@@ -1151,7 +1153,8 @@ export function buildShortlistEmailHtml(data: ShortlistEmailData): string {
             <p style="color: #ef4444; margin: 0; font-size: 12px; line-height: 1.6;"><strong>Note:</strong> Food &amp; refreshments are provided only for active teams. Coverage ends immediately upon elimination.</p>
           </div>
         </div>
-      </div>` : `
+      </div>`
+          : `
       <!-- IDEASPRINT SCHEDULE -->
       <div style="background: #0d0d0d; border: 1.5px solid #2a2a2a; border-radius: 12px; margin-bottom: 24px;">
         <div style="background: rgba(0,204,68,0.07); border-bottom: 1px solid #2a2a2a; padding: 14px 18px; border-radius: 12px 12px 0 0;">
@@ -1172,7 +1175,8 @@ export function buildShortlistEmailHtml(data: ShortlistEmailData): string {
           </table>
           <p style="color: #555; font-size: 11px; margin-top: 12px; font-style: italic;">Note: IdeaSprint has NO eliminations. All 30 teams stay for the full duration.</p>
         </div>
-      </div>`}
+      </div>`
+      }
     </div>
 
 

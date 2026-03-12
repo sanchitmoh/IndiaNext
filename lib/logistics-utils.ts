@@ -1,4 +1,3 @@
-
 export const DESKS = ['A', 'B', 'D', 'C'] as const;
 export type Desk = (typeof DESKS)[number];
 

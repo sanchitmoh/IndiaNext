@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -12,9 +11,9 @@ export default function CheckInPage() {
   useEffect(() => {
     // Basic mobile detection based on user-agent or screen width
     const checkIfMobile = () => {
-      const userAgent = typeof window.navigator === "undefined" ? "" : navigator.userAgent;
+      const userAgent = typeof window.navigator === 'undefined' ? '' : navigator.userAgent;
       const mobileRegex = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
-      
+
       if (mobileRegex.test(userAgent) || window.innerWidth < 768) {
         setIsMobile(true);
       } else {
@@ -24,7 +23,7 @@ export default function CheckInPage() {
 
     checkIfMobile();
     window.addEventListener('resize', checkIfMobile);
-    
+
     return () => window.removeEventListener('resize', checkIfMobile);
   }, []);
 

@@ -73,7 +73,7 @@ jobs:
             report += '### Checks Performed:\n';
             report += '- Duplicate code detection\n';
             report += '- Bundle size analysis\n';
-            
+
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,

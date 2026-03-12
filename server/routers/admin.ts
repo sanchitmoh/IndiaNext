@@ -399,11 +399,7 @@ export const adminRouter = router({
       const leader = team.members.find(
         (m: { role: string; user: { email: string; name: string | null } }) => m.role === 'LEADER'
       );
-      if (
-        leader?.user?.email &&
-        input.status !== 'SHORTLISTED' &&
-        input.status !== 'APPROVED'
-      ) {
+      if (leader?.user?.email && input.status !== 'SHORTLISTED' && input.status !== 'APPROVED') {
         sendStatusUpdateEmail(
           leader.user.email,
           team.name,
@@ -481,11 +477,7 @@ export const adminRouter = router({
       // NOTE: SHORTLISTED and APPROVED emails are sent manually from the UI
       for (const t of teams) {
         const leaderEmail = t.members[0]?.user?.email;
-        if (
-          leaderEmail &&
-          input.status !== 'SHORTLISTED' &&
-          input.status !== 'APPROVED'
-        ) {
+        if (leaderEmail && input.status !== 'SHORTLISTED' && input.status !== 'APPROVED') {
           sendStatusUpdateEmail(
             leaderEmail,
             t.name,
@@ -514,25 +506,25 @@ export const adminRouter = router({
           deletedAt: null,
           ...(input?.track && input.track !== 'all' ? { track: input.track as any } : {}),
         },
-      include: {
-        members: {
-          include: {
-            user: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-                college: true,
+        include: {
+          members: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                  college: true,
+                },
               },
             },
           },
+          tags: true,
         },
-        tags: true,
-      },
-      orderBy: { reviewedAt: 'asc' }, // Preserve shortlist order (desk assignment depends on it)
-    });
-    return teams;
-  }),
+        orderBy: { reviewedAt: 'asc' }, // Preserve shortlist order (desk assignment depends on it)
+      });
+      return teams;
+    }),
 
   sendShortlistConfirmationEmail: canEditTeamsRateLimited
     .input(
@@ -1114,8 +1106,8 @@ export const adminRouter = router({
             include: { user: { select: { name: true, email: true } } },
           },
           submission: {
-            include: { assignedProblemStatement: true }
-          }
+            include: { assignedProblemStatement: true },
+          },
         },
       });
 
@@ -1131,7 +1123,7 @@ export const adminRouter = router({
         where: {
           status: 'SHORTLISTED',
           reviewedAt: { lt: team.reviewedAt || new Date() },
-          deletedAt: null
+          deletedAt: null,
         },
       });
 
@@ -1140,23 +1132,25 @@ export const adminRouter = router({
       await pusherServer.trigger(`admin-checkin-${input.deskId}`, 'qr:scanned', {
         team: {
           ...team,
-          teamIndex
-        }
+          teamIndex,
+        },
       });
 
       return {
         ...team,
-        teamIndex
+        teamIndex,
       };
     }),
 
   confirmCheckIn: canEditTeamsRateLimited
-    .input(z.object({ 
-      teamId: z.string(), 
-      deskId: z.string(),
-      desk: z.string().optional(),
-      notes: z.string().optional() 
-    }))
+    .input(
+      z.object({
+        teamId: z.string(),
+        deskId: z.string(),
+        desk: z.string().optional(),
+        notes: z.string().optional(),
+      })
+    )
     .mutation(async ({ ctx, input }) => {
       const team = await ctx.prisma.team.update({
         where: { id: input.teamId },
@@ -1174,18 +1168,20 @@ export const adminRouter = router({
         teamId: input.teamId,
         teamName: team.name,
         desk: input.desk,
-        adminName: ctx.admin.name
+        adminName: ctx.admin.name,
       });
 
       return { success: true };
     }),
 
   flagCheckInIssue: canEditTeamsRateLimited
-    .input(z.object({ 
-      teamId: z.string(), 
-      deskId: z.string(),
-      reason: z.string() 
-    }))
+    .input(
+      z.object({
+        teamId: z.string(),
+        deskId: z.string(),
+        reason: z.string(),
+      })
+    )
     .mutation(async ({ ctx, input }) => {
       await ctx.prisma.team.update({
         where: { id: input.teamId },
@@ -1199,19 +1195,18 @@ export const adminRouter = router({
       await pusherServer.trigger(`admin-checkin-${input.deskId}`, 'checkin:flagged', {
         teamId: input.teamId,
         reason: input.reason,
-        adminName: ctx.admin.name
+        adminName: ctx.admin.name,
       });
 
       return { success: true };
     }),
 
-  getCheckInStats: canViewTeams
-    .query(async ({ ctx }) => {
-      const [total, checkedIn] = await Promise.all([
-        ctx.prisma.team.count({ where: { status: 'SHORTLISTED', deletedAt: null } }),
-        ctx.prisma.team.count({ where: { attendance: 'PRESENT', deletedAt: null } })
-      ]);
+  getCheckInStats: canViewTeams.query(async ({ ctx }) => {
+    const [total, checkedIn] = await Promise.all([
+      ctx.prisma.team.count({ where: { status: 'SHORTLISTED', deletedAt: null } }),
+      ctx.prisma.team.count({ where: { attendance: 'PRESENT', deletedAt: null } }),
+    ]);
 
-      return { total, checkedIn };
-    }),
+    return { total, checkedIn };
+  }),
 });

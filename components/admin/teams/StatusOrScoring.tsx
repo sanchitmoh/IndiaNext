@@ -299,9 +299,9 @@ export function StatusOrScoring({
             <button
               onClick={async () => {
                 try {
-                  await sendEmailMutation.mutateAsync({ 
-                    teamId, 
-                    notes: statusNote || undefined 
+                  await sendEmailMutation.mutateAsync({
+                    teamId,
+                    notes: statusNote || undefined,
                   });
                 } catch (err) {
                   console.error('Failed to trigger email:', err);
