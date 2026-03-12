@@ -224,10 +224,11 @@ interface NavItem {
 const ALL_NAV_ITEMS: NavItem[] = [
   { label: 'DASHBOARD', href: '/admin', code: '01' },
   { label: 'TEAMS', href: '/admin/teams', code: '02' },
-  { label: 'PROBLEMS', href: '/admin/problem-statements', code: '03' },
-  { label: 'ANALYTICS', href: '/admin/analytics', code: '04' },
-  { label: 'LOGISTICS', href: '/admin/logistics', code: '05' },
-  { label: 'EMAILS', href: '/admin/emails', code: '06' },
+  { label: 'SHORTLISTED', href: '/admin/shortlisted', code: '03' },
+  { label: 'PROBLEMS', href: '/admin/problem-statements', code: '04' },
+  { label: 'ANALYTICS', href: '/admin/analytics', code: '05' },
+  { label: 'LOGISTICS', href: '/admin/logistics', code: '06' },
+  { label: 'EMAILS', href: '/admin/emails', code: '07' },
 ];
 
 /** Returns the subset of nav items the given role is allowed to see. */
@@ -238,6 +239,8 @@ export function getAllowedNavItems(role: AdminRole): NavItem[] {
         return hasPermission(role as UserRole, 'VIEW_ALL_TEAMS');
       case 'TEAMS':
         return hasPermission(role as UserRole, 'VIEW_ALL_TEAMS');
+      case 'SHORTLISTED':
+        return hasPermission(role as UserRole, 'EDIT_TEAMS'); // Admin/Super Admin only
       case 'PROBLEMS':
         return hasPermission(role as UserRole, 'EDIT_TEAMS'); // Only ADMIN and SUPER_ADMIN can manage problems
       case 'ANALYTICS':

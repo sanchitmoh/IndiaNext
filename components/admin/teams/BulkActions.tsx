@@ -1,7 +1,7 @@
 'use client';
 
 import { trpc } from '@/lib/trpc-client';
-import { CheckCircle, XCircle, Clock, AlertTriangle, X, Eye } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, AlertTriangle, X, Eye, Star } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface BulkActionsProps {
@@ -36,6 +36,12 @@ const actions = [
     color: 'bg-orange-500/15 text-orange-400 border border-orange-500/20 hover:bg-orange-500/25',
   },
   {
+    status: 'SHORTLISTED',
+    label: 'Shortlist',
+    icon: Star,
+    color: 'bg-orange-500/15 text-orange-400 border border-orange-500/20 hover:bg-orange-500/25',
+  },
+  {
     status: 'PENDING',
     label: 'Reset to Pending',
     icon: Clock,
@@ -50,7 +56,7 @@ export function BulkActions({ selectedTeams, onComplete }: BulkActionsProps) {
     try {
       const result = await bulkUpdate.mutateAsync({
         teamIds: selectedTeams,
-        status: status as 'PENDING' | 'APPROVED' | 'REJECTED' | 'WAITLISTED' | 'UNDER_REVIEW',
+        status: status as 'PENDING' | 'APPROVED' | 'REJECTED' | 'WAITLISTED' | 'UNDER_REVIEW' | 'SHORTLISTED',
       });
       toast.success(`Updated ${result.count} teams to ${status}`);
       onComplete();

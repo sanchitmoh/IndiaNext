@@ -21,6 +21,7 @@ import {
   MessageSquare,
   ChevronDown,
   ChevronUp,
+  Star,
 } from 'lucide-react';
 import { ScoringRubric } from './ScoringRubric';
 
@@ -60,6 +61,12 @@ const statusActions = [
     status: 'WAITLISTED',
     label: 'Waitlist',
     icon: AlertTriangle,
+    color: 'bg-orange-500/15 text-orange-400 border border-orange-500/20 hover:bg-orange-500/25',
+  },
+  {
+    status: 'SHORTLISTED',
+    label: 'Shortlist',
+    icon: Star,
     color: 'bg-orange-500/15 text-orange-400 border border-orange-500/20 hover:bg-orange-500/25',
   },
   {
@@ -189,6 +196,7 @@ export function StatusOrScoring({
                   APPROVED: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
                   REJECTED: 'bg-red-500/10 text-red-400 border-red-500/20',
                   WAITLISTED: 'bg-orange-500/10 text-orange-400 border-orange-500/20',
+                  SHORTLISTED: 'bg-orange-500/10 text-orange-400 border-orange-500/30',
                   WITHDRAWN: 'bg-gray-500/10 text-gray-400 border-gray-500/20',
                 }[teamStatus] || 'bg-white/[0.03] text-gray-400 border-white/[0.06]'
               }`}

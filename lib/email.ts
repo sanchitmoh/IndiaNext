@@ -809,6 +809,11 @@ export async function sendStatusUpdateEmail(
     return sendApprovalEmail(to, teamName, notes, shortCode);
   }
 
+  // For SHORTLISTED status, send the finalized shortlisted email with desk assignment
+  if (status === 'SHORTLISTED') {
+    return sendShortlistEmail(to, teamName, shortCode, notes);
+  }
+
   const subject = `Team Status Update — ${escapeHtml(teamName)} | IndiaNext Hackathon`;
   const html = `
         <!DOCTYPE html>
@@ -874,6 +879,526 @@ export async function sendStatusUpdateEmail(
     type: 'STATUS_UPDATE',
   });
 }
+
+// ═══════════════════════════════════════════════════════════
+// SHORTLIST EMAIL (provided as Approval Email by user)
+// ═══════════════════════════════════════════════════════════
+
+const DESKS = ['A', 'B', 'D', 'C'] as const;
+type Desk = (typeof DESKS)[number];
+
+export function assignDesk(teamIndex: number): Desk {
+  return DESKS[teamIndex % 4];
+}
+
+interface ShortlistEmailData {
+  teamName: string;
+  shortCode: string; // Used as Slot Number + QR data
+  track: 'IDEA_SPRINT' | 'BUILD_STORM';
+  members: Array<{ name: string; email: string; role: string }>;
+  teamIndex: number; // 0-based shortlist position → desk assignment
+  notes?: string;
+}
+
+export function buildShortlistEmailHtml(data: ShortlistEmailData): string {
+  const desk = assignDesk(data.teamIndex);
+  const isBS = data.track === 'BUILD_STORM';
+  const trackColor = isBS ? '#2266FF' : '#00CC44';
+  const trackLabel = isBS ? '⚡ BuildStorm' : '💡 IdeaSprint';
+  const qrData = encodeURIComponent(
+    `https://www.indianexthackthon.online/checkin?code=${data.shortCode}&desk=${desk}`
+  );
+
+  const memberRows = data.members
+    .map(
+      (m, i) => `
+    <tr>
+      <td style="padding: 9px 12px; border-bottom: 1px solid #1a1a1a; color: #888; font-size: 13px;">${i + 1}</td>
+      <td style="padding: 9px 12px; border-bottom: 1px solid #1a1a1a; color: #ededed; font-size: 13px; font-weight: 500;">${escapeHtml(m.name)}</td>
+      <td class="hide-mob" style="padding: 9px 12px; border-bottom: 1px solid #1a1a1a; color: #666; font-size: 13px;">${escapeHtml(m.email)}</td>
+      <td style="padding: 9px 12px; border-bottom: 1px solid #1a1a1a; color: ${m.role === 'LEADER' ? '#FF6600' : '#666'}; font-size: 13px; font-weight: ${m.role === 'LEADER' ? '700' : '400'};">
+        ${m.role === 'LEADER' ? '★ Leader' : 'Member'}
+      </td>
+    </tr>`
+    )
+    .join('');
+
+  return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style type="text/css">
+    body, table, td, p, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+    @media only screen and (max-width: 620px) {
+      .ew { padding: 12px 6px !important; }
+      .eh { padding: 24px 14px !important; }
+      .eb { padding: 18px 12px !important; }
+      .hide-mob { display: none !important; max-height: 0 !important; overflow: hidden !important; }
+      .h1s { font-size: 24px !important; }
+      .st { font-size: 12px !important; }
+      .sct { width: 70px !important; font-size: 11px !important; padding: 6px !important; }
+      .scd { font-size: 11px !important; padding: 6px !important; }
+      .qi { width: 140px !important; height: 140px !important; }
+      .dl { font-size: 52px !important; }
+      .rn { width: 22px !important; font-size: 13px !important; }
+      .rt { font-size: 12px !important; }
+      .bt { font-size: 13px !important; }
+      .slot-code { font-size: 22px !important; letter-spacing: 3px !important; }
+    }
+  </style>
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 0; background-color: #0a0a0a;">
+<div class="ew" style="max-width: 620px; margin: 0 auto; padding: 32px 16px;">
+
+  <!-- ══ HEADER ══ -->
+  <div class="eh" style="background: linear-gradient(160deg, #0d0d0d 0%, #1a1a1a 100%); padding: 36px 24px 28px; border-radius: 14px 14px 0 0; text-align: center; border: 1.5px solid #2a2a2a; border-bottom: none;">
+    <div style="display: inline-block; background: rgba(255,102,0,0.08); border: 1px solid rgba(255,102,0,0.25); border-radius: 6px; padding: 4px 14px; margin-bottom: 14px;">
+      <span style="color: #FF6600; font-size: 10px; letter-spacing: 3px; font-weight: 700; text-transform: uppercase;">Outthink The Algorithm</span>
+    </div>
+    <h1 class="h1s" style="color: #FF6600; margin: 0; font-size: 32px; font-weight: 800; letter-spacing: -0.5px; text-shadow: 0 0 40px rgba(255,102,0,0.4);">IndiaNext</h1>
+    <p style="color: #555; margin: 8px 0 0; font-size: 12px; letter-spacing: 4px; text-transform: uppercase;">Hackathon 2026</p>
+    <div style="margin-top: 22px; display: inline-flex; align-items: center; gap: 8px; background: rgba(16,185,129,0.08); border: 1.5px solid rgba(16,185,129,0.4); border-radius: 8px; padding: 10px 22px;">
+      <span style="color: #10b981; font-size: 15px;">✦</span>
+      <span style="color: #10b981; font-weight: 700; font-size: 12px; letter-spacing: 2px;">YOUR TEAM IS APPROVED</span>
+    </div>
+  </div>
+
+  <!-- ══ BODY ══ -->
+  <div class="eb" style="background: #111; padding: 28px 24px; border: 1.5px solid #2a2a2a; border-top: none; border-radius: 0 0 14px 14px;">
+
+    <!-- Greeting -->
+    <p class="bt" style="color: #ccc; font-size: 15px; line-height: 1.8; margin: 0 0 24px;">
+      Dear Team Leader,<br><br>
+      Congratulations! 🎉 Your team <strong style="color: #FF6600;">${escapeHtml(
+        data.teamName
+      )}</strong> has been officially approved for <strong style="color: #fff;">IndiaNext Hackathon 2026</strong>. Below is everything you need — your confirmed slot, event flow, rules, and check-in pass.
+    </p>
+
+    ${
+      data.notes
+        ? `
+    <!-- Admin note -->
+    <div style="background: rgba(16,185,129,0.06); border: 1px solid rgba(16,185,129,0.2); border-radius: 8px; padding: 14px 18px; margin-bottom: 20px;">
+      <p style="color: #10b981; margin: 0 0 4px; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; font-weight: 700;">Note from Organiser</p>
+      <p style="color: #ccc; margin: 0; font-size: 13px; line-height: 1.6;">${escapeHtml(
+        data.notes
+      )}</p>
+    </div>`
+        : ''
+    }
+
+    <!-- ══ CONFIRMED SLOT ══ -->
+    <div style="background: linear-gradient(135deg, #0a0a0a 0%, #111 100%); border: 2px solid #10b981; border-radius: 12px; padding: 22px 20px; margin-bottom: 20px; text-align: center;">
+      <p style="color: #10b981; margin: 0 0 4px; font-size: 10px; letter-spacing: 4px; text-transform: uppercase; font-weight: 700;">✦ Confirmed Slot</p>
+      <p style="color: #555; margin: 0 0 16px; font-size: 11px;">Your spot is secured for IndiaNext Hackathon 2026</p>
+      <div style="display: inline-block; background: rgba(16,185,129,0.06); border: 1.5px solid rgba(16,185,129,0.3); border-radius: 10px; padding: 14px 32px; margin-bottom: 16px;">
+        <p style="color: #555; margin: 0 0 4px; font-size: 10px; letter-spacing: 3px; text-transform: uppercase;">Slot Number</p>
+        <p class="slot-code" style="color: #10b981; margin: 0; font-size: 28px; font-weight: 900; font-family: 'Courier New', monospace; letter-spacing: 5px; text-shadow: 0 0 20px rgba(16,185,129,0.4);">${escapeHtml(
+          data.shortCode
+        )}</p>
+      </div>
+      <div style="display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap;">
+        <div style="background: rgba(255,102,0,0.08); border: 1px solid rgba(255,102,0,0.25); border-radius: 6px; padding: 5px 14px;">
+          <span style="color: #FF6600; font-size: 12px; font-weight: 700;">${escapeHtml(
+            data.teamName
+          )}</span>
+        </div>
+        <div style="background: rgba(${isBS ? '34,102,255' : '0,204,68'},0.08); border: 1px solid rgba(${
+    isBS ? '34,102,255' : '0,204,68'
+  },0.3); border-radius: 6px; padding: 5px 14px;">
+          <span style="color: ${trackColor}; font-size: 12px; font-weight: 700;">${trackLabel}</span>
+        </div>
+        <div style="background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.25); border-radius: 6px; padding: 5px 14px;">
+          <span style="color: #10b981; font-size: 12px; font-weight: 700;">${
+            data.members.length
+          } Members</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ EVENT DETAILS ══ -->
+    <div style="background: #0a0a0a; border: 1.5px solid #2a2a2a; border-radius: 12px; overflow: hidden; margin-bottom: 20px;">
+      <div style="background: rgba(255,102,0,0.07); border-bottom: 1px solid #2a2a2a; padding: 12px 18px;">
+        <span class="st" style="color: #FF6600; font-size: 11px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase;">📋 Event Details</span>
+      </div>
+      <div style="padding: 18px;">
+        <table style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style="padding: 8px 0; color: #555; font-size: 12px; width: 110px; border-bottom: 1px solid #1a1a1a;">Date</td>
+            <td style="padding: 8px 0; color: #ededed; font-size: 13px; font-weight: 600; border-bottom: 1px solid #1a1a1a;">March 16 – 17, 2026</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0; color: #555; font-size: 12px; border-bottom: 1px solid #1a1a1a;">Duration</td>
+            <td style="padding: 8px 0; color: #ededed; font-size: 13px; border-bottom: 1px solid #1a1a1a;">24 Hours (Non-stop)</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0; color: #555; font-size: 12px; border-bottom: 1px solid #1a1a1a;">Venue</td>
+            <td style="padding: 8px 0; color: #ededed; font-size: 13px; border-bottom: 1px solid #1a1a1a;">K.E.S. Shroff College, Mumbai</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0; color: #555; font-size: 12px; border-bottom: 1px solid #1a1a1a;">Track</td>
+            <td style="padding: 8px 0; color: ${trackColor}; font-size: 13px; font-weight: 700; border-bottom: 1px solid #1a1a1a;">${trackLabel}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0; color: #555; font-size: 12px;">Code Freeze</td>
+            <td style="padding: 8px 0; color: #ef4444; font-size: 13px; font-weight: 700;">12:00 PM · March 17, 2026</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══ EVENT FLOW — BUILDSTORM ══ -->
+    ${
+      isBS
+        ? `
+    <div style="background: #0a0a0a; border: 1.5px solid #2a2a2a; border-radius: 12px; overflow: hidden; margin-bottom: 20px;">
+      <div style="background: rgba(34,102,255,0.07); border-bottom: 1px solid #2a2a2a; padding: 12px 18px;">
+        <span class="st" style="color: #2266FF; font-size: 11px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase;">⚡ BuildStorm — Event Flow</span>
+      </div>
+      <div style="padding: 18px;">
+        <p style="color: #FF6600; margin: 0 0 10px; font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;">DAY 1 — MARCH 16</p>
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 18px;">
+          <tr>
+            <td class="sct" style="padding: 8px 10px; color: #FF6600; font-size: 12px; font-weight: 700; width: 90px; background: rgba(255,102,0,0.06); border-radius: 4px 0 0 4px; vertical-align: top;">08:00 AM</td>
+            <td class="scd" style="padding: 8px 10px; color: #ccc; font-size: 12px; background: rgba(255,102,0,0.03); border-radius: 0 4px 4px 0;">Check-in &amp; Breakfast</td>
+          </tr>
+          <tr><td colspan="2" style="padding: 2px;"></td></tr>
+          <tr>
+            <td class="sct" style="padding: 8px 10px; color: #FF6600; font-size: 12px; font-weight: 700; background: rgba(255,102,0,0.06); border-radius: 4px 0 0 4px; vertical-align: top;">09:00 AM</td>
+            <td class="scd" style="padding: 8px 10px; color: #ccc; font-size: 12px; background: rgba(255,102,0,0.03); border-radius: 0 4px 4px 0;">Opening Ceremony</td>
+          </tr>
+          <tr><td colspan="2" style="padding: 2px;"></td></tr>
+          <tr>
+            <td class="sct" style="padding: 8px 10px; color: #10b981; font-size: 12px; font-weight: 700; background: rgba(16,185,129,0.08); border-radius: 4px 0 0 4px; vertical-align: top;">12:00 AM</td>
+            <td class="scd" style="padding: 8px 10px; color: #10b981; font-size: 12px; font-weight: 700; background: rgba(16,185,129,0.05); border-radius: 0 4px 4px 0; line-height: 1.6;">
+              🚀 Problem Statements Revealed — Timer Starts!<br>
+              <span style="color: #555; font-size: 11px; font-weight: 400;">All 70 teams begin simultaneously</span>
+            </td>
+          </tr>
+          <tr><td colspan="2" style="padding: 2px;"></td></tr>
+          <tr>
+            <td class="sct" style="padding: 8px 10px; color: #FF6600; font-size: 12px; font-weight: 700; background: rgba(255,102,0,0.06); border-radius: 4px 0 0 4px; vertical-align: top;">02:00 PM</td>
+            <td class="scd" style="padding: 8px 10px; color: #ccc; font-size: 12px; background: rgba(255,102,0,0.03); border-radius: 0 4px 4px 0;">Lunch Break</td>
+          </tr>
+          <tr><td colspan="2" style="padding: 2px;"></td></tr>
+          <tr>
+            <td class="sct" style="padding: 8px 10px; color: #f59e0b; font-size: 12px; font-weight: 700; background: rgba(245,158,11,0.08); border-radius: 4px 0 0 4px; vertical-align: top;">3–4 PM</td>
+            <td class="scd" style="padding: 8px 10px; font-size: 12px; background: rgba(245,158,11,0.04); border-radius: 0 4px 4px 0; line-height: 1.6;">
+              <span style="color: #f59e0b; font-weight: 700;">⚖️ Round 1 — Solution Judgement</span><br>
+              <span style="color: #666; font-size: 11px;">Teams present their approach to judges</span><br>
+              <span style="display: inline-block; margin-top: 4px; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); border-radius: 4px; padding: 2px 8px; color: #ef4444; font-size: 11px; font-weight: 700;">15 eliminated → 55 advance</span>
+            </td>
+          </tr>
+          <tr><td colspan="2" style="padding: 2px;"></td></tr>
+          <tr>
+            <td class="sct" style="padding: 8px 10px; color: #f59e0b; font-size: 12px; font-weight: 700; background: rgba(245,158,11,0.08); border-radius: 4px 0 0 4px; vertical-align: top;">06:00 PM</td>
+            <td class="scd" style="padding: 8px 10px; font-size: 12px; background: rgba(245,158,11,0.04); border-radius: 0 4px 4px 0; line-height: 1.6;">
+              <span style="color: #f59e0b; font-weight: 700;">🔍 Round 2 — Implementation Check</span><br>
+              <span style="color: #666; font-size: 11px;">Build progress reviewed by judges</span><br>
+              <span style="display: inline-block; margin-top: 4px; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); border-radius: 4px; padding: 2px 8px; color: #ef4444; font-size: 11px; font-weight: 700;">15 more eliminated → 40 advance</span>
+            </td>
+          </tr>
+          <tr><td colspan="2" style="padding: 2px;"></td></tr>
+          <tr>
+            <td class="sct" style="padding: 8px 10px; color: #a855f7; font-size: 12px; font-weight: 700; background: rgba(168,85,247,0.08); border-radius: 4px 0 0 4px; vertical-align: top;">Anytime</td>
+            <td class="scd" style="padding: 8px 10px; font-size: 12px; background: rgba(168,85,247,0.04); border-radius: 0 4px 4px 0; line-height: 1.6;">
+              <span style="color: #a855f7; font-weight: 700;">🎲 Surprise Bonus Rounds</span><br>
+              <span style="color: #666; font-size: 11px;">Can happen at any point — earn bonus points!</span>
+            </td>
+          </tr>
+          <tr><td colspan="2" style="padding: 2px;"></td></tr>
+          <tr>
+            <td class="sct" style="padding: 8px 10px; color: #FF6600; font-size: 12px; font-weight: 700; background: rgba(255,102,0,0.06); border-radius: 4px 0 0 4px; vertical-align: top;">09:00 PM</td>
+            <td class="scd" style="padding: 8px 10px; color: #ccc; font-size: 12px; background: rgba(255,102,0,0.03); border-radius: 0 4px 4px 0; line-height: 1.5;">
+              Night Dinner (9:00 PM – 12:00 AM)<br>
+              <span style="color: #555; font-size: 11px;">For remaining active teams only</span>
+            </td>
+          </tr>
+        </table>
+        <p style="color: #00CCFF; margin: 0 0 10px; font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;">DAY 2 — MARCH 17</p>
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 16px;">
+          <tr>
+            <td class="sct" style="padding: 8px 10px; color: #00CCFF; font-size: 12px; font-weight: 700; width: 90px; background: rgba(0,204,255,0.06); border-radius: 4px 0 0 4px; vertical-align: top;">08:00 AM</td>
+            <td class="scd" style="padding: 8px 10px; color: #ccc; font-size: 12px; background: rgba(0,204,255,0.03); border-radius: 0 4px 4px 0;">Breakfast (active teams only)</td>
+          </tr>
+          <tr><td colspan="2" style="padding: 2px;"></td></tr>
+          <tr>
+            <td class="sct" style="padding: 8px 10px; color: #00CCFF; font-size: 12px; font-weight: 700; background: rgba(0,204,255,0.06); border-radius: 4px 0 0 4px; vertical-align: top;">09:00 AM</td>
+            <td class="scd" style="padding: 8px 10px; color: #ccc; font-size: 12px; background: rgba(0,204,255,0.03); border-radius: 0 4px 4px 0;">Mentorship Round 2</td>
+          </tr>
+          <tr><td colspan="2" style="padding: 2px;"></td></tr>
+          <tr>
+            <td class="sct" style="padding: 8px 10px; color: #ef4444; font-size: 12px; font-weight: 700; background: rgba(239,68,68,0.08); border-radius: 4px 0 0 4px; vertical-align: top;">12:00 PM</td>
+            <td class="scd" style="padding: 8px 10px; color: #ef4444; font-size: 12px; font-weight: 700; background: rgba(239,68,68,0.04); border-radius: 0 4px 4px 0;">🛑 Code Freeze — Final Submission</td>
+          </tr>
+          <tr><td colspan="2" style="padding: 2px;"></td></tr>
+          <tr>
+            <td class="sct" style="padding: 8px 10px; color: #f59e0b; font-size: 12px; font-weight: 700; background: rgba(245,158,11,0.08); border-radius: 4px 0 0 4px; vertical-align: top;">01:00 PM</td>
+            <td class="scd" style="padding: 8px 10px; color: #f59e0b; font-size: 12px; font-weight: 700; background: rgba(245,158,11,0.04); border-radius: 0 4px 4px 0;">🏆 Prize Distribution Ceremony</td>
+          </tr>
+        </table>
+        <div style="background: rgba(239,68,68,0.06); border: 1px solid rgba(239,68,68,0.25); border-radius: 8px; padding: 12px 14px;">
+          <p style="color: #ef4444; margin: 0; font-size: 12px; line-height: 1.6;">⚠️ <strong>Food &amp; refreshments are provided only for active teams.</strong> Once eliminated, food coverage ends immediately.</p>
+        </div>
+      </div>
+    </div>`
+        : `
+
+    <!-- ══ EVENT FLOW — IDEASPRINT ══ -->
+    <div style="background: #0a0a0a; border: 1.5px solid #2a2a2a; border-radius: 12px; overflow: hidden; margin-bottom: 20px;">
+      <div style="background: rgba(0,204,68,0.07); border-bottom: 1px solid #2a2a2a; padding: 12px 18px;">
+        <span class="st" style="color: #00CC44; font-size: 11px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase;">💡 IdeaSprint — Event Flow</span>
+      </div>
+      <div style="padding: 18px;">
+        <div style="background: rgba(0,204,68,0.06); border: 1px solid rgba(0,204,68,0.2); border-radius: 8px; padding: 12px 14px; margin-bottom: 16px;">
+          <p style="color: #00CC44; margin: 0; font-size: 12px; font-weight: 700;">✅ Full 24 Hours — No Eliminations</p>
+          <p style="color: #777; margin: 4px 0 0; font-size: 12px;">All 30 IdeaSprint teams get the complete hackathon experience from start to finish.</p>
+        </div>
+        <table style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td class="sct" style="padding: 8px 10px; color: #00CC44; font-size: 12px; font-weight: 700; width: 90px; background: rgba(0,204,68,0.06); border-radius: 4px 0 0 4px; vertical-align: top;">09:30 AM</td>
+            <td class="scd" style="padding: 8px 10px; color: #10b981; font-size: 12px; font-weight: 700; background: rgba(0,204,68,0.03); border-radius: 0 4px 4px 0;">🚀 Idea Discussion Begins</td>
+          </tr>
+          <tr><td colspan="2" style="padding: 2px;"></td></tr>
+          <tr>
+            <td class="sct" style="padding: 8px 10px; color: #00CC44; font-size: 12px; font-weight: 700; background: rgba(0,204,68,0.06); border-radius: 4px 0 0 4px; vertical-align: top;">11:00 AM</td>
+            <td class="scd" style="padding: 8px 10px; color: #10b981; font-size: 12px; font-weight: 700; background: rgba(0,204,68,0.03); border-radius: 0 4px 4px 0;">⚙️ Development Starts</td>
+          </tr>
+          <tr><td colspan="2" style="padding: 2px;"></td></tr>
+          <tr>
+            <td class="sct" style="padding: 8px 10px; color: #00CC44; font-size: 12px; font-weight: 700; background: rgba(0,204,68,0.06); border-radius: 4px 0 0 4px; vertical-align: top;">12:00 PM<br><span style="font-size: 10px; font-weight:400;">Mar 17</span></td>
+            <td class="scd" style="padding: 8px 10px; color: #ef4444; font-size: 12px; font-weight: 700; background: rgba(239,68,68,0.04); border-radius: 0 4px 4px 0;">🛑 Code Freeze — Final Submission</td>
+          </tr>
+          <tr><td colspan="2" style="padding: 2px;"></td></tr>
+          <tr>
+            <td class="sct" style="padding: 8px 10px; color: #00CC44; font-size: 12px; font-weight: 700; background: rgba(0,204,68,0.06); border-radius: 4px 0 0 4px; vertical-align: top;">01:00 PM<br><span style="font-size: 10px; font-weight:400;">Mar 17</span></td>
+            <td class="scd" style="padding: 8px 10px; color: #f59e0b; font-size: 12px; font-weight: 700; background: rgba(245,158,11,0.04); border-radius: 0 4px 4px 0;">🏆 Prize Distribution Ceremony</td>
+          </tr>
+        </table>
+      </div>
+    </div>`
+    }
+
+    <!-- ══ RULES & REGULATIONS ══ -->
+    <div style="background: #0a0a0a; border: 1.5px solid #2a2a2a; border-radius: 12px; overflow: hidden; margin-bottom: 20px;">
+      <div style="background: rgba(245,158,11,0.07); border-bottom: 1px solid #2a2a2a; padding: 12px 18px;">
+        <span class="st" style="color: #f59e0b; font-size: 11px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase;">⚠️ Rules &amp; Regulations</span>
+      </div>
+      <div style="padding: 18px;">
+        <table style="width: 100%; border-collapse: collapse;">
+          ${[
+            [
+              'All team members must check in together. <strong style="color:#fff;">Carry a valid College ID.</strong>',
+              '',
+            ],
+            [
+              'All code must be written <strong style="color:#fff;">during the hackathon only.</strong> Pre-built projects are not allowed.',
+              '',
+            ],
+            [
+              'Open-source libraries &amp; public APIs are allowed. Full pre-built projects/templates are <strong style="color:#ef4444;">strictly prohibited.</strong>',
+              '',
+            ],
+            [
+              'Git history will be reviewed. <strong style="color:#fff;">No copy-paste dumps.</strong> Commit regularly.',
+              '',
+            ],
+            [
+              'Final submission deadline: <strong style="color:#ef4444;">12:00 PM, March 17th.</strong> No late submissions.',
+              '',
+            ],
+            [
+              'Each team gets a <strong style="color:#fff;">3-min demo + 2-min Q&amp;A</strong> with judges.',
+              '',
+            ],
+            [
+              isBS
+                ? 'Surprise bonus rounds may occur <strong style="color:#a855f7;">at any time</strong> — stay alert!'
+                : 'All IdeaSprint teams present at the final demo session.',
+              '',
+            ],
+            [
+              isBS
+                ? 'Food &amp; refreshments are for <strong style="color:#fff;">active teams only.</strong> Eliminated teams are not covered.'
+                : 'Food &amp; refreshments are covered for the full 24 hours.',
+              '',
+            ],
+            [
+              'Plagiarism, cheating, or misconduct = <strong style="color:#ef4444;">immediate disqualification.</strong>',
+              '',
+            ],
+            [
+              "The organiser's decision on all matters is <strong style='color:#fff;'>final and binding.</strong>",
+              '',
+            ],
+          ]
+            .map(
+              ([text], i) => `
+          <tr>
+            <td class="rn" style="padding: 8px 10px; color: #f59e0b; font-size: 14px; font-weight: 700; vertical-align: top; width: 26px;">${
+              i + 1
+            }.</td>
+            <td class="rt" style="padding: 8px 10px; color: #ccc; font-size: 13px; line-height: 1.6; border-bottom: 1px solid #161616;">${text}</td>
+          </tr>`
+            )
+            .join('')}
+        </table>
+      </div>
+    </div>
+
+    <!-- ══ TEAM MEMBERS ══ -->
+    <div style="background: #0a0a0a; border: 1.5px solid #2a2a2a; border-radius: 12px; overflow: hidden; margin-bottom: 20px;">
+      <div style="background: rgba(255,102,0,0.05); border-bottom: 1px solid #2a2a2a; padding: 12px 18px;">
+        <span class="st" style="color: #FF6600; font-size: 11px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase;">👥 Team Members (${
+          data.members.length
+        })</span>
+      </div>
+      <div style="padding: 4px 0;">
+        <table style="width: 100%; border-collapse: collapse;">
+          <thead>
+            <tr>
+              <th style="padding: 8px 12px; text-align: left; color: #444; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #1a1a1a;">#</th>
+              <th style="padding: 8px 12px; text-align: left; color: #444; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #1a1a1a;">Name</th>
+              <th class="hide-mob" style="padding: 8px 12px; text-align: left; color: #444; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #1a1a1a;">Email</th>
+              <th style="padding: 8px 12px; text-align: left; color: #444; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #1a1a1a;">Role</th>
+            </tr>
+          </thead>
+          <tbody>${memberRows}</tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══ WHAT TO BRING ══ -->
+    <div style="background: #0a0a0a; border: 1.5 solid #2a2a2a; border-radius: 12px; overflow: hidden; margin-bottom: 20px;">
+      <div style="background: rgba(16,185,129,0.07); border-bottom: 1px solid #2a2a2a; padding: 12px 18px;">
+        <span class="st" style="color: #10b981; font-size: 11px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase;">✅ What to Bring</span>
+      </div>
+      <div style="padding: 14px 18px;">
+        <table style="width: 100%; border-collapse: collapse;">
+          ${[
+            'Laptop &amp; charger',
+            'Valid College ID (mandatory for all members)',
+            'Personal essentials for an overnight stay',
+            'Enthusiasm and a winning attitude! 🔥',
+          ]
+            .map(
+              (item) => `<tr>
+              <td style="padding: 7px 0; color: #10b981; font-size: 14px; width: 26px; vertical-align: top;">✓</td>
+              <td style="padding: 7px 0; color: #ccc; font-size: 13px;">${item}</td>
+            </tr>`
+            )
+            .join('')}
+        </table>
+      </div>
+    </div>
+
+    <!-- ══ QR CHECK-IN PASS ══ -->
+    <div style="background: #0a0a0a; border: 2px solid #FF6600; border-radius: 12px; overflow: hidden; margin-bottom: 20px;">
+      <div style="background: linear-gradient(90deg, #FF6600 0%, #cc4400 100%); padding: 11px 18px; display: flex; align-items: center; justify-content: space-between;">
+        <span style="color: #fff; font-size: 11px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase;">🎫 Check-In Pass</span>
+        <span style="color: rgba(255,255,255,0.65); font-size: 10px; letter-spacing: 1px;">March 16, 2026 · 8:00 AM</span>
+      </div>
+      <div style="padding: 22px 18px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+          <div>
+            <p style="color: #555; margin: 0 0 2px; font-size: 10px; letter-spacing: 2px; text-transform: uppercase;">Team</p>
+            <p style="color: #FF6600; margin: 0; font-size: 20px; font-weight: 800;">${escapeHtml(
+              data.teamName
+            )}</p>
+          </div>
+          <div style="text-align: right;">
+            <p style="color: #555; margin: 0 0 4px; font-size: 10px; letter-spacing: 2px; text-transform: uppercase;">Desk</p>
+            <div class="dl" style="font-size: 60px; font-weight: 900; color: #FF6600; line-height: 1; text-shadow: 0 0 30px rgba(255,102,0,0.5);">${desk}</div>
+          </div>
+        </div>
+        <div style="text-align: center; margin-bottom: 16px;">
+          <p style="color: #555; margin: 0 0 12px; font-size: 10px; letter-spacing: 2px; text-transform: uppercase;">Scan at Registration Desk</p>
+          <div style="display: inline-block; background: #fff; border-radius: 10px; padding: 12px;">
+            <img class="qi" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${qrData}&bgcolor=FFFFFF&color=000000&margin=0"
+              width="180" height="180" alt="Check-in QR Code" style="display: block; border-radius: 4px;" />
+          </div>
+          <p style="color: #FF6600; font-family: 'Courier New', monospace; font-size: 16px; font-weight: 700; letter-spacing: 5px; margin: 12px 0 4px;">${escapeHtml(
+            data.shortCode
+          )}</p>
+          <p style="color: #444; font-size: 11px; margin: 0;">${
+            data.members.length
+          } Members · ${trackLabel} · Desk ${desk}</p>
+        </div>
+        <div style="background: rgba(245,158,11,0.06); border: 1px solid rgba(245,158,11,0.25); border-radius: 8px; padding: 12px 14px;">
+          <p style="color: #f59e0b; margin: 0; font-size: 12px; line-height: 1.7;">⚠️ <strong>All members must check in together</strong> at Desk ${desk} by <strong>9:00 AM.</strong> Teams arriving after check-in closes may forfeit their spot.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ WEBSITE ══ -->
+    <div style="background: rgba(34,102,255,0.06); border: 1px solid rgba(34,102,255,0.2); border-radius: 10px; padding: 14px; text-align: center; margin-bottom: 24px;">
+      <p style="color: #ccc; margin: 0; font-size: 13px;">
+        Official Website: <a href="https://www.indianexthackthon.online" style="color: #2266FF; text-decoration: none; font-weight: 700;">www.indianexthackthon.online</a>
+      </p>
+    </div>
+
+    <!-- ══ FOOTER ══ -->
+    <div style="border-top: 1px solid #1e1e1e; padding-top: 18px; text-align: center;">
+      <p style="color: #444; margin: 0 0 4px; font-size: 12px;">Questions? <a href="mailto:hackathon@kessc.edu.in" style="color: #FF6600; text-decoration: none;">hackathon@kessc.edu.in</a></p>
+      <p style="color: #333; margin: 0; font-size: 11px;">© ${new Date().getFullYear()} IndiaNext Hackathon · Powered by <span style="color: #FF6600;">KESSC</span></p>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>`;
+}
+
+async function sendShortlistEmail(
+  to: string,
+  teamName: string,
+  shortCode?: string,
+  notes?: string
+): Promise<EmailResult> {
+  // Get team details deeply
+  const team = await prisma.team.findFirst({
+    where: { shortCode: shortCode || undefined, name: teamName },
+    include: {
+      members: {
+        include: { user: true },
+      },
+    },
+  });
+
+  if (!team) return { success: false, error: 'Team not found for shortlist email' };
+
+  // Calculate teamIndex by counting already shortlisted teams before this one
+  const teamIndex = await prisma.team.count({
+    where: {
+      status: 'SHORTLISTED',
+      reviewedAt: { lt: team.reviewedAt || new Date() },
+    },
+  });
+
+  const html = buildShortlistEmailHtml({
+    teamName: team.name,
+    shortCode: team.shortCode,
+    track: team.track as 'IDEA_SPRINT' | 'BUILD_STORM',
+    members: team.members.map((m) => ({
+      name: m.user.name || 'Member',
+      email: m.user.email,
+      role: m.role,
+    })),
+    teamIndex,
+    notes,
+  });
+
+  const subject = `Congratulations — Team "${escapeHtml(team.name)}" Shortlisted | IndiaNext 2026`;
+
+  return sendEmailWithRetry({
+    to,
+    subject,
+    html,
+    type: 'STATUS_UPDATE',
+  });
+}
+
 
 // ═══════════════════════════════════════════════════════════
 // APPROVAL EMAIL — Rich email with hackathon details, schedule, rules

@@ -676,6 +676,7 @@ enum RegistrationStatus {
   PENDING        // Submitted, awaiting review
   UNDER_REVIEW   // Being reviewed by admin
   APPROVED       // Accepted
+  SHORTLISTED    // Shortlisted for final
   REJECTED       // Not accepted
   WAITLISTED     // On waitlist
   WITHDRAWN      // Team withdrew

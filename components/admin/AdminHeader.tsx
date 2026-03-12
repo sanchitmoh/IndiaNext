@@ -12,6 +12,7 @@ interface AdminUser {
 const pageTitles: Record<string, { title: string; code: string }> = {
   '/admin': { title: 'DASHBOARD', code: 'SYS://OVERVIEW' },
   '/admin/teams': { title: 'TEAMS', code: 'SYS://TEAM_MGMT' },
+  '/admin/shortlisted': { title: 'SHORTLISTED', code: 'SYS://FINAL_LIST' },
   '/admin/analytics': { title: 'ANALYTICS', code: 'SYS://DATA_VIZ' },
   '/admin/logistics': { title: 'LOGISTICS', code: 'SYS://EVENT_DAY' },
   '/admin/emails': { title: 'EMAIL_CAMPAIGNS', code: 'SYS://EMAIL_SEND' },

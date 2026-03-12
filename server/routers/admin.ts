@@ -318,7 +318,7 @@ export const adminRouter = router({
     .input(
       z.object({
         teamId: z.string(),
-        status: z.enum(['PENDING', 'APPROVED', 'REJECTED', 'WAITLISTED', 'UNDER_REVIEW']),
+        status: z.enum(['PENDING', 'APPROVED', 'REJECTED', 'WAITLISTED', 'UNDER_REVIEW', 'SHORTLISTED']),
         reviewNotes: z.string().optional(),
         rejectionReason: z.string().optional(),
       })
@@ -377,10 +377,11 @@ export const adminRouter = router({
       });
 
       // Send email to team leader only (non-blocking)
+      // NOTE: SHORTLISTED emails are sent manually from the Shortlisted Teams page
       const leader = team.members.find(
         (m: { role: string; user: { email: string; name: string | null } }) => m.role === 'LEADER'
       );
-      if (leader?.user?.email) {
+      if (leader?.user?.email && input.status !== 'SHORTLISTED') {
         sendStatusUpdateEmail(
           leader.user.email,
           team.name,
@@ -399,7 +400,7 @@ export const adminRouter = router({
     .input(
       z.object({
         teamIds: z.array(z.string()).max(100),
-        status: z.enum(['PENDING', 'APPROVED', 'REJECTED', 'WAITLISTED', 'UNDER_REVIEW']),
+        status: z.enum(['PENDING', 'APPROVED', 'REJECTED', 'WAITLISTED', 'UNDER_REVIEW', 'SHORTLISTED']),
         reviewNotes: z.string().optional(),
       })
     )
@@ -448,9 +449,10 @@ export const adminRouter = router({
         },
       });
 
+      // NOTE: SHORTLISTED emails are sent manually from the Shortlisted Teams page
       for (const t of teams) {
         const leaderEmail = t.members[0]?.user?.email;
-        if (leaderEmail) {
+        if (leaderEmail && input.status !== 'SHORTLISTED') {
           sendStatusUpdateEmail(
             leaderEmail,
             t.name,
@@ -464,6 +466,137 @@ export const adminRouter = router({
       }
 
       return { count: result.count };
+    }),
+
+  // ═══════════════════════════════════════════════════════════
+  // SHORTLISTED TEAMS
+  // ═══════════════════════════════════════════════════════════
+
+  getShortlistedTeams: canViewTeams.query(async ({ ctx }) => {
+    const teams = await ctx.prisma.team.findMany({
+      where: { status: 'SHORTLISTED', deletedAt: null },
+      include: {
+        members: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                college: true,
+              },
+            },
+          },
+        },
+        tags: true,
+      },
+      orderBy: { reviewedAt: 'asc' }, // Preserve shortlist order (desk assignment depends on it)
+    });
+    return teams;
+  }),
+
+  sendShortlistConfirmationEmail: canEditTeamsRateLimited
+    .input(
+      z.object({
+        teamId: z.string(),
+        notes: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const team = await ctx.prisma.team.findUnique({
+        where: { id: input.teamId, status: 'SHORTLISTED', deletedAt: null },
+        include: {
+          members: {
+            include: { user: { select: { email: true, name: true } } },
+          },
+        },
+      });
+
+      if (!team) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Shortlisted team not found',
+        });
+      }
+
+      const leader = team.members.find((m) => m.role === 'LEADER');
+      if (!leader?.user?.email) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Team has no leader with a valid email',
+        });
+      }
+
+      await sendStatusUpdateEmail(
+        leader.user.email,
+        team.name,
+        'SHORTLISTED',
+        input.notes,
+        team.shortCode ?? undefined
+      );
+
+      await ctx.prisma.activityLog.create({
+        data: {
+          userId: null,
+          action: 'team.shortlist_email_sent',
+          entity: 'Team',
+          entityId: input.teamId,
+          metadata: { adminId: ctx.admin.id, adminName: ctx.admin.name },
+        },
+      });
+
+      return { success: true };
+    }),
+
+  sendBulkShortlistConfirmationEmails: canEditTeamsRateLimited
+    .input(
+      z.object({
+        teamIds: z.array(z.string()).max(200),
+        notes: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const teams = await ctx.prisma.team.findMany({
+        where: { id: { in: input.teamIds }, status: 'SHORTLISTED', deletedAt: null },
+        include: {
+          members: {
+            where: { role: 'LEADER' },
+            include: { user: { select: { email: true, name: true } } },
+          },
+        },
+      });
+
+      let sent = 0;
+      let failed = 0;
+
+      for (const team of teams) {
+        const leader = team.members[0];
+        if (!leader?.user?.email) { failed++; continue; }
+        try {
+          await sendStatusUpdateEmail(
+            leader.user.email,
+            team.name,
+            'SHORTLISTED',
+            input.notes,
+            team.shortCode ?? undefined
+          );
+          sent++;
+        } catch {
+          failed++;
+        }
+      }
+
+      await ctx.prisma.activityLog.create({
+        data: {
+          userId: null,
+          action: 'team.bulk_shortlist_emails_sent',
+          entity: 'Team',
+          entityId: 'bulk',
+          metadata: { sent, failed, adminId: ctx.admin.id, adminName: ctx.admin.name },
+        },
+      });
+
+      return { sent, failed };
     }),
 
   deleteTeam: canDeleteTeamsRateLimited

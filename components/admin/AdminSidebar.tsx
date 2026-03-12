@@ -14,6 +14,7 @@ import {
   FileQuestion,
   ClipboardCheck,
   Mail,
+  Star,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { getAllowedNavItems, type AdminRole } from '@/lib/rbac';
@@ -81,6 +82,7 @@ export function AdminSidebar({
   const iconMap: Record<string, typeof LayoutDashboard> = {
     DASHBOARD: LayoutDashboard,
     TEAMS: Users,
+    SHORTLISTED: Star,
     PROBLEMS: FileQuestion,
     ANALYTICS: BarChart3,
     LOGISTICS: ClipboardCheck,
