@@ -6,7 +6,7 @@ export default function Register() {
       <div className="max-w-2xl mx-auto text-center">
         {/* Background Effects */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(239,68,68,0.05),transparent_60%)]" />
-        
+
         <div className="relative z-10">
           {/* Icon */}
           <div className="mb-8 flex justify-center">
@@ -39,8 +39,9 @@ export default function Register() {
               </span>
             </div>
             <p className="text-gray-300 leading-relaxed">
-              Thank you for your interest in IndiaNext 2026. The registration period has officially closed. 
-              We received an overwhelming response from talented participants across the country.
+              Thank you for your interest in IndiaNext 2026. The registration period has officially
+              closed. We received an overwhelming response from talented participants across the
+              country.
             </p>
           </div>
 

@@ -9,11 +9,13 @@ If you want to switch from Resend with **minimal code changes** (just environmen
 ## 1. ✅ **Plunk** (Easiest Migration - 95% Compatible)
 
 ### Why Choose Plunk?
+
 - API is nearly identical to Resend
 - Free tier: 3,000 emails/month
 - Simple migration: mostly env changes
 
 ### Setup:
+
 ```env
 # .env
 PLUNK_API_KEY="pk_xxxxxxxxxxxxx"
@@ -21,6 +23,7 @@ EMAIL_FROM="hackathon@indianexthackthon.online"
 ```
 
 ### Code Changes Required:
+
 **Minimal** - Just replace Resend initialization:
 
 ```typescript
@@ -46,12 +49,14 @@ await plunk.emails.send({
 ## 2. ✅ **SendGrid** (Most Popular)
 
 ### Why Choose SendGrid?
+
 - Industry standard, very reliable
 - Free tier: 100 emails/day (3,000/month)
 - Excellent deliverability
 - Great documentation
 
 ### Setup:
+
 ```env
 # .env
 SENDGRID_API_KEY="SG.xxxxxxxxxxxxx"
@@ -59,6 +64,7 @@ EMAIL_FROM="hackathon@indianexthackthon.online"
 ```
 
 ### Code Changes Required:
+
 **Moderate** - Different API structure:
 
 ```typescript
@@ -82,12 +88,14 @@ await sgMail.send({
 ## 3. ✅ **Mailgun** (Developer-Friendly)
 
 ### Why Choose Mailgun?
+
 - Developer-focused
 - Free tier: 5,000 emails/month (first 3 months)
 - Good API documentation
 - Flexible pricing
 
 ### Setup:
+
 ```env
 # .env
 MAILGUN_API_KEY="key-xxxxxxxxxxxxx"
@@ -96,6 +104,7 @@ EMAIL_FROM="hackathon@indianexthackthon.online"
 ```
 
 ### Code Changes Required:
+
 **Moderate** - Different API:
 
 ```typescript
@@ -124,12 +133,14 @@ await mg.messages.create(process.env.MAILGUN_DOMAIN!, {
 ## 4. ✅ **Postmark** (Transactional Focus)
 
 ### Why Choose Postmark?
+
 - Excellent for transactional emails
 - Fast delivery
 - Great analytics
 - Free tier: 100 emails/month
 
 ### Setup:
+
 ```env
 # .env
 POSTMARK_API_KEY="xxxxxxxxxxxxx"
@@ -137,6 +148,7 @@ EMAIL_FROM="hackathon@indianexthackthon.online"
 ```
 
 ### Code Changes Required:
+
 **Moderate** - Different API:
 
 ```typescript
@@ -160,12 +172,14 @@ await client.sendEmail({
 ## 5. ✅ **Amazon SES** (Cheapest at Scale)
 
 ### Why Choose Amazon SES?
+
 - Extremely cheap: $0.10 per 1,000 emails
 - Unlimited scale
 - AWS integration
 - Best for high volume
 
 ### Setup:
+
 ```env
 # .env
 AWS_ACCESS_KEY_ID="AKIAXXXXXXXXXXXXX"
@@ -175,6 +189,7 @@ EMAIL_FROM="hackathon@indianexthackthon.online"
 ```
 
 ### Code Changes Required:
+
 **Significant** - AWS SDK:
 
 ```typescript
@@ -189,14 +204,16 @@ const ses = new SESClient({
   },
 });
 
-await ses.send(new SendEmailCommand({
-  Source: 'hackathon@indianexthackthon.online',
-  Destination: { ToAddresses: ['user@example.com'] },
-  Message: {
-    Subject: { Data: 'Hello' },
-    Body: { Html: { Data: '<p>Hello World</p>' } },
-  },
-}));
+await ses.send(
+  new SendEmailCommand({
+    Source: 'hackathon@indianexthackthon.online',
+    Destination: { ToAddresses: ['user@example.com'] },
+    Message: {
+      Subject: { Data: 'Hello' },
+      Body: { Html: { Data: '<p>Hello World</p>' } },
+    },
+  })
+);
 ```
 
 **Migration Effort**: 🔴 High (6-8 hours)
@@ -206,12 +223,14 @@ await ses.send(new SendEmailCommand({
 ## 6. ✅ **Brevo (formerly Sendinblue)** (All-in-One)
 
 ### Why Choose Brevo?
+
 - Free tier: 300 emails/day (9,000/month)
 - Marketing + Transactional
 - SMS included
 - Good UI
 
 ### Setup:
+
 ```env
 # .env
 BREVO_API_KEY="xkeysib-xxxxxxxxxxxxx"
@@ -219,6 +238,7 @@ EMAIL_FROM="hackathon@indianexthackthon.online"
 ```
 
 ### Code Changes Required:
+
 **Moderate**:
 
 ```typescript
@@ -226,10 +246,7 @@ EMAIL_FROM="hackathon@indianexthackthon.online"
 import SibApiV3Sdk from '@sendinblue/client';
 
 const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
-apiInstance.setApiKey(
-  SibApiV3Sdk.TransactionalEmailsApiApiKeys.apiKey,
-  process.env.BREVO_API_KEY!
-);
+apiInstance.setApiKey(SibApiV3Sdk.TransactionalEmailsApiApiKeys.apiKey, process.env.BREVO_API_KEY!);
 
 await apiInstance.sendTransacEmail({
   sender: { email: 'hackathon@indianexthackthon.online' },
@@ -245,28 +262,31 @@ await apiInstance.sendTransacEmail({
 
 ## 📊 Comparison Table
 
-| Service | Free Tier | Migration Effort | API Similarity | Best For |
-|---------|-----------|------------------|----------------|----------|
-| **Plunk** | 3,000/month | 🟢 Low | 95% | Quick migration |
-| **SendGrid** | 3,000/month | 🟡 Medium | 60% | Reliability |
-| **Mailgun** | 5,000/month* | 🟡 Medium | 65% | Developers |
-| **Postmark** | 100/month | 🟡 Medium | 60% | Transactional |
-| **Amazon SES** | Pay-as-go | 🔴 High | 30% | High volume |
-| **Brevo** | 9,000/month | 🟡 Medium | 55% | Marketing too |
+| Service        | Free Tier     | Migration Effort | API Similarity | Best For        |
+| -------------- | ------------- | ---------------- | -------------- | --------------- |
+| **Plunk**      | 3,000/month   | 🟢 Low           | 95%            | Quick migration |
+| **SendGrid**   | 3,000/month   | 🟡 Medium        | 60%            | Reliability     |
+| **Mailgun**    | 5,000/month\* | 🟡 Medium        | 65%            | Developers      |
+| **Postmark**   | 100/month     | 🟡 Medium        | 60%            | Transactional   |
+| **Amazon SES** | Pay-as-go     | 🔴 High          | 30%            | High volume     |
+| **Brevo**      | 9,000/month   | 🟡 Medium        | 55%            | Marketing too   |
 
-*First 3 months only
+\*First 3 months only
 
 ---
 
 ## 🎯 **Recommendation for Your Project**
 
 ### For Immediate Switch (Today):
+
 **Use Plunk** - Most similar API, minimal code changes
 
 ### For Long-term (Production):
+
 **Use SendGrid** - Most reliable, industry standard
 
 ### For Budget (High Volume):
+
 **Use Amazon SES** - Cheapest at scale
 
 ---
@@ -274,12 +294,14 @@ await apiInstance.sendTransacEmail({
 ## 🚀 Quick Migration Guide (Plunk)
 
 ### Step 1: Sign up for Plunk
+
 1. Go to https://useplunk.com
 2. Create account
 3. Verify your domain
 4. Get API key
 
 ### Step 2: Update Environment Variables
+
 ```env
 # Add to .env
 PLUNK_API_KEY="pk_xxxxxxxxxxxxx"
@@ -289,6 +311,7 @@ RESEND_API_KEY="re_xxxxxxxxxxxxx"
 ```
 
 ### Step 3: Update Code (One File)
+
 ```typescript
 // lib/email.ts
 function getEmailClient() {
@@ -301,12 +324,14 @@ function getEmailClient() {
 ```
 
 ### Step 4: Test
+
 ```bash
 # Send test email
 npm run test:email
 ```
 
 ### Step 5: Deploy
+
 ```bash
 # Update Vercel env vars
 vercel env add PLUNK_API_KEY
@@ -320,19 +345,25 @@ vercel --prod
 ## ⚠️ Important Notes
 
 ### Domain Verification Required
+
 All services require you to verify your domain:
+
 - Add DNS records (SPF, DKIM, DMARC)
 - Verify ownership
 - Wait for propagation (can take 24-48 hours)
 
 ### Current Domain
+
 Your domain: `indianexthackthon.online`
+
 - Already verified with Resend
 - Need to re-verify with new service
 - Keep Resend active during transition
 
 ### Webhook URLs
+
 If using webhooks for delivery tracking:
+
 - Update webhook URLs in new service
 - Current: `/api/resend-webhook`
 - May need to create new endpoint for different service
@@ -366,6 +397,7 @@ If using webhooks for delivery tracking:
 ## 📞 Need Help?
 
 If you need help migrating, I can:
+
 1. Create a multi-provider email wrapper
 2. Update all email sending code
 3. Set up fallback logic

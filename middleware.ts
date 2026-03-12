@@ -40,7 +40,6 @@ export function middleware(request: NextRequest) {
     'https://indianext.vercel.app',
     'https://www.indianexthackthon.online',
     'https://india-next-one.vercel.app',
-
   ].filter(Boolean) as string[];
 
   // Vercel sets VERCEL_URL (e.g. my-app-abc123.vercel.app) for every deployment
@@ -151,7 +150,7 @@ export function middleware(request: NextRequest) {
     const nonceArray = new Uint8Array(16);
     crypto.getRandomValues(nonceArray);
     const nonce = Buffer.from(nonceArray).toString('base64');
-    
+
     response.headers.set(
       'Content-Security-Policy',
       [

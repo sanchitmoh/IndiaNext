@@ -92,7 +92,7 @@ export default function ComposeEmailPage() {
   // TipTap editor
   const editor = useEditor({
     extensions: [StarterKit],
-    content: "",
+    content: '',
     onUpdate: ({ editor }: { editor: any }) => setBody(editor.getHTML()),
     immediatelyRender: false,
   });
@@ -574,23 +574,25 @@ export default function ComposeEmailPage() {
             </div>
 
             {/* Placeholder Validation */}
-            {body && (() => {
-              const invalidPlaceholders = body.match(/\{\{[^}]+\}\}/g)?.filter(placeholder => {
-                const key = placeholder.slice(2, -2);
-                return !TEMPLATE_VARIABLES.some(v => v.key === key);
-              }) || [];
-              
-              if (invalidPlaceholders.length > 0) {
-                return (
-                  <div className="mb-2 p-2 bg-red-500/10 border border-red-500/20 rounded-md">
-                    <span className="text-[8px] font-mono text-red-400 tracking-wider">
-                      ⚠️ INVALID PLACEHOLDERS: {invalidPlaceholders.join(', ')}
-                    </span>
-                  </div>
-                );
-              }
-              return null;
-            })()}
+            {body &&
+              (() => {
+                const invalidPlaceholders =
+                  body.match(/\{\{[^}]+\}\}/g)?.filter((placeholder) => {
+                    const key = placeholder.slice(2, -2);
+                    return !TEMPLATE_VARIABLES.some((v) => v.key === key);
+                  }) || [];
+
+                if (invalidPlaceholders.length > 0) {
+                  return (
+                    <div className="mb-2 p-2 bg-red-500/10 border border-red-500/20 rounded-md">
+                      <span className="text-[8px] font-mono text-red-400 tracking-wider">
+                        ⚠️ INVALID PLACEHOLDERS: {invalidPlaceholders.join(', ')}
+                      </span>
+                    </div>
+                  );
+                }
+                return null;
+              })()}
 
             <div className="bg-[#050505] border border-white/[0.04] rounded-md">
               <EditorContent

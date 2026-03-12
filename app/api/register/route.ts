@@ -843,7 +843,11 @@ export async function PUT(req: Request) {
 
     if (!validation.success) {
       return NextResponse.json(
-        { success: false, error: 'VALIDATION_ERROR', message: validation.error.errors[0]?.message ?? 'Validation failed' },
+        {
+          success: false,
+          error: 'VALIDATION_ERROR',
+          message: validation.error.errors[0]?.message ?? 'Validation failed',
+        },
         { status: 400 }
       );
     }

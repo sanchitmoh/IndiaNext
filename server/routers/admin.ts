@@ -149,20 +149,28 @@ export const adminRouter = router({
       }
 
       // Track filter
-      if (input.track && input.track !== "all") {
-        if (input.track === "BOTH") {
+      if (input.track && input.track !== 'all') {
+        if (input.track === 'BOTH') {
           // Both tracks means we want teams whose leader is in teams of both tracks
           // Get all leaders
           const leadersInBoth = await ctx.prisma.user.findMany({
             where: {
               AND: [
-                { teamMemberships: { some: { team: { track: "IDEA_SPRINT", deletedAt: null }, role: "LEADER" } } },
-                { teamMemberships: { some: { team: { track: "BUILD_STORM", deletedAt: null }, role: "LEADER" } } }
-              ]
+                {
+                  teamMemberships: {
+                    some: { team: { track: 'IDEA_SPRINT', deletedAt: null }, role: 'LEADER' },
+                  },
+                },
+                {
+                  teamMemberships: {
+                    some: { team: { track: 'BUILD_STORM', deletedAt: null }, role: 'LEADER' },
+                  },
+                },
+              ],
             },
-            select: { id: true }
+            select: { id: true },
           });
-          const leaderIds = leadersInBoth.map(u => u.id);
+          const leaderIds = leadersInBoth.map((u) => u.id);
           where.createdBy = { in: leaderIds };
         } else {
           where.track = input.track;
@@ -321,7 +329,14 @@ export const adminRouter = router({
     .input(
       z.object({
         teamId: z.string(),
-        status: z.enum(['PENDING', 'APPROVED', 'REJECTED', 'WAITLISTED', 'UNDER_REVIEW', 'SHORTLISTED']),
+        status: z.enum([
+          'PENDING',
+          'APPROVED',
+          'REJECTED',
+          'WAITLISTED',
+          'UNDER_REVIEW',
+          'SHORTLISTED',
+        ]),
         reviewNotes: z.string().optional(),
         rejectionReason: z.string().optional(),
       })
@@ -403,7 +418,14 @@ export const adminRouter = router({
     .input(
       z.object({
         teamIds: z.array(z.string()).max(100),
-        status: z.enum(['PENDING', 'APPROVED', 'REJECTED', 'WAITLISTED', 'UNDER_REVIEW', 'SHORTLISTED']),
+        status: z.enum([
+          'PENDING',
+          'APPROVED',
+          'REJECTED',
+          'WAITLISTED',
+          'UNDER_REVIEW',
+          'SHORTLISTED',
+        ]),
         reviewNotes: z.string().optional(),
       })
     )
@@ -574,7 +596,10 @@ export const adminRouter = router({
 
       for (const team of teams) {
         const leader = team.members[0];
-        if (!leader?.user?.email) { failed++; continue; }
+        if (!leader?.user?.email) {
+          failed++;
+          continue;
+        }
         try {
           await sendStatusUpdateEmail(
             leader.user.email,
@@ -970,18 +995,26 @@ export const adminRouter = router({
         where.status = input.status;
       }
 
-      if (input.track && input.track !== "all") {
-        if (input.track === "BOTH") {
+      if (input.track && input.track !== 'all') {
+        if (input.track === 'BOTH') {
           const leadersInBoth = await ctx.prisma.user.findMany({
             where: {
               AND: [
-                { teamMemberships: { some: { team: { track: "IDEA_SPRINT", deletedAt: null }, role: "LEADER" } } },
-                { teamMemberships: { some: { team: { track: "BUILD_STORM", deletedAt: null }, role: "LEADER" } } }
-              ]
+                {
+                  teamMemberships: {
+                    some: { team: { track: 'IDEA_SPRINT', deletedAt: null }, role: 'LEADER' },
+                  },
+                },
+                {
+                  teamMemberships: {
+                    some: { team: { track: 'BUILD_STORM', deletedAt: null }, role: 'LEADER' },
+                  },
+                },
+              ],
             },
-            select: { id: true }
+            select: { id: true },
           });
-          const leaderIds = leadersInBoth.map(u => u.id);
+          const leaderIds = leadersInBoth.map((u) => u.id);
           where.createdBy = { in: leaderIds };
         } else {
           where.track = input.track;

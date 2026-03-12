@@ -56,7 +56,13 @@ export function BulkActions({ selectedTeams, onComplete }: BulkActionsProps) {
     try {
       const result = await bulkUpdate.mutateAsync({
         teamIds: selectedTeams,
-        status: status as 'PENDING' | 'APPROVED' | 'REJECTED' | 'WAITLISTED' | 'UNDER_REVIEW' | 'SHORTLISTED',
+        status: status as
+          | 'PENDING'
+          | 'APPROVED'
+          | 'REJECTED'
+          | 'WAITLISTED'
+          | 'UNDER_REVIEW'
+          | 'SHORTLISTED',
       });
       toast.success(`Updated ${result.count} teams to ${status}`);
       onComplete();

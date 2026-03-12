@@ -310,7 +310,8 @@ export function QRScannerModal({ onClose, onResult }: QRScannerModalProps) {
                       CAMERA ACCESS REQUIRED
                     </p>
                     <p className="text-[10px] font-mono text-gray-400 max-w-[260px] leading-relaxed">
-                      Your browser will ask for camera permission. Please allow access to scan QR codes.
+                      Your browser will ask for camera permission. Please allow access to scan QR
+                      codes.
                     </p>
                     <p className="text-[9px] font-mono text-amber-400/70 max-w-[260px] leading-relaxed">
                       Note: Camera requires HTTPS or localhost

@@ -7,11 +7,13 @@ The camera scanner in the logistics portal was not opening automatically when cl
 ## 🔧 Changes Made
 
 ### 1. **Automatic Camera Activation**
+
 - **File**: `components/admin/logistics/QRScannerModal.tsx`
 - **Change**: When clicking the "SCAN QR" tab, the camera now starts immediately instead of showing an intermediate "ENABLE CAMERA" button
 - **Benefit**: Faster workflow for logistics staff during check-in
 
 ### 2. **Improved User Guidance**
+
 - Added note about HTTPS/localhost requirement for camera access
 - Enhanced error messages for different camera permission states
 - Better visual feedback during camera initialization
@@ -41,13 +43,17 @@ The camera scanner in the logistics portal was not opening automatically when cl
 ## 🔒 Security Requirements
 
 ### HTTPS Required
+
 Camera access requires a secure context:
+
 - ✅ **Production**: Must use HTTPS (https://yoursite.com)
 - ✅ **Development**: localhost is automatically secure
 - ❌ **HTTP**: Camera will not work on non-secure HTTP connections
 
 ### Browser Compatibility
+
 The QR scanner works on:
+
 - ✅ Chrome/Edge (Desktop & Mobile)
 - ✅ Safari (iOS & macOS)
 - ✅ Firefox (Desktop & Mobile)
@@ -58,31 +64,37 @@ The QR scanner works on:
 ### Camera Not Opening?
 
 **Check 1: Browser Permissions**
+
 - Chrome/Edge: Click lock icon 🔒 in address bar → Site settings → Camera → Allow
 - Safari: Settings → Safari → Camera → Allow
 - Firefox: Click lock icon 🔒 → Connection secure → Permissions → Camera ✓
 
 **Check 2: HTTPS Connection**
+
 - Verify the URL starts with `https://`
 - On localhost, this should work automatically
 
 **Check 3: Camera in Use**
+
 - Close other apps/tabs using the camera
 - Restart your browser if needed
 
 **Check 4: Browser Support**
+
 - Update to the latest browser version
 - Try a different browser if issues persist
 
 ### QR Code Not Scanning?
 
 **Tips for Better Scanning:**
+
 - Ensure good lighting
 - Hold the QR code steady within the scan area
 - Keep the code at a reasonable distance (not too close/far)
 - Make sure the QR code is not damaged or blurry
 
 **Fallback Option:**
+
 - Use "MANUAL ENTRY" tab
 - Type the team's short code manually
 - This always works regardless of camera issues

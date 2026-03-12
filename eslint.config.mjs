@@ -29,6 +29,8 @@ export default [
       "scripts/**",
       "node_modules/**",
       "tests/**",
+      "coverage/**",
+      "docs/**",
     ],
   },
   {

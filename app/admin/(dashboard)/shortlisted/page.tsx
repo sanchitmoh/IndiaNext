@@ -179,8 +179,8 @@ export default function ShortlistedTeamsPage() {
           <Star className="h-12 w-12 text-gray-700 mb-4" />
           <p className="text-sm font-mono text-gray-500">No shortlisted teams yet</p>
           <p className="text-xs font-mono text-gray-600 mt-1">
-            Set team status to{' '}
-            <span className="text-orange-400 font-bold">SHORTLISTED</span> from the Teams page.
+            Set team status to <span className="text-orange-400 font-bold">SHORTLISTED</span> from
+            the Teams page.
           </p>
         </div>
       )}
@@ -325,7 +325,9 @@ export default function ShortlistedTeamsPage() {
                         </div>
                         <div className="flex items-center gap-2">
                           <Zap className="h-3.5 w-3.5 text-gray-600" />
-                          <span className={`text-xs font-mono font-bold ${trackColors[team.track].split(' ')[0]}`}>
+                          <span
+                            className={`text-xs font-mono font-bold ${trackColors[team.track].split(' ')[0]}`}
+                          >
                             {trackLabels[team.track]}
                           </span>
                         </div>
@@ -379,10 +381,7 @@ export default function ShortlistedTeamsPage() {
                       </div>
                       <div className="divide-y divide-white/[0.03]">
                         {team.members.map((m) => (
-                          <div
-                            key={m.id}
-                            className="flex items-center gap-3 px-3 py-2.5"
-                          >
+                          <div key={m.id} className="flex items-center gap-3 px-3 py-2.5">
                             <div
                               className={`w-2 h-2 rounded-full shrink-0 ${
                                 m.role === 'LEADER' ? 'bg-orange-400' : 'bg-gray-700'

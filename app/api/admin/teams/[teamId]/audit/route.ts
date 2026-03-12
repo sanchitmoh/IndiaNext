@@ -391,7 +391,10 @@ export async function GET(req: Request, { params }: { params: Promise<{ teamId: 
         { status: 504 }
       );
     }
-    if (error.message && (error.message.includes('Failed to fetch') || error.message.includes('NetworkError'))) {
+    if (
+      error.message &&
+      (error.message.includes('Failed to fetch') || error.message.includes('NetworkError'))
+    ) {
       return NextResponse.json(
         {
           success: false,

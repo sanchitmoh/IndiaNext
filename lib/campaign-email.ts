@@ -165,7 +165,7 @@ export function renderCampaignEmail(
     const beforeReplace = html;
     html = html.replace(pattern, escapeHtml(value));
     subject = subject.replace(pattern, value);
-    
+
     if (beforeReplace !== html || subjectTemplate.includes(`{{${key}}}`)) {
       replacedPlaceholders.push(`{{${key}}} → ${value}`);
     }

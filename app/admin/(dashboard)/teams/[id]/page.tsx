@@ -694,11 +694,17 @@ function SubmissionTab({
           { label: 'Competitors', value: submission.competitors },
         ]
       : [
-          { label: "Selected Problem Statement", value: submission.assignedProblemStatement?.title || null },
-          { label: "Problem Statement Description - How you plan to solve the given problem", value: submission.problemDesc },
-          { label: "Tech Stack Used", value: submission.techStackUsed },
-          { label: "Challenges Faced", value: submission.challenges },
-          { label: "Future Scope", value: submission.futureScope },
+          {
+            label: 'Selected Problem Statement',
+            value: submission.assignedProblemStatement?.title || null,
+          },
+          {
+            label: 'Problem Statement Description - How you plan to solve the given problem',
+            value: submission.problemDesc,
+          },
+          { label: 'Tech Stack Used', value: submission.techStackUsed },
+          { label: 'Challenges Faced', value: submission.challenges },
+          { label: 'Future Scope', value: submission.futureScope },
         ];
 
   return (

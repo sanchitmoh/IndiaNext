@@ -32,20 +32,8 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov', 'html'],
-      include: [
-        'lib/**/*.ts',
-        'server/**/*.ts',
-        'app/**/*.ts',
-        'app/**/*.tsx',
-      ],
-      exclude: [
-        'node_modules',
-        '.next',
-        'prisma',
-        '**/*.d.ts',
-        'tests/**',
-        'scripts/**',
-      ],
+      include: ['lib/**/*.ts', 'server/**/*.ts', 'app/**/*.ts', 'app/**/*.tsx'],
+      exclude: ['node_modules', '.next', 'prisma', '**/*.d.ts', 'tests/**', 'scripts/**'],
     },
   },
   resolve: {

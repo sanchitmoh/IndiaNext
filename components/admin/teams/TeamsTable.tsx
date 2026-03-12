@@ -233,7 +233,10 @@ export function TeamsTable({
                       </div>
                       {/* Problem Statement Display */}
                       {team.submission?.assignedProblemStatement?.title && (
-                        <div className="mt-1.5 text-[10px] font-mono text-cyan-400 line-clamp-1 border border-cyan-500/20 bg-cyan-500/5 px-1.5 py-0.5 rounded w-fit max-w-full truncate" title={team.submission.assignedProblemStatement.title}>
+                        <div
+                          className="mt-1.5 text-[10px] font-mono text-cyan-400 line-clamp-1 border border-cyan-500/20 bg-cyan-500/5 px-1.5 py-0.5 rounded w-fit max-w-full truncate"
+                          title={team.submission.assignedProblemStatement.title}
+                        >
                           PS: {team.submission.assignedProblemStatement.title}
                         </div>
                       )}
@@ -381,7 +384,10 @@ export function TeamsTable({
                         )}
                         {/* Problem Statement Display */}
                         {team.submission?.assignedProblemStatement?.title && (
-                          <div className="mt-1.5 text-[10px] font-mono text-cyan-400 line-clamp-1 border border-cyan-500/20 bg-cyan-500/5 px-1.5 py-0.5 rounded w-fit max-w-full truncate" title={team.submission.assignedProblemStatement.title}>
+                          <div
+                            className="mt-1.5 text-[10px] font-mono text-cyan-400 line-clamp-1 border border-cyan-500/20 bg-cyan-500/5 px-1.5 py-0.5 rounded w-fit max-w-full truncate"
+                            title={team.submission.assignedProblemStatement.title}
+                          >
                             PS: {team.submission.assignedProblemStatement.title}
                           </div>
                         )}

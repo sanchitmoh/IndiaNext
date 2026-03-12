@@ -248,16 +248,10 @@ describe('Audit Trail API - Summary Statistics Properties', () => {
               timestamp: sharedTimestamp,
             }));
 
-            (prisma.auditLog.findMany as any).mockResolvedValue(
-              logsWithSameTimestamp as any
-            );
-            (prisma.auditLog.count as any).mockResolvedValue(
-              logsWithSameTimestamp.length
-            );
+            (prisma.auditLog.findMany as any).mockResolvedValue(logsWithSameTimestamp as any);
+            (prisma.auditLog.count as any).mockResolvedValue(logsWithSameTimestamp.length);
 
-            const req = new Request(
-              `http://localhost/api/admin/teams/${testTeamId}/audit`
-            );
+            const req = new Request(`http://localhost/api/admin/teams/${testTeamId}/audit`);
             const response = await GET(req, { params: { teamId: testTeamId } });
             const data = await response.json();
 

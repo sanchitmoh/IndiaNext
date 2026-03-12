@@ -384,7 +384,9 @@ export async function sendOtpEmail(
               <div class="email-hdr" style="background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%); padding: 32px 20px; border-radius: 12px 12px 0 0; text-align: center; border: 2px solid #222; border-bottom: none;">
                 <h1 style="color: #FF6600; margin: 0; font-size: 28px; font-weight: bold; text-shadow: 0 0 20px rgba(255, 102, 0, 0.5);">IndiaNext</h1>
                 <p style="color: #ededed; margin: 10px 0 0 0; font-size: 14px; letter-spacing: 2px;">HACKATHON 2026</p>
-                ${trackInfo ? `
+                ${
+                  trackInfo
+                    ? `
                   <div class="badge-wrap" style="margin-top: 20px; padding: 10px 20px; background: rgba(${trackInfo.color === '#00CC44' ? '0, 204, 68' : '34, 102, 255'}, 0.1); border: 1px solid ${trackInfo.color}; border-radius: 8px; display: inline-block;">
                     <span style="font-size: 14px; margin-right: 6px; color: ${trackInfo.color}; font-weight: bold;">[${trackInfo.icon}]</span>
                     <span class="badge-txt" style="color: ${trackInfo.color}; font-weight: bold; font-size: 13px; letter-spacing: 1px;">${trackInfo.label.toUpperCase()}</span>
@@ -1005,8 +1007,8 @@ export function buildShortlistEmailHtml(data: ShortlistEmailData): string {
           )}</span>
         </div>
         <div style="background: rgba(${isBS ? '34,102,255' : '0,204,68'},0.08); border: 1px solid rgba(${
-    isBS ? '34,102,255' : '0,204,68'
-  },0.3); border-radius: 6px; padding: 5px 14px;">
+          isBS ? '34,102,255' : '0,204,68'
+        },0.3); border-radius: 6px; padding: 5px 14px;">
           <span style="color: ${trackColor}; font-size: 12px; font-weight: 700;">${trackLabel}</span>
         </div>
         <div style="background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.25); border-radius: 6px; padding: 5px 14px;">
@@ -1398,7 +1400,6 @@ async function sendShortlistEmail(
     type: 'STATUS_UPDATE',
   });
 }
-
 
 // ═══════════════════════════════════════════════════════════
 // APPROVAL EMAIL — Rich email with hackathon details, schedule, rules
@@ -2631,7 +2632,6 @@ function buildSubmissionDetailsHtml(data: SubmissionDetailsData): string {
           </body>
         </html>`;
 }
-
 
 // ═══════════════════════════════════════════════════════════
 // EMAIL QUEUE PROCESSING

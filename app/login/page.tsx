@@ -9,7 +9,7 @@ export default function LoginPage() {
       <div className="max-w-2xl mx-auto text-center">
         {/* Background Effects */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(239,68,68,0.05),transparent_60%)]" />
-        
+
         <div className="relative z-10">
           {/* Icon */}
           <div className="mb-8 flex justify-center">
@@ -42,8 +42,9 @@ export default function LoginPage() {
               </span>
             </div>
             <p className="text-gray-300 leading-relaxed">
-              Team editing and modifications are no longer available. All registrations have been finalized 
-              and locked for the event. No changes to team members or details can be made at this time.
+              Team editing and modifications are no longer available. All registrations have been
+              finalized and locked for the event. No changes to team members or details can be made
+              at this time.
             </p>
           </div>
 
