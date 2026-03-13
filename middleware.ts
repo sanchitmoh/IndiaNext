@@ -160,7 +160,7 @@ export function middleware(request: NextRequest) {
         "style-src 'self' 'unsafe-inline'", // Tailwind/inline styles still need this
         "img-src 'self' res.cloudinary.com data: blob:", // Cloudinary images
         "font-src 'self'",
-        "connect-src 'self'",
+        "connect-src 'self' *.pusher.com wss://*.pusher.com",
         "frame-ancestors 'none'",
         "base-uri 'self'",
         "form-action 'self'",
