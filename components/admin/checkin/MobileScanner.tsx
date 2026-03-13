@@ -195,7 +195,7 @@ export default function MobileScanner() {
       </AnimatePresence>
 
       {/* Header */}
-      <div className="z-10 bg-black/60 backdrop-blur-xl border-b border-white/10 p-4 flex items-center justify-between">
+      <div className="z-10 bg-black border-b border-white/10 p-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           {!contextDesk && (
             <button
@@ -264,45 +264,44 @@ export default function MobileScanner() {
           </div>
         ) : (
           <>
-            <div id="reader" className="w-full h-full object-cover" />
+            <div id="reader" className="w-full h-full [&>video]:object-cover" />
 
             {/* Overlay UI */}
-            <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+            <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-center">
               {/* Scan Box Frame */}
-              <div className="relative w-[70vw] h-[70vw] max-w-[300px] max-h-[300px]">
-                {/* Visual Guidelines */}
-                <div className="absolute inset-0 border-2 border-white/10 rounded-3xl" />
-                
+              <div className="relative w-64 h-64">
                 {/* Glowing Corners */}
-                <div className="absolute -top-1 -left-1 w-10 h-10 border-t-4 border-l-4 border-orange-500 rounded-tl-2xl shadow-[-5px_-5px_15px_rgba(255,102,0,0.3)]" />
-                <div className="absolute -top-1 -right-1 w-10 h-10 border-t-4 border-r-4 border-orange-500 rounded-tr-2xl shadow-[5px_-5px_15px_rgba(255,102,0,0.3)]" />
-                <div className="absolute -bottom-1 -left-1 w-10 h-10 border-b-4 border-l-4 border-orange-500 rounded-bl-2xl shadow-[-5px_5px_15px_rgba(255,102,0,0.3)]" />
-                <div className="absolute -bottom-1 -right-1 w-10 h-10 border-b-4 border-r-4 border-orange-500 rounded-br-2xl shadow-[5px_5px_15px_rgba(255,102,0,0.3)]" />
+                <div className="absolute -top-1 -left-1 w-10 h-10 border-t-4 border-l-4 border-orange-500 rounded-tl-2xl shadow-[-5px_-5px_15px_rgba(255,102,0,0.5)]" />
+                <div className="absolute -top-1 -right-1 w-10 h-10 border-t-4 border-r-4 border-orange-500 rounded-tr-2xl shadow-[5px_-5px_15px_rgba(255,102,0,0.5)]" />
+                <div className="absolute -bottom-1 -left-1 w-10 h-10 border-b-4 border-l-4 border-orange-500 rounded-bl-2xl shadow-[-5px_5px_15px_rgba(255,102,0,0.5)]" />
+                <div className="absolute -bottom-1 -right-1 w-10 h-10 border-b-4 border-r-4 border-orange-500 rounded-br-2xl shadow-[5px_5px_15px_rgba(255,102,0,0.5)]" />
 
-                {/* Scanning Beam (Improved) */}
+                {/* Scanning Beam */}
                 <motion.div
                   animate={{ 
                     top: ['5%', '95%', '5%'],
-                    opacity: [0.5, 1, 0.5]
+                    opacity: [0.6, 1, 0.6]
                   }}
-                  transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
-                  className="absolute left-4 right-4 h-1 bg-orange-500 shadow-[0_0_20px_rgba(255,102,0,0.8)] z-20 rounded-full blur-[1px]"
+                  transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                  className="absolute left-4 right-4 h-0.5 bg-orange-500 shadow-[0_0_15px_rgba(255,102,0,0.8)] z-20"
                 />
+                
+                {/* Clean cutout effect */}
+                <div className="absolute inset-0 border-2 border-white/5 rounded-2xl" />
               </div>
 
-              {/* Tinted Background Outer */}
-              <div className="absolute inset-0 border-[15vw] border-black/80" />
-              
-              <div className="absolute bottom-1/4 translate-y-20 text-center space-y-2 px-6">
-                <p className="text-[10px] font-bold text-white/50 tracking-[0.4em] uppercase">Align_Barcode_Within_Frame</p>
-                <div className="h-px w-10 bg-orange-500/30 mx-auto" />
+              <div className="mt-12 text-center space-y-4 px-6">
+                <p className="text-[10px] font-black text-white/50 tracking-[0.4em] uppercase">
+                  Align_QR_Code_In_Frame
+                </p>
+                <div className="h-0.5 w-6 bg-orange-500/20 mx-auto rounded-full" />
               </div>
             </div>
           </>
         )}
 
         {/* Status Indicator */}
-        <div className="absolute bottom-24 flex flex-col items-center gap-4 w-full pointer-events-none">
+        <div className="absolute bottom-32 flex flex-col items-center gap-4 w-full pointer-events-none z-30">
           <AnimatePresence>
             {isLoading ? (
               <motion.div
