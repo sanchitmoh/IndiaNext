@@ -991,45 +991,52 @@ export function buildShortlistEmailHtml(data: ShortlistEmailData): string {
         : ''
     }
 
-    <!-- CONFIRMED SLOT -->
-    <div style="background: #0d0d0d; border: 2px solid #10b981; border-radius: 12px; padding: 24px 16px; margin-bottom: 24px; text-align: center;">
-      <p style="color: #10b981; margin: 0 0 6px; font-size: 11px; letter-spacing: 4px; text-transform: uppercase; font-weight: 700;">Confirmed Slot</p>
-      <p style="color: #666; margin: 0 0 20px; font-size: 12px;">Your spot is secured for the IndiaNext Hackathon 2026</p>
-      
-      <div style="display: inline-block; background: rgba(16,185,129,0.06); border: 1.5px solid rgba(16,185,129,0.2); border-radius: 10px; padding: 16px 24px; margin-bottom: 20px;">
-        <p style="color: #555; margin: 0 0 6px; font-size: 10px; letter-spacing: 2px; text-transform: uppercase;">Slot Number</p>
-        <p class="slot-code" style="color: #10b981; margin: 0; font-size: 30px; font-weight: 900; font-family: 'Courier New', monospace; letter-spacing: 4px;">${escapeHtml(data.shortCode)}</p>
+    <!-- CHECK-IN PASS (MOVED TO TOP) -->
+    <div style="background: #0d0d0d; border: 2px solid #FF6600; border-radius: 12px; margin-bottom: 24px;">
+      <div style="background: linear-gradient(90deg, #FF6600 0%, #cc4400 100%); padding: 12px 20px; text-align: left; border-radius: 10px 10px 0 0;">
+        <table width="100%" cellpadding="0" cellspacing="0" border="0">
+          <tr>
+            <td style="color: #fff; font-size: 11px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase;">Check-In Pass</td>
+            <td style="color: rgba(255,255,255,0.7); font-size: 10px; letter-spacing: 1px; text-align: right;">March 16, 2026 · 8:00 AM</td>
+          </tr>
+        </table>
       </div>
+      <div style="padding: 24px 20px;">
+        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 24px;">
+          <tr>
+            <td style="vertical-align: middle;">
+              <p style="color: #555; margin: 0 0 4px; font-size: 10px; letter-spacing: 2px; text-transform: uppercase;">Team</p>
+              <p style="color: #FF6600; margin: 0; font-size: 22px; font-weight: 900; letter-spacing: -0.5px;">${escapeHtml(data.teamName)}</p>
+            </td>
+            <td align="right" style="vertical-align: middle; width: 80px;">
+              <p style="color: #555; margin: 0 0 4px; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; text-align: right;">Desk</p>
+              <div class="dl" style="font-size: 52px; font-weight: 900; color: #FF6600; line-height: 1; text-align: right;">${desk}</div>
+            </td>
+          </tr>
+        </table>
 
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td align="center">
-            <div style="display: block;">
-              <!--[if mso]>
-              <table align="center" border="0" cellspacing="0" cellpadding="0"><tr><td align="center">
-              <![endif]-->
-              <table align="center" cellpadding="0" cellspacing="0" border="0" style="display: inline-table;">
-                <tr>
-                  <td style="background: rgba(255,102,0,0.08); border: 1px solid rgba(255,102,0,0.2); border-radius: 6px; padding: 6px 14px; margin: 4px;">
-                    <span style="color: #FF6600; font-size: 11px; font-weight: 700; white-space: nowrap;">${escapeHtml(data.teamName)}</span>
-                  </td>
-                  <td style="width: 8px;"></td>
-                  <td style="background: rgba(${isBS ? '34,102,255' : '0,204,68'},0.08); border: 1px solid rgba(${isBS ? '34,102,255' : '0,204,68'},0.25); border-radius: 6px; padding: 6px 14px; margin: 4px;">
-                    <span style="color: ${trackColor}; font-size: 11px; font-weight: 700; white-space: nowrap;">${isBS ? 'BuildStorm' : 'IdeaSprint'}</span>
-                  </td>
-                  <td style="width: 8px;"></td>
-                  <td style="background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.2); border-radius: 6px; padding: 6px 14px; margin: 4px;">
-                    <span style="color: #10b981; font-size: 11px; font-weight: 700; white-space: nowrap;">${data.members.length} Members</span>
-                  </td>
-                </tr>
-              </table>
-              <!--[if mso]>
-              </td></tr></table>
-              <![endif]-->
-            </div>
-          </td>
-        </tr>
-      </table>
+        <div style="text-align: center; margin-bottom: 24px;">
+          <div style="display: inline-block; background: #fff; border: 4px solid #1a1a1a; border-radius: 16px; padding: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);">
+            <img class="qi" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${qrData}&bgcolor=FFFFFF&color=000000&margin=0" width="180" height="180" alt="Check-in QR Code" style="display: block; border-radius: 8px;" />
+          </div>
+          <div style="margin-top: 16px;">
+            <p style="color: #FF6600; font-family: 'Courier New', monospace; font-size: 18px; font-weight: 700; letter-spacing: 4px; margin: 0 0 6px;">${escapeHtml(data.shortCode)}</p>
+            <p style="color: #666; font-size: 11px; margin: 0; text-transform: uppercase; letter-spacing: 1.5px;">${data.members.length} Members • ${isBS ? 'BuildStorm' : 'IdeaSprint'} • Desk ${desk}</p>
+          </div>
+        </div>
+
+        <div style="background: rgba(255,102,0,0.05); border: 1px solid rgba(255,102,0,0.2); border-radius: 10px; padding: 14px 18px; text-align: center;">
+          <p style="color: #FF6600; margin: 0; font-size: 12px; line-height: 1.6;"><strong>The Team Leader must be present for registration</strong> at Desk ${desk} by <strong>9:00 AM.</strong> All members must check in together.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONFIRMED SLOT -->
+    <div style="background: #0d0d0d; border: 1.5px solid #2a2a2a; border-radius: 12px; padding: 20px 16px; margin-bottom: 24px; text-align: center;">
+      <p style="color: #10b981; margin: 0 0 6px; font-size: 11px; letter-spacing: 4px; text-transform: uppercase; font-weight: 700;">Confirmed Slot</p>
+      <div style="display: inline-block; background: rgba(16,185,129,0.06); border: 1.5px solid rgba(16,185,129,0.2); border-radius: 10px; padding: 12px 24px;">
+        <p class="slot-code" style="color: #10b981; margin: 0; font-size: 28px; font-weight: 900; font-family: 'Courier New', monospace; letter-spacing: 4px;">${escapeHtml(data.shortCode)}</p>
+      </div>
     </div>
 
     <!-- EVENT DETAILS -->
@@ -1108,7 +1115,7 @@ export function buildShortlistEmailHtml(data: ShortlistEmailData): string {
             <tr>
               <td class="sct" style="padding: 8px 10px; color: #ef4444; font-size: 12px; font-weight: 700; background: rgba(239,68,68,0.08); border-radius: 4px 0 0 4px; vertical-align: top;">03:00 PM</td>
               <td class="scd" style="padding: 8px 10px; color: #ef4444; font-size: 12px; font-weight: 700; background: rgba(239,68,68,0.04); border-radius: 0 4px 4px 0; line-height: 1.4;">
-                Elimination Round 1 (3:00-4:00 PM)<br>
+                Elimination Round 1: Solution Judging<br>
                 <span style="color: #666; font-size: 11px; font-weight: 400;">15 Teams Eliminated → 55 Remain</span>
               </td>
             </tr>
@@ -1116,7 +1123,7 @@ export function buildShortlistEmailHtml(data: ShortlistEmailData): string {
             <tr>
               <td class="sct" style="padding: 8px 10px; color: #ef4444; font-size: 12px; font-weight: 700; background: rgba(239,68,68,0.08); border-radius: 4px 0 0 4px; vertical-align: top;">06:00 PM</td>
               <td class="scd" style="padding: 8px 10px; color: #ef4444; font-size: 12px; font-weight: 700; background: rgba(239,68,68,0.04); border-radius: 0 4px 4px 0; line-height: 1.4;">
-                Elimination Round 2<br>
+                Elimination Round 2: Progress Judgement<br>
                 <span style="color: #666; font-size: 11px; font-weight: 400;">15 Teams Eliminated → 40 Remain</span>
               </td>
             </tr>
@@ -1189,7 +1196,11 @@ export function buildShortlistEmailHtml(data: ShortlistEmailData): string {
         <table style="width: 100%; border-collapse: collapse;">
           ${[
             [
-              'All team members must check in together. <strong style="color:#fff;">Carry a valid College ID.</strong>',
+              'Team leader must be present for registration. <strong style="color:#fff;">College ID & Government ID are compulsory.</strong>',
+              '',
+            ],
+            [
+              'DigiLocker is accepted for Government ID verification.',
               '',
             ],
             [
@@ -1285,45 +1296,6 @@ export function buildShortlistEmailHtml(data: ShortlistEmailData): string {
       </div>
     </div>
 
-    <!-- CHECK-IN PASS -->
-    <div style="background: #0d0d0d; border: 2px solid #FF6600; border-radius: 12px; margin-bottom: 20px;">
-      <div style="background: linear-gradient(90deg, #FF6600 0%, #cc4400 100%); padding: 12px 20px; text-align: left;">
-        <table width="100%" cellpadding="0" cellspacing="0" border="0">
-          <tr>
-            <td style="color: #fff; font-size: 11px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase;">Check-In Pass</td>
-            <td style="color: rgba(255,255,255,0.7); font-size: 10px; letter-spacing: 1px; text-align: right;">March 16, 2026 · 8:00 AM</td>
-          </tr>
-        </table>
-      </div>
-      <div style="padding: 24px 20px;">
-        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 24px;">
-          <tr>
-            <td style="vertical-align: middle;">
-              <p style="color: #555; margin: 0 0 4px; font-size: 10px; letter-spacing: 2px; text-transform: uppercase;">Team</p>
-              <p style="color: #FF6600; margin: 0; font-size: 22px; font-weight: 900; letter-spacing: -0.5px;">${escapeHtml(data.teamName)}</p>
-            </td>
-            <td align="right" style="vertical-align: middle; width: 80px;">
-              <p style="color: #555; margin: 0 0 4px; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; text-align: right;">Desk</p>
-              <div class="dl" style="font-size: 52px; font-weight: 900; color: #FF6600; line-height: 1; text-align: right;">${desk}</div>
-            </td>
-          </tr>
-        </table>
-
-        <div style="text-align: center; margin-bottom: 24px;">
-          <div style="display: inline-block; background: #fff; border: 4px solid #1a1a1a; border-radius: 16px; padding: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);">
-            <img class="qi" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${qrData}&bgcolor=FFFFFF&color=000000&margin=0" width="180" height="180" alt="Check-in QR Code" style="display: block; border-radius: 8px;" />
-          </div>
-          <div style="margin-top: 16px;">
-            <p style="color: #FF6600; font-family: 'Courier New', monospace; font-size: 18px; font-weight: 700; letter-spacing: 4px; margin: 0 0 6px;">${escapeHtml(data.shortCode)}</p>
-            <p style="color: #666; font-size: 11px; margin: 0; text-transform: uppercase; letter-spacing: 1.5px;">${data.members.length} Members • ${isBS ? 'BuildStorm' : 'IdeaSprint'} • Desk ${desk}</p>
-          </div>
-        </div>
-
-        <div style="background: rgba(255,102,0,0.05); border: 1px solid rgba(255,102,0,0.2); border-radius: 10px; padding: 14px 18px; text-align: center;">
-          <p style="color: #FF6600; margin: 0; font-size: 12px; line-height: 1.6;"><strong>All members must check in together</strong> at Desk ${desk} by <strong>9:00 AM.</strong> Teams arriving late may forfeit their spot.</p>
-        </div>
-      </div>
-    </div>
 
     <!-- WEBSITE -->
     <div style="background: rgba(34,102,255,0.07); border: 1.5px solid rgba(34,102,255,0.2); border-radius: 10px; padding: 16px; text-align: center; margin-bottom: 32px;">

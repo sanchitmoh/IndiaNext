@@ -744,6 +744,7 @@ enum RegistrationStatus {
   REJECTED       // Not accepted
   WAITLISTED     // On waitlist
   WITHDRAWN      // Team withdrew
+  ELIMINATED     // Eliminated during event rounds
 }
 
 enum AttendanceStatus {
