@@ -18,7 +18,9 @@ import {
   Filter,
   ArrowUpDown,
   Zap,
-  Building
+  Building,
+  Dices,
+  Info
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -28,16 +30,28 @@ interface Venue {
   name: string;
 }
 
+interface Table {
+  id: string;
+  code: string;
+  venueId: string;
+  team?: {
+    name: string;
+    shortCode: string;
+  } | null;
+}
+
 interface TeamLogistics {
   id: string;
   name: string;
   shortCode: string;
   track: string;
   venueId: string | null;
+  tableId: string | null;
   tableNumber: string | null;
   attendance: string;
   college?: string | null;
   venue?: Venue | null;
+  table?: Table | null;
 }
 
 export function VenueManagement() {
@@ -48,9 +62,13 @@ export function VenueManagement() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [filterVenue, setFilterVenue] = useState<string>('all');
 
+  // Bulk Table Generation State
+  const [showBulkGen, setShowBulkGen] = useState<string | null>(null);
+  const [bulkPrefix, setBulkPrefix] = useState('TP-');
+  const [bulkCount, setBulkCount] = useState(50);
+
   // Queries
   const { data: venues, refetch: refetchVenues, isLoading: loadingVenues } = trpc.admin.getVenues.useQuery();
-  // Using getShortlistedTeams instead of getTeams to bypass the 100-item limit
   const { data: shortlistedTeamsData, isLoading: loadingTeams, refetch: refetchTeams } = trpc.admin.getShortlistedTeams.useQuery();
 
   // Mutations
@@ -67,6 +85,15 @@ export function VenueManagement() {
     onSuccess: () => {
       toast.success('Venue deleted');
       refetchVenues();
+    },
+    onError: (e) => toast.error(e.message)
+  });
+
+  const bulkGenMutation = trpc.admin.bulkGenerateTables.useMutation({
+    onSuccess: (data) => {
+      toast.success(`Generated ${data.count} tables`);
+      setShowBulkGen(null);
+      refetchVenues(); // Refresh venues to show table counts if we add them later
     },
     onError: (e) => toast.error(e.message)
   });
@@ -110,14 +137,14 @@ export function VenueManagement() {
     };
   }, [shortlistedTeamsData]);
 
-  const handleUpdateLogistics = (teamId: string, venueId: string | null, tableNumber: string | null) => {
+  const handleUpdateLogistics = (teamId: string, venueId: string | null, tableId: string | null, tableNumber: string | null) => {
     setUpdatingTeamId(teamId);
-    updateLogisticsMutation.mutate({ teamId, venueId, tableNumber });
+    updateLogisticsMutation.mutate({ teamId, venueId, tableId, tableNumber });
   };
 
   return (
     <div className="space-y-8 pb-20">
-      {/* ── Enhanced Navigation Bar ── */}
+      {/* ── Navigation Bar ── */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 bg-[#0A0A0A]/60 backdrop-blur-xl p-6 rounded-3xl border border-white/[0.08] shadow-2xl">
         <div className="flex items-center gap-2 p-1 bg-white/[0.03] border border-white/[0.06] rounded-2xl w-fit">
           <button
@@ -173,7 +200,7 @@ export function VenueManagement() {
             exit={{ opacity: 0, y: -20 }}
             className="space-y-8"
           >
-            {/* ── Enhanced Filter Controls ── */}
+            {/* ── Filter Controls ── */}
             <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
               <div className="md:col-span-5 relative group">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -286,8 +313,8 @@ export function VenueManagement() {
             exit={{ opacity: 0, scale: 0.98 }}
             className="grid grid-cols-1 lg:grid-cols-12 gap-8"
           >
-            {/* ── Create Venue ── */}
-            <div className="lg:col-span-4 lg:sticky lg:top-8 h-fit">
+            {/* ── Create Venue & Bulk Gen ── */}
+            <div className="lg:col-span-4 lg:sticky lg:top-8 h-fit space-y-6">
               <div className="bg-[#0A0A0A] p-8 rounded-[32px] border border-white/[0.08] shadow-2xl relative overflow-hidden group">
                 <div className="absolute top-0 right-0 p-8 opacity-5">
                   <Building className="w-32 h-32" />
@@ -321,6 +348,69 @@ export function VenueManagement() {
                   </div>
                 </div>
               </div>
+
+              {/* Bulk Generation Card */}
+              {showBulkGen && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-orange-500/10 border border-orange-500/30 p-8 rounded-[32px] shadow-2xl relative overflow-hidden"
+                >
+                  <div className="relative z-10 space-y-6">
+                    <div>
+                      <h3 className="text-xs font-mono font-black text-orange-500 uppercase tracking-[0.2em] mb-1">Bulk_Generator</h3>
+                      <p className="text-[9px] font-mono text-orange-400/60 uppercase">Generate seats for {venues?.find(v => v.id === showBulkGen)?.name}</p>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <label className="text-[8px] font-mono text-orange-500/50 uppercase font-black">Prefix</label>
+                          <input
+                            type="text"
+                            value={bulkPrefix}
+                            onChange={(e) => setBulkPrefix(e.target.value.toUpperCase())}
+                            className="w-full bg-black/40 border border-orange-500/20 rounded-xl px-4 py-2 text-[11px] font-mono text-white focus:outline-none focus:ring-1 focus:ring-orange-500/40"
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-[8px] font-mono text-orange-500/50 uppercase font-black">Quantity</label>
+                          <input
+                            type="number"
+                            value={bulkCount}
+                            onChange={(e) => setBulkCount(parseInt(e.target.value) || 0)}
+                            className="w-full bg-black/40 border border-orange-500/20 rounded-xl px-4 py-2 text-[11px] font-mono text-white focus:outline-none focus:ring-1 focus:ring-orange-500/40"
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-2 p-3 bg-orange-500/5 border border-orange-500/10 rounded-xl">
+                        <Info className="h-3 w-3 text-orange-500/60" />
+                        <p className="text-[8px] font-mono text-orange-400/40 leading-tight uppercase">
+                          Will create {bulkPrefix}01 to {bulkPrefix}{bulkCount.toString().padStart(2, '0')}
+                        </p>
+                      </div>
+
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => setShowBulkGen(null)}
+                          className="flex-1 py-3 border border-orange-500/20 rounded-xl text-[9px] font-mono font-black text-orange-500/60 uppercase hover:bg-orange-500/5 transition-all"
+                        >
+                          CANCEL
+                        </button>
+                        <button
+                          onClick={() => bulkGenMutation.mutate({ venueId: showBulkGen, prefix: bulkPrefix, count: bulkCount })}
+                          disabled={bulkGenMutation.isPending}
+                          className="flex-[2] py-3 bg-orange-500 text-white rounded-xl text-[9px] font-mono font-black uppercase shadow-lg shadow-orange-500/20 flex items-center justify-center gap-2"
+                        >
+                          {bulkGenMutation.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Dices className="h-3 w-3" />}
+                          EXEC_GENERATE
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
             </div>
 
             {/* ── Venues List ── */}
@@ -346,16 +436,25 @@ export function VenueManagement() {
                           <p className="text-[10px] font-mono text-gray-600 mt-1 uppercase tracking-tighter opacity-60">System_ID: {v.id.slice(-12)}</p>
                         </div>
                       </div>
-                      <button
-                        onClick={() => {
-                          if (confirm('Decommission this sector? All associated mappings will be reset.')) {
-                            deleteVenueMutation.mutate({ id: v.id });
-                          }
-                        }}
-                        className="w-10 h-10 flex items-center justify-center text-gray-700 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all opacity-0 group-hover:opacity-100 active:scale-90"
-                      >
-                        <Trash2 className="h-5 w-5" />
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => setShowBulkGen(v.id)}
+                          className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-[9px] font-mono font-black text-gray-400 hover:text-orange-500 hover:border-orange-500/30 transition-all flex items-center gap-2"
+                        >
+                          <Dices className="h-3.5 w-3.5" />
+                          GEN_TABLES
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (confirm('Decommission this sector? All associated mappings will be reset.')) {
+                              deleteVenueMutation.mutate({ id: v.id });
+                            }
+                          }}
+                          className="w-10 h-10 flex items-center justify-center text-gray-700 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all opacity-0 group-hover:opacity-100 active:scale-90"
+                        >
+                          <Trash2 className="h-5 w-5" />
+                        </button>
+                      </div>
                     </div>
                   ))
                 ) : (
@@ -375,12 +474,25 @@ export function VenueManagement() {
 
 function TeamLogisticsCard({ team, venues, isUpdating, onUpdate }: any) {
   const [selectedVenueId, setSelectedVenueId] = useState<string>(team.venueId || 'none');
-  const [tableNo, setTableNo] = useState(team.tableNumber || '');
+  const [selectedTableId, setSelectedTableId] = useState<string>(team.tableId || 'none');
+  const [customTableNo, setCustomTableNo] = useState(team.tableNumber || '');
+
+  // Fetch tables for the selected venue
+  const { data: venueTables, isLoading: loadingTables } = trpc.admin.getVenueTables.useQuery(
+    { venueId: selectedVenueId },
+    { enabled: selectedVenueId !== 'none' }
+  );
 
   const hasChanges = (selectedVenueId === 'none' ? null : selectedVenueId) !== (team.venueId || null) || 
-                     (tableNo || null) !== (team.tableNumber || null);
+                     (selectedTableId === 'none' ? null : selectedTableId) !== (team.tableId || null) ||
+                     (customTableNo || null) !== (team.tableNumber || null);
 
   const isAssigned = !!team.venueId;
+
+  const handleVenueChange = (vId: string) => {
+    setSelectedVenueId(vId);
+    setSelectedTableId('none'); // Reset table when venue changes
+  };
 
   return (
     <motion.div 
@@ -389,12 +501,10 @@ function TeamLogisticsCard({ team, venues, isUpdating, onUpdate }: any) {
         isAssigned ? 'border-orange-500/30 bg-orange-500/[0.01]' : 'border-white/[0.08]'
       }`}
     >
-      {/* Background Glow */}
       <div className={`absolute -inset-px rounded-[32px] opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none ${
         isAssigned ? 'bg-gradient-to-br from-orange-500/10 to-transparent' : 'bg-gradient-to-br from-white/5 to-transparent'
       }`} />
 
-      {/* Team Header */}
       <div className="relative z-10 flex flex-col gap-5">
         <div className="flex items-start justify-between">
           <div className="min-w-0">
@@ -406,7 +516,7 @@ function TeamLogisticsCard({ team, venues, isUpdating, onUpdate }: any) {
               <span className={`text-[8px] font-mono px-2 py-0.5 rounded-full border tracking-tighter ${
                 team.track === 'IDEA_SPRINT' ? 'bg-emerald-500/5 text-emerald-500 border-emerald-500/20' : 'bg-blue-500/5 text-blue-500 border-blue-500/20'
               }`}>
-                {team.track.replace('_', '')}
+                {team.track?.replace('_', '')}
               </span>
             </div>
           </div>
@@ -417,17 +527,13 @@ function TeamLogisticsCard({ team, venues, isUpdating, onUpdate }: any) {
           </div>
         </div>
 
-        {/* Inputs */}
         <div className="space-y-4">
           <div className="space-y-1.5">
-            <div className="flex items-center justify-between px-1">
-              <label className="text-[9px] font-mono text-gray-600 uppercase font-black tracking-widest">Sector</label>
-              {team.venue && <span className="text-[8px] font-mono text-orange-500/60 font-medium tracking-tight">Current: {team.venue.name}</span>}
-            </div>
+            <label className="text-[9px] font-mono text-gray-600 uppercase font-black tracking-widest px-1">Sector</label>
             <select
               value={selectedVenueId}
-              onChange={(e) => setSelectedVenueId(e.target.value)}
-              className="w-full bg-black/40 border border-white/5 rounded-2xl px-4 py-3 text-[11px] font-mono text-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500/30 transition-all cursor-pointer hover:bg-black/60"
+              onChange={(e) => handleVenueChange(e.target.value)}
+              className="w-full bg-black/40 border border-white/5 rounded-2xl px-4 py-3 text-[11px] font-mono text-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500/20 transition-all"
             >
               <option value="none">UNASSIGNED</option>
               {venues.map((v: any) => (
@@ -438,17 +544,43 @@ function TeamLogisticsCard({ team, venues, isUpdating, onUpdate }: any) {
 
           <div className="space-y-1.5">
             <label className="text-[9px] font-mono text-gray-600 uppercase font-black tracking-widest px-1">Table_Identity</label>
-            <input
-              type="text"
-              placeholder="e.g. ST-77"
-              value={tableNo}
-              onChange={(e) => setTableNo(e.target.value.toUpperCase())}
-              className="w-full bg-black/40 border border-white/5 rounded-2xl px-4 py-3 text-[11px] font-mono text-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500/30 transition-all placeholder:text-gray-800"
-            />
+            <div className="flex flex-col gap-2">
+              <select
+                disabled={selectedVenueId === 'none' || loadingTables}
+                value={selectedTableId}
+                onChange={(e) => setSelectedTableId(e.target.value)}
+                className="w-full bg-black/40 border border-white/5 rounded-2xl px-4 py-3 text-[11px] font-mono text-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500/20 transition-all disabled:opacity-30"
+              >
+                <option value="none">SELECT_TABLE</option>
+                {venueTables?.map((t: any) => (
+                  <option key={t.id} value={t.id} disabled={t.team && t.team.shortCode !== team.shortCode}>
+                    {t.code} {t.team ? `(Occupied: ${t.team.shortCode})` : '(Available)'}
+                  </option>
+                ))}
+              </select>
+              
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="CUSTOM_OVERRIDE (e.g. VIP-01)"
+                  value={customTableNo}
+                  onChange={(e) => setCustomTableNo(e.target.value.toUpperCase())}
+                  className="w-full bg-black/60 border border-white/[0.05] rounded-xl px-4 py-2 text-[10px] font-mono text-gray-400 focus:outline-none placeholder:text-gray-800"
+                />
+              </div>
+            </div>
           </div>
 
           <button
-            onClick={() => onUpdate(team.id, selectedVenueId === 'none' ? null : selectedVenueId, tableNo || null)}
+            onClick={() => {
+              const table = venueTables?.find((t: any) => t.id === selectedTableId);
+              onUpdate(
+                team.id, 
+                selectedVenueId === 'none' ? null : selectedVenueId, 
+                selectedTableId === 'none' ? null : selectedTableId, 
+                table ? table.code : (customTableNo || null)
+              );
+            }}
             disabled={!hasChanges || isUpdating}
             className={`w-full py-3.5 rounded-2xl text-[10px] font-mono font-black tracking-[0.3em] uppercase transition-all flex items-center justify-center gap-3 active:scale-[0.97] ${
               hasChanges 
@@ -467,10 +599,15 @@ function TeamLogisticsCard({ team, venues, isUpdating, onUpdate }: any) {
 
 function TeamLogisticsListItem({ team, venues, isUpdating, onUpdate }: any) {
   const [selectedVenueId, setSelectedVenueId] = useState<string>(team.venueId || 'none');
-  const [tableNo, setTableNo] = useState(team.tableNumber || '');
+  const [selectedTableId, setSelectedTableId] = useState<string>(team.tableId || 'none');
+
+  const { data: venueTables, isLoading: loadingTables } = trpc.admin.getVenueTables.useQuery(
+    { venueId: selectedVenueId },
+    { enabled: selectedVenueId !== 'none' }
+  );
 
   const hasChanges = (selectedVenueId === 'none' ? null : selectedVenueId) !== (team.venueId || null) || 
-                     (tableNo || null) !== (team.tableNumber || null);
+                     (selectedTableId === 'none' ? null : selectedTableId) !== (team.tableId || null);
 
   const isAssigned = !!team.venueId;
 
@@ -493,8 +630,11 @@ function TeamLogisticsListItem({ team, venues, isUpdating, onUpdate }: any) {
       <div className="flex flex-col sm:flex-row items-center gap-3">
         <select
           value={selectedVenueId}
-          onChange={(e) => setSelectedVenueId(e.target.value)}
-          className="w-full sm:w-48 bg-white/[0.03] border border-white/10 rounded-xl px-3 py-2 text-[10px] font-mono text-gray-300 focus:outline-none focus:ring-1 focus:ring-orange-500/30"
+          onChange={(e) => {
+            setSelectedVenueId(e.target.value);
+            setSelectedTableId('none');
+          }}
+          className="w-full sm:w-48 bg-white/[0.03] border border-white/10 rounded-xl px-3 py-2 text-[10px] font-mono text-gray-300"
         >
           <option value="none">UNASSIGNED</option>
           {venues.map((v: any) => (
@@ -502,16 +642,25 @@ function TeamLogisticsListItem({ team, venues, isUpdating, onUpdate }: any) {
           ))}
         </select>
 
-        <input
-          type="text"
-          placeholder="TABLE_NO"
-          value={tableNo}
-          onChange={(e) => setTableNo(e.target.value.toUpperCase())}
-          className="w-full sm:w-28 bg-white/[0.03] border border-white/10 rounded-xl px-3 py-2 text-[10px] font-mono text-gray-300 focus:outline-none focus:ring-1 focus:ring-orange-500/30 text-center"
-        />
+        <select
+          disabled={selectedVenueId === 'none' || loadingTables}
+          value={selectedTableId}
+          onChange={(e) => setSelectedTableId(e.target.value)}
+          className="w-full sm:w-40 bg-white/[0.03] border border-white/10 rounded-xl px-3 py-2 text-[10px] font-mono text-gray-300"
+        >
+          <option value="none">SELECT_TABLE</option>
+          {venueTables?.map((t: any) => (
+            <option key={t.id} value={t.id} disabled={t.team && t.team.shortCode !== team.shortCode}>
+              {t.code}
+            </option>
+          ))}
+        </select>
 
         <button
-          onClick={() => onUpdate(team.id, selectedVenueId === 'none' ? null : selectedVenueId, tableNo || null)}
+          onClick={() => {
+            const table = venueTables?.find((t: any) => t.id === selectedTableId);
+            onUpdate(team.id, selectedVenueId, selectedTableId === 'none' ? null : selectedTableId, table?.code || null);
+          }}
           disabled={!hasChanges || isUpdating}
           className={`w-full sm:w-auto px-6 py-2 rounded-xl text-[10px] font-mono font-black transition-all flex items-center justify-center gap-2 ${
             hasChanges 

@@ -151,7 +151,9 @@ model Team {
   // 📍 Logistics Mapping (New)
   venueId         String?
   venue           Venue?           @relation(fields: [venueId], references: [id])
-  tableNumber     String?
+  tableId         String?          @unique
+  table           Table?           @relation(fields: [tableId], references: [id])
+  tableNumber     String?          // Fallback or display string
   
   // Metadata
   createdAt DateTime @default(now())
@@ -178,6 +180,7 @@ model Team {
   @@index([name])
   @@index([attendance])
   @@index([venueId])
+  @@index([tableId])
   @@unique([createdBy, track]) // One team per leader per track (belt-and-suspenders with transaction check)
   @@map("teams")
 }
@@ -650,10 +653,25 @@ model Venue {
   id        String   @id @default(cuid())
   name      String   @unique
   teams     Team[]
+  tables    Table[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("venues")
+}
+
+model Table {
+  id        String   @id @default(cuid())
+  venueId   String
+  venue     Venue    @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  code      String   // e.g. "TP-01"
+  team      Team?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([venueId, code])
+  @@map("venue_tables")
 }
 
 // ═══════════════════════════════════════════════════════════

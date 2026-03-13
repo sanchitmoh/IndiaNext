@@ -1309,11 +1309,48 @@ export const adminRouter = router({
       });
     }),
 
+  getVenueTables: canViewTeams
+    .input(z.object({ venueId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      return ctx.prisma.table.findMany({
+        where: { venueId: input.venueId },
+        include: { team: { select: { name: true, shortCode: true } } },
+        orderBy: { code: 'asc' },
+      });
+    }),
+
+  bulkGenerateTables: canEditTeamsRateLimited
+    .input(
+      z.object({
+        venueId: z.string(),
+        prefix: z.string(),
+        count: z.number().min(1).max(500),
+        startFrom: z.number().default(1),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const tables = [];
+      for (let i = 0; i < input.count; i++) {
+        const num = input.startFrom + i;
+        const code = `${input.prefix}${num.toString().padStart(2, '0')}`;
+        tables.push({
+          venueId: input.venueId,
+          code,
+        });
+      }
+
+      return ctx.prisma.table.createMany({
+        data: tables,
+        skipDuplicates: true,
+      });
+    }),
+
   updateTeamLogistics: canEditTeamsRateLimited
     .input(
       z.object({
         teamId: z.string(),
         venueId: z.string().nullable(),
+        tableId: z.string().nullable(),
         tableNumber: z.string().nullable(),
       })
     )
@@ -1335,13 +1372,14 @@ export const adminRouter = router({
         where: { id: input.teamId },
         data: {
           venueId: input.venueId || null,
+          tableId: input.tableId || null,
           tableNumber: input.tableNumber || null,
         },
       });
 
       // Invalidate cache for this team
       await invalidateTeamCache(updated.shortCode);
-      
+
       return updated;
     }),
 });
