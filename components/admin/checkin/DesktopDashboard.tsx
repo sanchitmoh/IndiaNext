@@ -64,6 +64,12 @@ export default function DesktopDashboard() {
 
   const flagMutation = trpc.admin.flagCheckInIssue.useMutation();
 
+  // Check-in Specific State
+  const [memberVerifications, setMemberVerifications] = useState<Record<string, { collegeId: boolean, govtId: boolean, note: string }>>({});
+  const [breakfastCount, setBreakfastCount] = useState(0);
+  const [lunchCount, setLunchCount] = useState(0);
+  const [showException, setShowException] = useState<string | null>(null);
+
   // Initialize desk from context or localStorage
   // Sync with context if provided
   useEffect(() => {
@@ -139,12 +145,6 @@ export default function DesktopDashboard() {
     setDeskId(id);
     localStorage.setItem('admin_checkin_desk', id);
   };
-
-  // Check-in Specific State
-  const [memberVerifications, setMemberVerifications] = useState<Record<string, { collegeId: boolean, govtId: boolean, note: string }>>({});
-  const [breakfastCount, setBreakfastCount] = useState(0);
-  const [lunchCount, setLunchCount] = useState(0);
-  const [showException, setShowException] = useState<string | null>(null);
 
   const isFullyVerified = activeTeam?.members.every((m: any) => 
     memberVerifications[m.id]?.collegeId && memberVerifications[m.id]?.govtId
