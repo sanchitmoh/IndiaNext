@@ -522,6 +522,7 @@ export const adminRouter = router({
             },
           },
           tags: true,
+          venue: true,
         },
         orderBy: { reviewedAt: 'asc' }, // Preserve shortlist order (desk assignment depends on it)
       });
