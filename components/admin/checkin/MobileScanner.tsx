@@ -67,11 +67,8 @@ export default function MobileScanner() {
         await scanner.start(
           { facingMode: 'environment' },
           {
-            fps: 30, // Higher FPS for smoother scanning
-            qrbox: (viewfinderWidth, viewfinderHeight) => {
-              const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
-              return { width: minEdge * 0.7, height: minEdge * 0.7 };
-            },
+            fps: 30,
+            qrbox: { width: 256, height: 256 }, // Match the 64 (256px) width of our React HUD
             aspectRatio: 1.0,
             videoConstraints: {
               width: { min: 640, ideal: 1280, max: 1920 },
@@ -264,7 +261,10 @@ export default function MobileScanner() {
           </div>
         ) : (
           <>
-            <div id="reader" className="w-full h-full [&>video]:object-cover" />
+            <div 
+              id="reader" 
+              className="w-full h-full [&>video]:object-cover [&_div]:!border-none [&_span]:!hidden [&_br]:!hidden" 
+            />
 
             {/* Overlay UI */}
             <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-center">
