@@ -1331,10 +1331,20 @@ export const adminRouter = router({
   }),
 
   createVenue: canEditTeamsRateLimited
-    .input(z.object({ name: z.string().min(1) }))
+    .input(z.object({ 
+      name: z.string().min(1),
+      floor: z.string().optional(),
+      block: z.string().optional(),
+      capacity: z.number().int().min(0).default(0)
+    }))
     .mutation(async ({ ctx, input }) => {
       return ctx.prisma.venue.create({
-        data: { name: input.name },
+        data: { 
+          name: input.name,
+          floor: input.floor,
+          block: input.block,
+          capacity: input.capacity
+        },
       });
     }),
 

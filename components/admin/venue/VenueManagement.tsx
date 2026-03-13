@@ -28,6 +28,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 interface Venue {
   id: string;
   name: string;
+  floor?: string | null;
+  block?: string | null;
+  capacity: number;
 }
 
 interface Table {
@@ -58,6 +61,9 @@ export function VenueManagement() {
   const [activeTab, setActiveTab] = useState<'assignment' | 'settings'>('assignment');
   const [search, setSearch] = useState('');
   const [newVenueName, setNewVenueName] = useState('');
+  const [newFloor, setNewFloor] = useState('');
+  const [newBlock, setNewBlock] = useState('');
+  const [newCapacity, setNewCapacity] = useState<number>(0);
   const [updatingTeamId, setUpdatingTeamId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [filterVenue, setFilterVenue] = useState<string>('all');
@@ -76,6 +82,9 @@ export function VenueManagement() {
     onSuccess: () => {
       toast.success('Venue created successfully');
       setNewVenueName('');
+      setNewFloor('');
+      setNewBlock('');
+      setNewCapacity(0);
       refetchVenues();
     },
     onError: (e) => toast.error(e.message)
@@ -326,21 +335,61 @@ export function VenueManagement() {
                     <p className="text-[10px] font-mono text-gray-600 uppercase">Construct physical data points</p>
                   </div>
                   
-                  <div className="space-y-5">
+                  <div className="space-y-4">
                     <div className="space-y-2">
-                      <label className="text-[9px] font-mono text-gray-500 uppercase px-1 font-bold">Identity_Tag</label>
+                      <label className="text-[9px] font-mono text-gray-500 uppercase px-1 font-bold">Venue_Name</label>
                       <input
                         type="text"
                         placeholder="e.g. CORE_HUB_01"
                         value={newVenueName}
                         onChange={(e) => setNewVenueName(e.target.value.toUpperCase())}
-                        className="w-full bg-black/60 border border-white/[0.1] rounded-2xl px-5 py-4 text-[12px] font-mono text-white focus:outline-none focus:ring-2 focus:ring-orange-500/20 transition-all uppercase placeholder:text-gray-800"
+                        className="w-full bg-black/60 border border-white/[0.1] rounded-2xl px-5 py-4 text-[12px] font-mono text-white focus:outline-none focus:ring-1 focus:ring-orange-500/40 transition-all uppercase placeholder:text-gray-800"
                       />
                     </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="text-[9px] font-mono text-gray-500 uppercase px-1 font-bold">Floor</label>
+                        <input
+                          type="text"
+                          placeholder="LEVEL_01"
+                          value={newFloor}
+                          onChange={(e) => setNewFloor(e.target.value.toUpperCase())}
+                          className="w-full bg-black/60 border border-white/[0.1] rounded-2xl px-5 py-3 text-[11px] font-mono text-white focus:outline-none focus:ring-1 focus:ring-orange-500/40"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[9px] font-mono text-gray-500 uppercase px-1 font-bold">Block</label>
+                        <input
+                          type="text"
+                          placeholder="ALPHA"
+                          value={newBlock}
+                          onChange={(e) => setNewBlock(e.target.value.toUpperCase())}
+                          className="w-full bg-black/60 border border-white/[0.1] rounded-2xl px-5 py-3 text-[11px] font-mono text-white focus:outline-none focus:ring-1 focus:ring-orange-500/40"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-[9px] font-mono text-gray-500 uppercase px-1 font-bold">Team_Capacity</label>
+                      <input
+                        type="number"
+                        placeholder="50"
+                        value={newCapacity || ''}
+                        onChange={(e) => setNewCapacity(Math.max(0, parseInt(e.target.value) || 0))}
+                        className="w-full bg-black/60 border border-white/[0.1] rounded-2xl px-5 py-3 text-[11px] font-mono text-white focus:outline-none focus:ring-1 focus:ring-orange-500/40"
+                      />
+                    </div>
+
                     <button
-                      onClick={() => createVenueMutation.mutate({ name: newVenueName })}
+                      onClick={() => createVenueMutation.mutate({ 
+                        name: newVenueName,
+                        floor: newFloor || undefined,
+                        block: newBlock || undefined,
+                        capacity: newCapacity
+                      })}
                       disabled={createVenueMutation.isPending || !newVenueName}
-                      className="w-full py-4 bg-orange-600 hover:bg-orange-500 active:scale-[0.98] disabled:opacity-30 rounded-2xl text-[11px] text-white font-black tracking-[0.3em] uppercase transition-all shadow-2xl shadow-orange-950/20 flex items-center justify-center gap-3 group"
+                      className="w-full py-4 mt-2 bg-orange-600 hover:bg-orange-500 active:scale-[0.98] disabled:opacity-30 rounded-2xl text-[11px] text-white font-black tracking-[0.3em] uppercase transition-all shadow-2xl shadow-orange-950/20 flex items-center justify-center gap-3 group"
                     >
                       {createVenueMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4 group-hover:rotate-90 transition-transform" />}
                       BUILD_STATION
@@ -433,7 +482,11 @@ export function VenueManagement() {
                         </div>
                         <div>
                           <p className="text-sm font-mono font-black text-gray-200 tracking-wider uppercase">{v.name}</p>
-                          <p className="text-[10px] font-mono text-gray-600 mt-1 uppercase tracking-tighter opacity-60">System_ID: {v.id.slice(-12)}</p>
+                          <div className="flex items-center gap-2 mt-1.5 opacity-60">
+                            {v.floor && <span className="text-[9px] font-mono font-black px-1.5 py-0.5 bg-white/5 border border-white/10 rounded uppercase">{v.floor}</span>}
+                            {v.block && <span className="text-[9px] font-mono font-black px-1.5 py-0.5 bg-white/5 border border-white/10 rounded uppercase">{v.block}</span>}
+                            <span className="text-[9px] font-mono font-bold text-zinc-500 uppercase">CAP_REF: {v.capacity} TEAMS</span>
+                          </div>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
@@ -442,7 +495,7 @@ export function VenueManagement() {
                           className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-[9px] font-mono font-black text-gray-400 hover:text-orange-500 hover:border-orange-500/30 transition-all flex items-center gap-2"
                         >
                           <Dices className="h-3.5 w-3.5" />
-                          GEN_TABLES
+                          GEN_STATIONS
                         </button>
                         <button
                           onClick={() => {
@@ -477,7 +530,6 @@ function TeamLogisticsCard({ team, venues, isUpdating, onUpdate }: any) {
   const [selectedTableId, setSelectedTableId] = useState<string>(team.tableId || 'none');
   const [customTableNo, setCustomTableNo] = useState(team.tableNumber || '');
 
-  // Fetch tables for the selected venue
   const { data: venueTables, isLoading: loadingTables } = trpc.admin.getVenueTables.useQuery(
     { venueId: selectedVenueId },
     { enabled: selectedVenueId !== 'none' }
@@ -489,39 +541,32 @@ function TeamLogisticsCard({ team, venues, isUpdating, onUpdate }: any) {
 
   const isAssigned = !!team.venueId;
 
-  const handleVenueChange = (vId: string) => {
-    setSelectedVenueId(vId);
-    setSelectedTableId('none'); // Reset table when venue changes
-  };
-
   return (
     <motion.div 
       layout
-      className={`relative group bg-[#0A0A0A]/40 border rounded-[32px] p-6 transition-all duration-500 hover:shadow-2xl hover:shadow-orange-500/5 ${
-        isAssigned ? 'border-orange-500/30 bg-orange-500/[0.01]' : 'border-white/[0.08]'
+      className={`relative group bg-black/40 border rounded-[28px] p-6 transition-all duration-500 ${
+        isAssigned ? 'border-emerald-500/30' : 'border-white/[0.08]'
       }`}
     >
-      <div className={`absolute -inset-px rounded-[32px] opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none ${
-        isAssigned ? 'bg-gradient-to-br from-orange-500/10 to-transparent' : 'bg-gradient-to-br from-white/5 to-transparent'
-      }`} />
-
-      <div className="relative z-10 flex flex-col gap-5">
-        <div className="flex items-start justify-between">
+      <div className="relative z-10 flex flex-col gap-6">
+        <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
-            <h4 className="text-[14px] font-mono font-black text-white truncate leading-tight group-hover:text-orange-400 transition-colors">{team.name}</h4>
-            <div className="flex items-center gap-2 mt-1.5">
-              <span className="text-[9px] font-mono px-2 py-0.5 bg-white/5 border border-white/10 rounded-full text-gray-500 tracking-tighter">
+            <h4 className="text-[13px] font-mono font-black text-white uppercase tracking-tight group-hover:text-orange-500 transition-colors truncate">
+              {team.name}
+            </h4>
+            <div className="flex flex-wrap items-center gap-2 mt-2">
+              <span className="text-[9px] font-mono font-black px-2 py-0.5 bg-white/5 border border-white/10 rounded-lg text-zinc-500 uppercase tracking-widest">
                 {team.shortCode}
               </span>
-              <span className={`text-[8px] font-mono px-2 py-0.5 rounded-full border tracking-tighter ${
-                team.track === 'IDEA_SPRINT' ? 'bg-emerald-500/5 text-emerald-500 border-emerald-500/20' : 'bg-blue-500/5 text-blue-500 border-blue-500/20'
+              <div className={`px-2 py-0.5 rounded-lg border text-[8px] font-black uppercase tracking-widest ${
+                team.track === 'IDEA_SPRINT' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-blue-500/10 text-blue-500 border-blue-500/20'
               }`}>
-                {team.track?.replace('_', '')}
-              </span>
+                {team.track?.replace('_', ' ')}
+              </div>
             </div>
           </div>
-          <div className={`w-10 h-10 rounded-2xl flex items-center justify-center border transition-all duration-500 ${
-            isAssigned ? 'bg-orange-500/20 border-orange-500/40 text-orange-500 shadow-lg shadow-orange-500/20' : 'bg-white/5 border-white/10 text-gray-700'
+          <div className={`w-10 h-10 rounded-2xl flex items-center justify-center border shrink-0 transition-all ${
+            isAssigned ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-500' : 'bg-white/5 border-white/10 text-zinc-800'
           }`}>
             {isAssigned ? <CheckCircle2 className="h-5 w-5" /> : <MapPin className="h-5 w-5" />}
           </div>
@@ -529,11 +574,14 @@ function TeamLogisticsCard({ team, venues, isUpdating, onUpdate }: any) {
 
         <div className="space-y-4">
           <div className="space-y-1.5">
-            <label className="text-[9px] font-mono text-gray-600 uppercase font-black tracking-widest px-1">Sector</label>
+            <label className="text-[8px] font-black text-zinc-600 uppercase tracking-[0.2em] px-1">Deployment_Sector</label>
             <select
               value={selectedVenueId}
-              onChange={(e) => handleVenueChange(e.target.value)}
-              className="w-full bg-black/40 border border-white/5 rounded-2xl px-4 py-3 text-[11px] font-mono text-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500/20 transition-all"
+              onChange={(e) => {
+                setSelectedVenueId(e.target.value);
+                setSelectedTableId('none');
+              }}
+              className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-3 text-[10px] font-mono text-zinc-300 focus:outline-none focus:ring-1 focus:ring-orange-500/40 transition-all"
             >
               <option value="none">UNASSIGNED</option>
               {venues.map((v: any) => (
@@ -543,31 +591,29 @@ function TeamLogisticsCard({ team, venues, isUpdating, onUpdate }: any) {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[9px] font-mono text-gray-600 uppercase font-black tracking-widest px-1">Table_Identity</label>
+            <label className="text-[8px] font-black text-zinc-600 uppercase tracking-[0.2em] px-1">Logic_Terminal</label>
             <div className="flex flex-col gap-2">
               <select
                 disabled={selectedVenueId === 'none' || loadingTables}
                 value={selectedTableId}
                 onChange={(e) => setSelectedTableId(e.target.value)}
-                className="w-full bg-black/40 border border-white/5 rounded-2xl px-4 py-3 text-[11px] font-mono text-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500/20 transition-all disabled:opacity-30"
+                className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-3 text-[10px] font-mono text-zinc-300 focus:outline-none focus:ring-1 focus:ring-orange-500/40 transition-all disabled:opacity-20"
               >
-                <option value="none">SELECT_TABLE</option>
+                <option value="none">SELECT_STATION</option>
                 {venueTables?.map((t: any) => (
                   <option key={t.id} value={t.id} disabled={t.team && t.team.shortCode !== team.shortCode}>
-                    {t.code} {t.team ? `(Occupied: ${t.team.shortCode})` : '(Available)'}
+                    {t.code} {t.team ? `[Occupied: ${t.team.shortCode}]` : '[Open]'}
                   </option>
                 ))}
               </select>
               
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="CUSTOM_OVERRIDE (e.g. VIP-01)"
-                  value={customTableNo}
-                  onChange={(e) => setCustomTableNo(e.target.value.toUpperCase())}
-                  className="w-full bg-black/60 border border-white/[0.05] rounded-xl px-4 py-2 text-[10px] font-mono text-gray-400 focus:outline-none placeholder:text-gray-800"
-                />
-              </div>
+              <input
+                type="text"
+                placeholder="MANUAL_OVERRIDE..."
+                value={customTableNo}
+                onChange={(e) => setCustomTableNo(e.target.value.toUpperCase())}
+                className="w-full bg-black/40 border border-white/5 rounded-xl px-4 py-2.5 text-[9px] font-mono text-zinc-500 focus:outline-none focus:border-white/10 placeholder:opacity-20 uppercase"
+              />
             </div>
           </div>
 
@@ -582,14 +628,14 @@ function TeamLogisticsCard({ team, venues, isUpdating, onUpdate }: any) {
               );
             }}
             disabled={!hasChanges || isUpdating}
-            className={`w-full py-3.5 rounded-2xl text-[10px] font-mono font-black tracking-[0.3em] uppercase transition-all flex items-center justify-center gap-3 active:scale-[0.97] ${
+            className={`w-full py-4 rounded-xl text-[9px] font-black tracking-[0.3em] uppercase transition-all flex items-center justify-center gap-3 active:scale-95 ${
               hasChanges 
-                ? 'bg-white text-black shadow-xl' 
-                : 'bg-white/5 text-gray-700 border border-white/5 cursor-not-allowed'
+                ? 'bg-orange-600 text-white shadow-xl shadow-orange-950/20' 
+                : 'bg-white/5 text-zinc-800 border border-white/5 cursor-not-allowed'
             }`}
           >
             {isUpdating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ArrowUpDown className="h-3.5 w-3.5" />}
-            {isUpdating ? 'UPDATING...' : 'COMMIT_CHANGES'}
+            {isUpdating ? 'INITIALIZING...' : 'COMMIT_MAPPING'}
           </button>
         </div>
       </div>
@@ -612,65 +658,92 @@ function TeamLogisticsListItem({ team, venues, isUpdating, onUpdate }: any) {
   const isAssigned = !!team.venueId;
 
   return (
-    <div className={`flex flex-col lg:flex-row lg:items-center gap-4 p-4 bg-black/40 border rounded-2xl transition-all ${
-      isAssigned ? 'border-orange-500/20 bg-orange-500/[0.01]' : 'border-white/[0.05]'
+    <div className={`flex flex-col lg:flex-row lg:items-center gap-6 p-6 bg-black/40 border rounded-[24px] transition-all group ${
+      isAssigned ? 'border-emerald-500/20' : 'border-white/[0.05]'
     }`}>
-      <div className="flex-1 flex items-center gap-4 min-w-0">
-        <div className={`w-10 h-10 rounded-xl flex items-center justify-center border shrink-0 ${
-          isAssigned ? 'bg-orange-500/10 border-orange-500/20 text-orange-500' : 'bg-white/5 border-white/10 text-gray-700'
+      <div className="flex-1 flex items-center gap-6 min-w-0">
+        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border shrink-0 transition-all ${
+          isAssigned ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-500 shadow-lg shadow-emerald-950/20' : 'bg-white/5 border-white/10 text-zinc-800'
         }`}>
-          {isAssigned ? <CheckCircle2 className="h-5 w-5" /> : <MapPin className="h-5 w-5" />}
+          {isAssigned ? (
+            <div className="relative">
+              <CheckCircle2 className="h-6 w-6" />
+              <div className="absolute -top-1 -right-1 w-2 h-2 bg-emerald-500 rounded-full animate-ping" />
+            </div>
+          ) : (
+            <MapPin className="h-6 w-6" />
+          )}
         </div>
         <div className="min-w-0">
-          <p className="text-sm font-mono font-black text-white truncate">{team.name}</p>
-          <p className="text-[10px] font-mono text-gray-600 truncate mt-0.5">{team.college || 'NO COLLEGE'}</p>
+          <div className="flex items-center gap-3">
+            <p className="text-sm font-mono font-black text-white uppercase tracking-tight group-hover:text-orange-500 transition-colors truncate">
+              {team.name}
+            </p>
+            <span className={`px-2 py-0.5 rounded-md border text-[7px] font-black uppercase tracking-widest shrink-0 ${
+              team.track === 'IDEA_SPRINT' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-blue-500/10 text-blue-500 border-blue-500/20'
+            }`}>
+              {team.track?.replace('_', ' ')}
+            </span>
+          </div>
+          <p className="text-[10px] font-mono font-bold text-zinc-500 uppercase tracking-widest mt-1.5 truncate">
+            {team.college || 'Universal Academy of Tech'}
+          </p>
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row items-center gap-3">
-        <select
-          value={selectedVenueId}
-          onChange={(e) => {
-            setSelectedVenueId(e.target.value);
-            setSelectedTableId('none');
-          }}
-          className="w-full sm:w-48 bg-white/[0.03] border border-white/10 rounded-xl px-3 py-2 text-[10px] font-mono text-gray-300"
-        >
-          <option value="none">UNASSIGNED</option>
-          {venues.map((v: any) => (
-            <option key={v.id} value={v.id}>{v.name}</option>
-          ))}
-        </select>
+      <div className="flex flex-col sm:flex-row items-center gap-4">
+        <div className="flex flex-col gap-1 w-full sm:w-48">
+          <label className="text-[8px] font-black text-zinc-700 uppercase tracking-widest px-1">Sector</label>
+          <select
+            value={selectedVenueId}
+            onChange={(e) => {
+              setSelectedVenueId(e.target.value);
+              setSelectedTableId('none');
+            }}
+            className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-2.5 text-[10px] font-mono text-zinc-300 focus:outline-none focus:ring-1 focus:ring-orange-500/40"
+          >
+            <option value="none">UNASSIGNED</option>
+            {venues.map((v: any) => (
+              <option key={v.id} value={v.id}>{v.name}</option>
+            ))}
+          </select>
+        </div>
 
-        <select
-          disabled={selectedVenueId === 'none' || loadingTables}
-          value={selectedTableId}
-          onChange={(e) => setSelectedTableId(e.target.value)}
-          className="w-full sm:w-40 bg-white/[0.03] border border-white/10 rounded-xl px-3 py-2 text-[10px] font-mono text-gray-300"
-        >
-          <option value="none">SELECT_TABLE</option>
-          {venueTables?.map((t: any) => (
-            <option key={t.id} value={t.id} disabled={t.team && t.team.shortCode !== team.shortCode}>
-              {t.code}
-            </option>
-          ))}
-        </select>
+        <div className="flex flex-col gap-1 w-full sm:w-40">
+          <label className="text-[8px] font-black text-zinc-700 uppercase tracking-widest px-1">Terminal</label>
+          <select
+            disabled={selectedVenueId === 'none' || loadingTables}
+            value={selectedTableId}
+            onChange={(e) => setSelectedTableId(e.target.value)}
+            className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-2.5 text-[10px] font-mono text-zinc-300 focus:outline-none focus:ring-1 focus:ring-orange-500/40 disabled:opacity-20"
+          >
+            <option value="none">SELECT_ID</option>
+            {venueTables?.map((t: any) => (
+              <option key={t.id} value={t.id} disabled={t.team && t.team.shortCode !== team.shortCode}>
+                {t.code}
+              </option>
+            ))}
+          </select>
+        </div>
 
-        <button
-          onClick={() => {
-            const table = venueTables?.find((t: any) => t.id === selectedTableId);
-            onUpdate(team.id, selectedVenueId, selectedTableId === 'none' ? null : selectedTableId, table?.code || null);
-          }}
-          disabled={!hasChanges || isUpdating}
-          className={`w-full sm:w-auto px-6 py-2 rounded-xl text-[10px] font-mono font-black transition-all flex items-center justify-center gap-2 ${
-            hasChanges 
-              ? 'bg-orange-500 text-white' 
-              : 'bg-white/5 text-gray-700 cursor-not-allowed'
-          }`}
-        >
-          {isUpdating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
-          {isUpdating ? 'UPDATING' : 'SAVE'}
-        </button>
+        <div className="flex flex-col gap-1 w-full sm:w-auto pt-4 sm:pt-0">
+          <div className="h-4 hidden sm:block" />
+          <button
+            onClick={() => {
+              const table = venueTables?.find((t: any) => t.id === selectedTableId);
+              onUpdate(team.id, selectedVenueId, selectedTableId === 'none' ? null : selectedTableId, table?.code || null);
+            }}
+            disabled={!hasChanges || isUpdating}
+            className={`w-full sm:w-32 py-2.5 rounded-xl text-[9px] font-black tracking-[0.2em] uppercase transition-all flex items-center justify-center gap-2 shadow-xl ${
+              hasChanges 
+                ? 'bg-orange-600 text-white shadow-orange-950/20 active:scale-95' 
+                : 'bg-white/[0.03] text-zinc-800 border border-white/5 cursor-not-allowed uppercase'
+            }`}
+          >
+            {isUpdating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Zap className={`h-3.5 w-3.5 ${hasChanges ? 'fill-current' : ''}`} />}
+            {isUpdating ? 'UPLOADING' : 'SAVE'}
+          </button>
+        </div>
       </div>
     </div>
   );
