@@ -1100,6 +1100,14 @@ export const adminRouter = router({
   getTeamByShortCode: canViewTeams
     .input(z.object({ shortCode: z.string(), deskId: z.string() }))
     .query(async ({ ctx, input }) => {
+      // Backend Enforcement: If admin has an assigned desk, they MUST use it
+      if (ctx.admin.desk && ctx.admin.desk !== input.deskId) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: `ACCESS_DENIED: Your account is locked to Station ${ctx.admin.desk}`,
+        });
+      }
+
       const team = await ctx.prisma.team.findUnique({
         where: { shortCode: input.shortCode, deletedAt: null },
         include: {
@@ -1154,7 +1162,15 @@ export const adminRouter = router({
 
   sendScannerHeartbeat: canViewTeams
     .input(z.object({ deskId: z.string() }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
+      // Backend Enforcement: If admin has an assigned desk, they MUST use it
+      if (ctx.admin.desk && ctx.admin.desk !== input.deskId) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: `ACCESS_DENIED: Your account is locked to Station ${ctx.admin.desk}`,
+        });
+      }
+
       const { getPusherServer } = await import('@/lib/pusher');
       const pusher = getPusherServer();
       if (pusher) {
@@ -1175,6 +1191,14 @@ export const adminRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      // Backend Enforcement: If admin has an assigned desk, they MUST use it
+      if (ctx.admin.desk && ctx.admin.desk !== input.deskId) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: `ACCESS_DENIED: Your account is locked to Station ${ctx.admin.desk}`,
+        });
+      }
+
       const team = await ctx.prisma.team.update({
         where: { id: input.teamId },
         data: {
@@ -1209,6 +1233,14 @@ export const adminRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      // Backend Enforcement: If admin has an assigned desk, they MUST use it
+      if (ctx.admin.desk && ctx.admin.desk !== input.deskId) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: `ACCESS_DENIED: Your account is locked to Station ${ctx.admin.desk}`,
+        });
+      }
+
       await ctx.prisma.team.update({
         where: { id: input.teamId },
         data: {

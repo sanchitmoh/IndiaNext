@@ -25,6 +25,7 @@ import { useAdminRole } from '../AdminRoleContext';
 export default function DesktopDashboard() {
   const { desk: contextDesk } = useAdminRole();
   const [deskId, setDeskId] = useState<string | null>(() => {
+    if (contextDesk) return contextDesk;
     if (typeof window !== 'undefined') {
       return localStorage.getItem('admin_checkin_desk');
     }
@@ -108,6 +109,7 @@ export default function DesktopDashboard() {
   }, [deskId, activeTeam?.id, utils]);
 
   const selectDesk = (id: string) => {
+    if (contextDesk) return;
     setDeskId(id);
     localStorage.setItem('admin_checkin_desk', id);
   };

@@ -94,6 +94,7 @@ export default function MobileScanner() {
   }, [deskId]);
 
   const selectDesk = (id: string) => {
+    if (contextDesk) return;
     setDeskId(id);
     localStorage.setItem('admin_checkin_desk', id);
   };
@@ -182,15 +183,17 @@ export default function MobileScanner() {
       {/* Header */}
       <div className="z-10 bg-black/60 backdrop-blur-xl border-b border-white/10 p-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <button
-            onClick={() => {
-              localStorage.removeItem('admin_checkin_desk');
-              setDeskId(null);
-            }}
-            className="p-2 bg-white/5 rounded-lg border border-white/10 active:scale-95 transition-all text-zinc-500"
-          >
-            <LogOut className="h-4 w-4" />
-          </button>
+          {!contextDesk && (
+            <button
+              onClick={() => {
+                localStorage.removeItem('admin_checkin_desk');
+                setDeskId(null);
+              }}
+              className="p-2 bg-white/5 rounded-lg border border-white/10 active:scale-95 transition-all text-zinc-500"
+            >
+              <LogOut className="h-4 w-4" />
+            </button>
+          )}
           <div className="flex flex-col">
             <h1 className="text-white font-bold tracking-tighter text-[10px] uppercase opacity-50">
               STATION_{deskId}
