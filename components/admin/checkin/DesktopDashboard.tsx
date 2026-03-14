@@ -9,7 +9,6 @@ import {
   AlertTriangle,
   Users,
   MapPin,
-  UserCheck,
   Flag,
   RotateCcw,
   Search,
@@ -68,6 +67,7 @@ export default function DesktopDashboard() {
   // Sync with context if provided
   useEffect(() => {
     if (contextDesk) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setDeskId(contextDesk);
     }
   }, [contextDesk]);
@@ -144,7 +144,7 @@ export default function DesktopDashboard() {
       pusher.connection.unbind('state_change', updateStatus);
       clearTimeout(presenceTimeout);
     };
-  }, [deskId, activeTeam?.id, utils]);
+  }, [deskId, activeTeam?.id, utils, refetchStats]);
 
   const selectDesk = (id: string) => {
     if (contextDesk) return;
@@ -565,10 +565,10 @@ function CouponCounter({ label, count, max, setCount, color, icon: Icon }: any) 
   );
 }
 
-const CheckCircle2 = ({ className }: { className?: string }) => (
+export const CheckCircle2 = ({ className }: { className?: string }) => (
   <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path><path d="m9 12 2 2 4-4"></path></svg>
 );
 
-const Loader2 = ({ className }: { className?: string }) => (
+export const Loader2 = ({ className }: { className?: string }) => (
   <svg className={`${className} animate-spin`} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>
 );
