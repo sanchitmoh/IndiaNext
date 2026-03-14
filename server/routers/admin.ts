@@ -1113,6 +1113,8 @@ export const adminRouter = router({
             team,
             adminName: ctx.admin.name,
           });
+        } else {
+          console.error('[Pusher] ERROR: getPusherServer() returned null. Check environment variables.');
         }
       } catch (error) {
         console.error('[Pusher] qr:scanned trigger failed:', error);

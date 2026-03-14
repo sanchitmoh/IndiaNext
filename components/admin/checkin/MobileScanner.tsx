@@ -68,13 +68,8 @@ export default function MobileScanner() {
           { facingMode: 'environment' },
           {
             fps: 30,
-            qrbox: { width: 256, height: 256 }, // Match the 64 (256px) width of our React HUD
+            qrbox: { width: 250, height: 250 },
             aspectRatio: 1.0,
-            videoConstraints: {
-              width: { min: 640, ideal: 1280, max: 1920 },
-              height: { min: 480, ideal: 720, max: 1080 },
-              facingMode: 'environment',
-            },
           },
           onScanSuccess,
           (errorMessage) => {

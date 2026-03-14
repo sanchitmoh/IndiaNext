@@ -11,9 +11,16 @@ export const getPusherServer = () => {
     const cluster = process.env.NEXT_PUBLIC_PUSHER_CLUSTER;
 
     if (!appId || !key || !secret || !cluster) {
-      console.warn('Pusher server variables are missing. Triggering events will fail.');
+      console.warn('Pusher server variables are missing. Triggering events will fail.', {
+        hasAppId: !!appId,
+        hasKey: !!key,
+        hasSecret: !!secret,
+        hasCluster: !!cluster
+      });
       return null;
     }
+
+    console.log(`[Pusher] Initializing server for App ID: ${appId.substring(0, 4)}...`);
 
     _pusherServer = new Pusher({
       appId,
@@ -44,14 +51,15 @@ export const getPusherClient = () => {
     try {
       // Synchronous require but only on client
       // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const PusherClient = require('pusher-js');
+      const PusherLib = require('pusher-js');
       
-      console.log('[Pusher] Initializing client with key:', key.substring(0, 5) + '...', 'Cluster:', cluster);
-      pusherClient = new PusherClient(key, {
+      console.log(`[Pusher] Initializing client for cluster: ${cluster}`);
+      pusherClient = new PusherLib(key, {
         cluster: cluster,
         forceTLS: true,
         enabledTransports: ['ws', 'wss'],
       });
+      console.log('[Pusher] Client instance created successfully');
     } catch (err) {
       console.error('[Pusher] Client initialization failed:', err);
       return null;
