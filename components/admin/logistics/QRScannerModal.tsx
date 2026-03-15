@@ -111,7 +111,7 @@ export function QRScannerModal({ onClose, onResult }: QRScannerModalProps) {
       // Attach stream to video element
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        videoRef.current.play();
+        await videoRef.current.play();
       }
 
       setCameraState('active');
@@ -136,65 +136,6 @@ export function QRScannerModal({ onClose, onResult }: QRScannerModalProps) {
       
       setCameraError(errorMsg);
       toast.error(errorMsg);
-    }
-  }, []);
-
-      // User clicked "Allow" — start video feed
-      streamRef.current = stream;
-      setCameraState('active');
-
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play();
-        setScanning(true);
-      }
-    } catch (err) {
-      if (err instanceof DOMException) {
-        switch (err.name) {
-          case 'NotAllowedError':
-            setCameraState('denied');
-            setCameraError(
-              'Camera permission was denied. Please allow camera access to scan QR codes.'
-            );
-            break;
-
-          case 'NotFoundError':
-            setCameraState('unsupported');
-            setCameraError('No camera found on this device.');
-            break;
-
-          case 'NotReadableError':
-            setCameraState('error');
-            setCameraError(
-              'Camera is in use by another application. Close other apps using the camera and try again.'
-            );
-            break;
-
-          case 'OverconstrainedError':
-            // Retry with basic video constraint (no facingMode)
-            try {
-              const fallbackStream = await navigator.mediaDevices.getUserMedia({ video: true });
-              streamRef.current = fallbackStream;
-              setCameraState('active');
-              if (videoRef.current) {
-                videoRef.current.srcObject = fallbackStream;
-                await videoRef.current.play();
-                setScanning(true);
-              }
-            } catch {
-              setCameraState('error');
-              setCameraError('Camera not available: ' + err.message);
-            }
-            break;
-
-          default:
-            setCameraState('error');
-            setCameraError('Camera not available: ' + err.message);
-        }
-      } else {
-        setCameraState('error');
-        setCameraError('Could not access camera. Use manual entry.');
-      }
     }
   }, []);
 

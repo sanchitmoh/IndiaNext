@@ -43,7 +43,8 @@ import { getRedis } from './rate-limit';
 
 const QR_VALIDITY_HOURS = 24;
 const QR_MAX_SCANS = 10;
-const QR_EXPIRY_SECONDS = QR_VALIDITY_HOURS * 60 * 60; // 24 hours in seconds
+// QR code expiry in seconds (24 hours)
+const _QR_EXPIRY_SECONDS = QR_VALIDITY_HOURS * 60 * 60;
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 

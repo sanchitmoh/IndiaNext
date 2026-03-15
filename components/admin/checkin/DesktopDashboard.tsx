@@ -6,9 +6,6 @@ import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Clock,
-  AlertTriangle,
-  Users,
-  MapPin,
   Flag,
   RotateCcw,
   Search,

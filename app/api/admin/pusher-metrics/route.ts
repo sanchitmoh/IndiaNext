@@ -12,7 +12,7 @@ import { handleGenericError } from '@/lib/error-handler';
  * Requirements: 2.19
  */
 
-export async function GET(req: Request) {
+export async function GET(_req: Request) {
   try {
     // 1. Validate admin session
     const session = await getAdminSession();

@@ -11,7 +11,7 @@ import { Download, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function TeamsManagementPage() {
-  const { role, isLogistics, isOrganizer, isJudge } = useAdminRole();
+  const { role, isLogistics, isOrganizer } = useAdminRole();
   const [filters, setFilters] = useState({
     status: 'all',
     track: 'all',

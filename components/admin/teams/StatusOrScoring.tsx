@@ -22,8 +22,6 @@ import {
   ChevronDown,
   ChevronUp,
   Star,
-  Mail,
-  Loader2,
 } from 'lucide-react';
 import { ScoringRubric } from './ScoringRubric';
 import { trpc } from '@/lib/trpc-client';
@@ -97,15 +95,15 @@ export function StatusOrScoring({
   onScoreUpdate: _onScoreUpdate,
 }: StatusOrScoringProps) {
   const [statusNote, setStatusNote] = useState('');
-  const [sendEmail, setSendEmail] = useState(true);
+  const [_sendEmail, _setSendEmail] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [criteria, setCriteria] = useState<any[]>([]);
   const [existingScores, setExistingScores] = useState<any[]>([]);
   const [multiJudge, setMultiJudge] = useState<any>(null);
   const [isLoadingRubric, setIsLoadingRubric] = useState(false);
-  const isSent = teamStatus === 'SHORTLISTED' ? shortlistedEmailSent : approvedEmailSent;
+  const _isSent = teamStatus === 'SHORTLISTED' ? shortlistedEmailSent : approvedEmailSent;
 
-  const sendEmailMutation = trpc.admin.sendShortlistConfirmationEmail.useMutation({
+  const _sendEmailMutation = trpc.admin.sendShortlistConfirmationEmail.useMutation({
     onSuccess: () => {
       toast.success('Email sent successfully!');
     },
@@ -272,7 +270,7 @@ export function StatusOrScoring({
                   setIsSubmitting(true);
                   try {
                     // Update: Pass sendEmail to handle it in parent or mutation
-                    await onStatusUpdate(action.status, statusNote || undefined, sendEmail);
+                    await onStatusUpdate(action.status, statusNote || undefined, _sendEmail);
                     setStatusNote('');
                   } finally {
                     setIsSubmitting(false);

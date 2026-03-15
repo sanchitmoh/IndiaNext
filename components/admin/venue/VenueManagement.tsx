@@ -4,14 +4,12 @@ import { useState, useMemo } from 'react';
 import { trpc } from '@/lib/trpc-client';
 import { 
   MapPin, 
-  Table as TableIcon, 
   Plus, 
   Trash2, 
   Search, 
   RefreshCw,
   CheckCircle2,
   Loader2,
-  ChevronRight,
   Monitor,
   LayoutGrid,
   List,
@@ -43,7 +41,8 @@ interface Table {
   } | null;
 }
 
-interface TeamLogistics {
+// Interface for team logistics data
+interface _TeamLogistics {
   id: string;
   name: string;
   shortCode: string;

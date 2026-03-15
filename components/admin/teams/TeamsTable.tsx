@@ -65,14 +65,16 @@ interface Team {
   createdAt: Date | string;
   updatedAt: Date | string;
   deletedAt: Date | string | null;
-  members: TeamMember[];
-  submission: TeamSubmission | null;
-  tags: TeamTag[];
+  members?: TeamMember[];
+  submission?: TeamSubmission | null;
+  tags?: TeamTag[];
   venue?: any;
-  _count: { comments: number };
+  _count?: { comments: number };
   // Additional fields for ranking calculations
   calculatedScore?: number;
   scoreCount?: number;
+  globalRank?: number;
+  currentRank?: number;
 }
 
 interface TeamsTableProps {
@@ -187,7 +189,7 @@ export function TeamsTable({
         ) : (
           <div className="divide-y divide-white/[0.03]">
             {teams.map((team) => {
-              const leader = team.members.find((m) => m.role === 'LEADER');
+              const leader = team.members?.find((m) => m.role === 'LEADER');
               return (
                 <div
                   key={team.id}
@@ -262,7 +264,7 @@ export function TeamsTable({
                         </span>
                         <span className="inline-flex items-center gap-1">
                           <Users className="h-3 w-3 text-gray-600" />
-                          {team.members.length}
+                          {team.members?.length || 0}
                         </span>
                         <span>
                           {new Date(team.createdAt).toLocaleDateString('en-US', {
@@ -270,7 +272,7 @@ export function TeamsTable({
                             day: 'numeric',
                           })}
                         </span>
-                        {team._count.comments > 0 && (
+                        {team._count && team._count.comments > 0 && (
                           <span className="inline-flex items-center gap-0.5">
                             <MessageSquare className="h-3 w-3" />
                             {team._count.comments}
@@ -287,7 +289,7 @@ export function TeamsTable({
                         </div>
                       )}
                       {/* Tags */}
-                      {team.tags.length > 0 && (
+                      {team.tags && team.tags.length > 0 && (
                         <div className="flex gap-1 mt-2 flex-wrap">
                           {team.tags.map((tag) => (
                             <span
@@ -390,7 +392,7 @@ export function TeamsTable({
               </tr>
             ) : (
               teams.map((team) => {
-                const leader = team.members.find((m) => m.role === 'LEADER');
+                const leader = team.members?.find((m) => m.role === 'LEADER');
                 return (
                   <tr
                     key={team.id}
@@ -426,7 +428,7 @@ export function TeamsTable({
                             <span className="text-[11px] font-mono text-gray-600">No leader</span>
                           )}
                         </div>
-                        {team.tags.length > 0 && (
+                        {team.tags && team.tags.length > 0 && (
                           <div className="flex gap-1 mt-1">
                             {team.tags.map((tag) => (
                               <span
@@ -513,7 +515,7 @@ export function TeamsTable({
                     <td className="px-4 py-3 text-center">
                       <span className="inline-flex items-center gap-1 text-xs font-mono text-gray-400">
                         <Users className="h-3 w-3 text-gray-600" />
-                        {team.members.length}
+                        {team.members?.length || 0}
                       </span>
                     </td>
                     <td className="px-4 py-3">
@@ -527,7 +529,7 @@ export function TeamsTable({
                     </td>
                     <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center justify-end gap-2">
-                        {team._count.comments > 0 && (
+                        {team._count && team._count.comments > 0 && (
                           <span className="flex items-center gap-0.5 text-[10px] font-mono text-gray-600">
                             <MessageSquare className="h-3 w-3" />
                             {team._count.comments}

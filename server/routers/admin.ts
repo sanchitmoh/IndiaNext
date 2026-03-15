@@ -296,7 +296,7 @@ export const adminRouter = router({
                   },
                   criterionScores: {
                     select: {
-                      score: true,
+                      points: true,
                       criterionId: true,
                       judgeId: true,
                     },
@@ -331,7 +331,7 @@ export const adminRouter = router({
             
             if (team.submission?.criterionScores) {
               const scores = team.submission.criterionScores;
-              calculatedScore = scores.reduce((sum: number, score: any) => sum + score.score, 0);
+              calculatedScore = scores.reduce((sum: number, score: any) => sum + score.points, 0);
               scoreCount = scores.length;
               
               // Calculate average score if there are scores
@@ -381,7 +381,7 @@ export const adminRouter = router({
             
             if (team.submission?.criterionScores) {
               const scores = team.submission.criterionScores;
-              calculatedScore = scores.reduce((sum: number, score: any) => sum + score.score, 0);
+              calculatedScore = scores.reduce((sum: number, score: any) => sum + score.points, 0);
               scoreCount = scores.length;
               
               if (scoreCount > 0) {

@@ -20,7 +20,7 @@
 import { z } from 'zod';
 import { router, adminProcedure, rateLimitedAdminProcedure } from '../trpc';
 import { TRPCError } from '@trpc/server';
-import { validateQRCode } from '../utils/qr-security';
+import { validateQRCode } from '@/lib/qr-security';
 
 // ── Permission guard ────────────────────────────────────────
 
