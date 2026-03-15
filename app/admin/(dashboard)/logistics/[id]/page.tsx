@@ -24,6 +24,8 @@ import {
   Save,
   X,
   Lock,
+  MapPin,
+  Monitor,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
@@ -217,6 +219,69 @@ export default function LogisticsTeamDetailPage({ params }: { params: Promise<{ 
             <RefreshCw className="h-3.5 w-3.5" />
           </button>
         </div>
+      </div>
+
+      {/* ── Venue & Seat Allocation ─────────────────────────── */}
+      <div className={`rounded-lg border p-4 ${
+        currentTeam.venue
+          ? 'bg-emerald-500/5 border-emerald-500/20'
+          : 'bg-white/[0.02] border-white/[0.06]'
+      }`}>
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <MapPin className={`h-4 w-4 ${currentTeam.venue ? 'text-emerald-400' : 'text-gray-600'}`} />
+            <h2 className="text-xs font-mono font-bold text-gray-400 tracking-widest">VENUE &amp; SEAT</h2>
+          </div>
+          {!currentTeam.venue && (
+            <a
+              href="/admin/venue"
+              className="text-[9px] font-mono text-orange-400 hover:text-orange-300 border border-orange-500/20 bg-orange-500/10 px-2 py-0.5 rounded transition-colors"
+            >
+              ASSIGN →
+            </a>
+          )}
+        </div>
+
+        {currentTeam.venue ? (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {/* Venue name */}
+            <div className="bg-black/20 rounded-lg p-3">
+              <p className="text-[8px] font-mono font-bold text-gray-500 uppercase tracking-widest mb-1">Venue</p>
+              <p className="text-sm font-mono font-bold text-emerald-400">{currentTeam.venue.name}</p>
+            </div>
+            {/* Floor */}
+            {currentTeam.venue.floor && (
+              <div className="bg-black/20 rounded-lg p-3">
+                <p className="text-[8px] font-mono font-bold text-gray-500 uppercase tracking-widest mb-1">Floor</p>
+                <p className="text-sm font-mono font-bold text-gray-200">{currentTeam.venue.floor}</p>
+              </div>
+            )}
+            {/* Block */}
+            {currentTeam.venue.block && (
+              <div className="bg-black/20 rounded-lg p-3">
+                <p className="text-[8px] font-mono font-bold text-gray-500 uppercase tracking-widest mb-1">Block</p>
+                <p className="text-sm font-mono font-bold text-gray-200">{currentTeam.venue.block}</p>
+              </div>
+            )}
+            {/* Table / Seat */}
+            <div className="bg-black/20 rounded-lg p-3">
+              <p className="text-[8px] font-mono font-bold text-gray-500 uppercase tracking-widest mb-1">Table / Seat</p>
+              <p className="text-sm font-mono font-bold text-white">
+                {currentTeam.tableNumber || '—'}
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="flex items-center gap-3 py-3">
+            <Monitor className="h-6 w-6 text-gray-700" />
+            <div>
+              <p className="text-xs font-mono font-bold text-gray-600">NOT ASSIGNED YET</p>
+              <p className="text-[9px] font-mono text-gray-700 mt-0.5">
+                Venue &amp; seat will appear here once assigned from the Venue Management panel.
+              </p>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Team Attendance Section */}

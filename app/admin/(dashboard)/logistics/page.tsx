@@ -25,6 +25,8 @@ import { toast } from 'sonner';
 import Link from 'next/link';
 import { QRScannerModal } from '@/components/admin/logistics/QRScannerModal';
 import { AttendanceStats } from '@/components/admin/logistics/AttendanceStats';
+import { QRScanNotification } from '@/components/admin/logistics/QRScanNotification';
+import type { ScanEvent } from '@/lib/scan-emitter';
 
 const POLL_INTERVAL = 30_000; // 30s real-time sync
 
@@ -71,6 +73,10 @@ export default function LogisticsPage() {
   const [isOnline, setIsOnline] = useState(
     typeof navigator !== 'undefined' ? navigator.onLine : true
   );
+  // Stacked real-time scan notifications pushed from mobile via SSE
+  const [scanNotifications, setScanNotifications] = useState<
+    Array<ScanEvent & { notifId: string }>
+  >([]);
 
   // Detect admin role for attendance lock override
   // ✅ SECURITY FIX: Use React Context instead of DOM attribute
@@ -95,6 +101,32 @@ export default function LogisticsPage() {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
+  }, []);
+
+  // ── Server-Sent Events: receive real-time QR scan notifications ─────────
+  useEffect(() => {
+    const es = new EventSource('/api/logistics/scan-events');
+
+    es.onmessage = (e) => {
+      try {
+        const event: ScanEvent = JSON.parse(e.data);
+        setScanNotifications((prev) => [
+          // Newest on top; cap at 5 so notifications don't crowd the screen
+          { ...event, notifId: `${event.shortCode}-${Date.now()}` },
+          ...prev.slice(0, 4),
+        ]);
+        // Also refresh the team list in the background so data stays fresh
+        refetch();
+        refetchStats();
+      } catch { /* malformed event — ignore */ }
+    };
+
+    es.onerror = () => {
+      // Browser auto-reconnects SSE on error — no manual handling needed
+    };
+
+    return () => es.close();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const { data, isLoading, refetch } = trpc.logistics.getApprovedTeams.useQuery(
@@ -472,6 +504,30 @@ export default function LogisticsPage() {
       {/* QR Scanner Modal */}
       {showQRScanner && (
         <QRScannerModal onClose={() => setShowQRScanner(false)} onResult={handleQRResult} />
+      )}
+
+      {/* ── Real-time QR scan notification stack (bottom-right) ───────── */}
+      {scanNotifications.length > 0 && (
+        <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-3 max-h-[calc(100vh-2rem)] overflow-hidden">
+          {scanNotifications.map((notif) => (
+            <QRScanNotification
+              key={notif.notifId}
+              event={notif}
+              onDismiss={() =>
+                setScanNotifications((prev) =>
+                  prev.filter((n) => n.notifId !== notif.notifId)
+                )
+              }
+              onCheckedIn={() => {
+                setScanNotifications((prev) =>
+                  prev.filter((n) => n.notifId !== notif.notifId)
+                );
+                refetch();
+                refetchStats();
+              }}
+            />
+          ))}
+        </div>
       )}
     </div>
   );

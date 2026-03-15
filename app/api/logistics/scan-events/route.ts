@@ -12,26 +12,40 @@
  */
 
 import { type NextRequest } from 'next/server';
+import { cookies } from 'next/headers';
+import { prisma } from '@/lib/prisma';
+import { hashSessionToken } from '@/lib/session-security';
 import { scanEmitter, type ScanEvent } from '@/lib/scan-emitter';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
 
 export const runtime = 'nodejs'; // SSE requires Node.js runtime (not Edge)
 export const dynamic = 'force-dynamic';
 
+async function verifyAdmin() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get('admin_token')?.value;
+  if (!token) return null;
+
+  const session = await prisma.adminSession.findUnique({
+    where: { token: hashSessionToken(token) },
+    include: { admin: true },
+  });
+
+  if (!session || session.expiresAt < new Date()) return null;
+  return session.admin;
+}
+
 export async function GET(req: NextRequest) {
   // ── Auth guard: only logged-in admins can subscribe ──────────────────────
-  const session = await getServerSession(authOptions);
-  if (!session) {
+  const admin = await verifyAdmin();
+  if (!admin) {
     return new Response('Unauthorized', { status: 401 });
   }
 
-  // ── Set up the SSE stream ─────────────────────────────────────────────────
   const encoder = new TextEncoder();
 
   const stream = new ReadableStream({
     start(controller) {
-      // Send an initial heartbeat so the client knows the connection is alive
+      // Send an initial connected confirmation so the client knows it's live
       controller.enqueue(encoder.encode(': connected\n\n'));
 
       // Forward every scan event to this SSE client
@@ -40,13 +54,13 @@ export async function GET(req: NextRequest) {
           const data = JSON.stringify(event);
           controller.enqueue(encoder.encode(`data: ${data}\n\n`));
         } catch {
-          // Client disconnected mid-write — will be cleaned up below
+          // Client disconnected mid-write — cleaned up below
         }
       };
 
       scanEmitter.on('scan', onScan);
 
-      // Keep-alive ping every 25s to prevent proxy timeouts
+      // Keep-alive ping every 25s to prevent proxy/CDN timeouts
       const ping = setInterval(() => {
         try {
           controller.enqueue(encoder.encode(`: ping\n\n`));
@@ -55,7 +69,7 @@ export async function GET(req: NextRequest) {
         }
       }, 25_000);
 
-      // Cleanup when client disconnects
+      // Cleanup on client disconnect
       req.signal.addEventListener('abort', () => {
         scanEmitter.off('scan', onScan);
         clearInterval(ping);

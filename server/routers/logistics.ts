@@ -21,6 +21,7 @@ import { z } from 'zod';
 import { router, adminProcedure, rateLimitedAdminProcedure } from '../trpc';
 import { TRPCError } from '@trpc/server';
 import { validateQRCode, generateSecureQRCode, encodeQRPayload } from '@/lib/qr-security';
+import { scanEmitter } from '@/lib/scan-emitter';
 
 // ── Permission guard ────────────────────────────────────────
 
@@ -188,6 +189,9 @@ export const logisticsRouter = router({
             },
             orderBy: { role: 'asc' },
           },
+          venue: {
+            select: { id: true, name: true, floor: true, block: true },
+          },
         },
       });
 
@@ -216,6 +220,11 @@ export const logisticsRouter = router({
         checkedInAt: team.checkedInAt,
         checkedInBy: team.checkedInBy,
         attendanceNotes: team.attendanceNotes,
+        // Venue & seat allocation
+        venueId: team.venueId,
+        tableId: team.tableId,
+        tableNumber: team.tableNumber,
+        venue: team.venue ?? null,
         members: team.members.map((m) => ({
           id: m.id,
           role: m.role,
@@ -372,7 +381,7 @@ export const logisticsRouter = router({
         });
       }
 
-      return {
+      const result = {
         id: team.id,
         shortCode: team.shortCode,
         name: team.name,
@@ -391,6 +400,29 @@ export const logisticsRouter = router({
           user: m.user,
         })),
       };
+
+      // ── Push real-time notification to all connected SSE clients (laptops) ──
+      // Fire-and-forget: don't await, don't let emit errors fail the request.
+      try {
+        scanEmitter.emit('scan', {
+          teamId: result.id,
+          teamName: result.name,
+          shortCode: result.shortCode,
+          track: result.track,
+          college: result.college,
+          attendance: result.attendance,
+          checkedInAt: result.checkedInAt,
+          members: result.members.map((m) => ({
+            id: m.id,
+            role: m.role,
+            isPresent: m.isPresent,
+            user: { name: m.user.name ?? '', email: m.user.email },
+          })),
+          scannedAt: new Date().toISOString(),
+        });
+      } catch { /* SSE emit errors must never break the main response */ }
+
+      return result;
     }),
 
   // ═══════════════════════════════════════════════════════════

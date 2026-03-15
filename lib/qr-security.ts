@@ -111,7 +111,8 @@ export async function generateSecureQRCode(
 
 /**
  * Validate a QR code payload and enforce security checks.
- * Checks expiry, nonce validity, and scan limits.
+ * Supports both legacy format (plain shortCode) and new format (JSON payload).
+ * Checks expiry, nonce validity, and scan limits for new format.
  *
  * @param qrPayload - Base64-encoded QR payload string
  * @returns Validation result with status and reason
@@ -120,9 +121,46 @@ export async function validateQRCode(qrPayload: string): Promise<QRValidationRes
   try {
     // Decode base64 payload
     const decoded = Buffer.from(qrPayload, 'base64').toString('utf-8');
-    const payload: SecureQRPayload = JSON.parse(decoded);
+    
+    // Try to parse as JSON (new format)
+    let payload: SecureQRPayload | null = null;
+    let shortCode: string;
+    
+    try {
+      const parsedPayload = JSON.parse(decoded);
+      if (parsedPayload && typeof parsedPayload === 'object' && parsedPayload.shortCode) {
+        payload = parsedPayload as SecureQRPayload;
+        shortCode = payload.shortCode;
+      } else {
+        throw new Error('Invalid payload structure');
+      }
+    } catch (_jsonError) {
+      // Not JSON, treat as legacy format (plain shortCode)
+      shortCode = decoded;
+      
+      // Validate shortCode format (basic validation)
+      if (!shortCode || typeof shortCode !== 'string' || shortCode.length < 3) {
+        return {
+          valid: false,
+          reason: 'Invalid QR code format: invalid shortCode',
+        };
+      }
+      
+      // For legacy format, just return valid with shortCode
+      return {
+        valid: true,
+        shortCode: shortCode.toUpperCase().trim(),
+      };
+    }
 
-    // Validate payload structure
+    // New format validation
+    if (!payload) {
+      return {
+        valid: false,
+        reason: 'Invalid QR code format: failed to parse JSON payload',
+      };
+    }
+    
     if (!payload.shortCode || !payload.nonce || !payload.expiresAt || !payload.maxScans) {
       return {
         valid: false,
@@ -171,7 +209,7 @@ export async function validateQRCode(qrPayload: string): Promise<QRValidationRes
 
         return {
           valid: true,
-          shortCode: payload.shortCode,
+          shortCode: shortCode,
           scansRemaining: payload.maxScans - newCount,
         };
       } catch (err) {
@@ -184,7 +222,7 @@ export async function validateQRCode(qrPayload: string): Promise<QRValidationRes
     console.warn('[QRSecurity] No Redis — scan limits not enforced');
     return {
       valid: true,
-      shortCode: payload.shortCode,
+      shortCode: shortCode,
       scansRemaining: undefined, // Unknown without Redis
     };
   } catch (err) {

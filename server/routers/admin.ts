@@ -1573,6 +1573,25 @@ export const adminRouter = router({
     });
   }),
 
+  // Lean projection for venue mapping — only the fields the venue component needs
+  getShortlistedTeamsForVenue: canViewTeams.query(async ({ ctx }) => {
+    return ctx.prisma.team.findMany({
+      where: { status: 'SHORTLISTED', deletedAt: null },
+      select: {
+        id: true,
+        name: true,
+        shortCode: true,
+        track: true,
+        college: true,
+        venueId: true,
+        tableId: true,
+        tableNumber: true,
+        attendance: true,
+      },
+      orderBy: { reviewedAt: 'asc' },
+    });
+  }),
+
   createVenue: canEditTeamsRateLimited
     .input(z.object({ 
       name: z.string().min(1),
@@ -1601,9 +1620,21 @@ export const adminRouter = router({
       if (teamCount > 0) {
         throw new TRPCError({
           code: 'PRECONDITION_FAILED',
-          message: 'Cannot delete venue that has teams assigned to it.',
+          message: `Cannot delete venue: ${teamCount} team(s) are still assigned to it. Unassign them first.`,
         });
       }
+
+      // Check if any tables in this venue are occupied by teams
+      const occupiedTableCount = await ctx.prisma.table.count({
+        where: { venueId: input.id, team: { isNot: null } },
+      });
+      if (occupiedTableCount > 0) {
+        throw new TRPCError({
+          code: 'PRECONDITION_FAILED',
+          message: `Cannot delete venue: ${occupiedTableCount} table(s) are occupied by teams. Unassign them first.`,
+        });
+      }
+
       return ctx.prisma.venue.delete({
         where: { id: input.id },
       });
@@ -1618,6 +1649,14 @@ export const adminRouter = router({
         orderBy: { code: 'asc' },
       });
     }),
+
+  // Fetch ALL tables across ALL venues in one query — eliminates the N+1 per-card problem
+  getAllVenueTables: canViewTeams.query(async ({ ctx }) => {
+    return ctx.prisma.table.findMany({
+      include: { team: { select: { name: true, shortCode: true } } },
+      orderBy: { code: 'asc' },
+    });
+  }),
 
   bulkGenerateTables: canEditTeamsRateLimited
     .input(
@@ -1915,4 +1954,291 @@ export const adminRouter = router({
 
       return { success: true };
     }),
+
+  // ═══════════════════════════════════════════════════════════
+  // RANKED LEADERBOARD — per track, with tie cascade
+  // ═══════════════════════════════════════════════════════════
+
+  getLeaderboard: canViewTeams
+    .input(
+      z.object({
+        track: z.enum(['IDEA_SPRINT', 'BUILD_STORM']),
+        page: z.number().default(1),
+        pageSize: z.number().min(1).max(100).default(50),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      // Fetch all scored teams for this track (not paginated — needed to compute global ranks)
+      const teams = await ctx.prisma.team.findMany({
+        where: {
+          track: input.track,
+          status: { in: ['APPROVED', 'SHORTLISTED'] },
+          deletedAt: null,
+        },
+        include: {
+          members: {
+            include: {
+              user: { select: { id: true, name: true, email: true, college: true, avatar: true } },
+            },
+          },
+          submission: {
+            select: {
+              id: true,
+              submittedAt: true,
+              ideaTitle: true,
+              judgeScore: true,
+              criterionScores: {
+                select: {
+                  points: true,
+                  criterionId: true,
+                  judgeId: true,
+                  confidence: true,
+                  criterion: { select: { weight: true, maxPoints: true, criterionId: true } },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      // Fetch highest-weight criterion for this track (used in tie cascade step 1)
+      const topCriterion = await ctx.prisma.scoringCriterion.findFirst({
+        where: { track: input.track, isActive: true },
+        orderBy: { weight: 'desc' },
+      });
+
+      type ScoredTeam = (typeof teams)[0] & {
+        calculatedScore: number;
+        judgeCount: number;
+        topCriterionAvg: number;
+        finalRank: number;
+        tieResolutionMethod: string | null;
+      };
+
+      // ── Per-team score calculation ──────────────────────────────────
+      const scored: ScoredTeam[] = teams.map((team) => {
+        const allCS = team.submission?.criterionScores ?? [];
+
+        // Group by judge → confidence-weighted total per judge
+        const judgeMap = new Map<string, { total: number; confidence: number }>();
+        for (const cs of allCS) {
+          let e = judgeMap.get(cs.judgeId);
+          if (!e) { e = { total: 0, confidence: cs.confidence ?? 50 }; judgeMap.set(cs.judgeId, e); }
+          const norm = (cs.points / cs.criterion.maxPoints) * 100;
+          e.total += (norm * cs.criterion.weight) / 100;
+        }
+
+        const judges = Array.from(judgeMap.values());
+        const judgeCount = judges.length;
+        const totalConf = judges.reduce((s, j) => s + j.confidence, 0) || 1;
+        const calculatedScore =
+          judgeCount === 0
+            ? 0
+            : Math.round(
+                (judges.reduce((s, j) => s + j.total * j.confidence, 0) / totalConf) * 10
+              ) / 10;
+
+        // Top-criterion average (for tie cascade step 1)
+        const topCS = topCriterion
+          ? allCS.filter((cs) => cs.criterion.criterionId === topCriterion.criterionId)
+          : [];
+        const topCriterionAvg =
+          topCS.length > 0
+            ? topCS.reduce((s, cs) => s + cs.points, 0) / topCS.length
+            : 0;
+
+        return {
+          ...team,
+          calculatedScore: team.submission?.judgeScore ?? calculatedScore,
+          judgeCount,
+          topCriterionAvg,
+          finalRank: 0,
+          tieResolutionMethod: null,
+        };
+      });
+
+      // ── Tie cascade sort ────────────────────────────────────────────
+      const TIE_TOLERANCE = 0.5; // scores within ±0.5 are considered tied
+
+      scored.sort((a, b) => {
+        const diff = b.calculatedScore - a.calculatedScore;
+        if (Math.abs(diff) > TIE_TOLERANCE) return diff; // clear winner
+
+        // Tied — cascade:
+        // 1. Higher score on highest-weighted criterion
+        const topDiff = b.topCriterionAvg - a.topCriterionAvg;
+        if (Math.abs(topDiff) > 0.01) {
+          a.tieResolutionMethod = b.tieResolutionMethod = 'top_criterion';
+          return topDiff;
+        }
+        // 2. More judges = more consensus
+        const jDiff = b.judgeCount - a.judgeCount;
+        if (jDiff !== 0) {
+          a.tieResolutionMethod = b.tieResolutionMethod = 'judge_count';
+          return jDiff;
+        }
+        // 3. Earlier submission
+        const aSubmitted = a.submission?.submittedAt ? new Date(a.submission.submittedAt).getTime() : Infinity;
+        const bSubmitted = b.submission?.submittedAt ? new Date(b.submission.submittedAt).getTime() : Infinity;
+        if (aSubmitted !== bSubmitted) {
+          a.tieResolutionMethod = b.tieResolutionMethod = 'submission_time';
+          return aSubmitted - bSubmitted;
+        }
+        // 4. Alphabetical (last resort)
+        a.tieResolutionMethod = b.tieResolutionMethod = 'alphabetical';
+        return a.name.localeCompare(b.name);
+      });
+
+      // Apply manual rank overrides within ties
+      scored.sort((a, b) => {
+        const aDiff = Math.abs(a.calculatedScore - b.calculatedScore);
+        if (aDiff > TIE_TOLERANCE) return 0; // already sorted correctly by cascade
+        if (a.rank !== null && b.rank !== null) return a.rank - b.rank;
+        if (a.rank !== null) return -1;
+        if (b.rank !== null) return 1;
+        return 0;
+      });
+
+      // Assign final ranks
+      scored.forEach((t, i) => { t.finalRank = i + 1; });
+
+      const total = scored.length;
+      const start = (input.page - 1) * input.pageSize;
+      const pageItems = scored.slice(start, start + input.pageSize);
+
+      return {
+        teams: pageItems,
+        totalCount: total,
+        totalPages: Math.ceil(total / input.pageSize),
+        currentPage: input.page,
+        track: input.track,
+      };
+    }),
+
+  // ── Manual rank override ────────────────────────────────────────────
+  setManualRank: canEditTeamsRateLimited
+    .input(
+      z.object({
+        teamId: z.string(),
+        rank: z.number().int().min(1).nullable(),
+        reason: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const team = await ctx.prisma.team.update({
+        where: { id: input.teamId },
+        data: { rank: input.rank },
+      });
+
+      await ctx.prisma.activityLog.create({
+        data: {
+          userId: null,
+          action: 'team.manual_rank_set',
+          entity: 'Team',
+          entityId: input.teamId,
+          metadata: {
+            rank: input.rank,
+            reason: input.reason ?? null,
+            adminId: ctx.admin.id,
+            adminName: ctx.admin.name,
+          },
+        },
+      });
+
+      return { success: true, teamId: team.id, rank: team.rank };
+    }),
+
+  // ── Tie analytics ────────────────────────────────────────────────────
+  getTieAnalytics: canViewAnalytics.query(async ({ ctx }) => {
+    const TIE_TOLERANCE = 0.5;
+
+    async function analyzeTies(track: 'IDEA_SPRINT' | 'BUILD_STORM') {
+      const teams = await ctx.prisma.team.findMany({
+        where: { track, status: { in: ['APPROVED', 'SHORTLISTED'] }, deletedAt: null },
+        include: {
+          submission: { select: { judgeScore: true, submittedAt: true } },
+        },
+      });
+
+      // Group teams with same score (within tolerance)
+      const scored = teams
+        .filter((t) => t.submission?.judgeScore != null)
+        .map((t) => ({ id: t.id, name: t.name, score: t.submission!.judgeScore!, manualRank: t.rank }));
+
+      const groups: { score: number; teams: typeof scored; resolved: boolean; resolutionType: 'manual' | 'auto' | null }[] = [];
+      const visited = new Set<string>();
+
+      for (const team of scored) {
+        if (visited.has(team.id)) continue;
+        const group = scored.filter((t) => Math.abs(t.score - team.score) <= TIE_TOLERANCE);
+        if (group.length >= 2) {
+          group.forEach((t) => visited.add(t.id));
+          const hasManual = group.some((t) => t.manualRank !== null);
+          groups.push({
+            score: team.score,
+            teams: group,
+            resolved: true, // auto cascade always resolves
+            resolutionType: hasManual ? 'manual' : 'auto',
+          });
+        }
+      }
+
+      const totalTies = groups.reduce((s, g) => s + g.teams.length, 0);
+      const manualResolved = groups.filter((g) => g.resolutionType === 'manual').reduce((s, g) => s + g.teams.length, 0);
+      const autoResolved = totalTies - manualResolved;
+
+      return { totalTies, tieGroups: groups, manualResolved, autoResolved, totalTeams: teams.length, scoredTeams: scored.length };
+    }
+
+    const [ideasprint, buildstorm] = await Promise.all([
+      analyzeTies('IDEA_SPRINT'),
+      analyzeTies('BUILD_STORM'),
+    ]);
+
+    return { ideasprint, buildstorm };
+  }),
+
+  // ── Score audit log ──────────────────────────────────────────────────
+  getScoreAuditLog: canViewAnalytics
+    .input(
+      z.object({
+        submissionId: z.string(),
+        page: z.number().default(1),
+        pageSize: z.number().min(1).max(100).default(50),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const [logs, total] = await Promise.all([
+        ctx.prisma.scoreAuditLog.findMany({
+          where: { submissionId: input.submissionId },
+          include: { criterion: { select: { name: true, criterionId: true, weight: true, maxPoints: true } } },
+          orderBy: { changedAt: 'desc' },
+          skip: (input.page - 1) * input.pageSize,
+          take: input.pageSize,
+        }),
+        ctx.prisma.scoreAuditLog.count({ where: { submissionId: input.submissionId } }),
+      ]);
+
+      return {
+        logs: logs.map((l) => ({
+          id: l.id,
+          judgeId: l.judgeId,
+          judgeName: l.judgeName,
+          criterionName: l.criterion.name,
+          criterionWeight: l.criterion.weight,
+          oldPoints: l.oldPoints,
+          newPoints: l.newPoints,
+          delta: l.oldPoints !== null ? Math.round((l.newPoints - l.oldPoints) * 10) / 10 : null,
+          oldComments: l.oldComments,
+          newComments: l.newComments,
+          confidence: l.confidence,
+          ipAddress: l.ipAddress,
+          changedAt: l.changedAt,
+        })),
+        totalCount: total,
+        totalPages: Math.ceil(total / input.pageSize),
+        currentPage: input.page,
+      };
+    }),
 });
+

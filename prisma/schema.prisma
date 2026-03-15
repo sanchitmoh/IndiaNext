@@ -282,6 +282,7 @@ model Submission {
   // Relations
   files           File[]
   criterionScores CriterionScore[]
+  scoreAuditLogs  ScoreAuditLog[]
 
   @@index([teamId])
   @@index([assignedProblemStatementId])
@@ -690,6 +691,7 @@ model Venue {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@index([createdAt])
   @@map("venues")
 }
 
@@ -830,7 +832,8 @@ model ScoringCriterion {
   updatedAt   DateTime @updatedAt
   
   // Relations
-  scores      CriterionScore[]
+  scores         CriterionScore[]
+  scoreAuditLogs ScoreAuditLog[]
   
   @@unique([track, criterionId])
   @@index([track, isActive])
@@ -848,6 +851,10 @@ model CriterionScore {
   points       Float    // Points awarded (0 to maxPoints)
   comments     String?  @db.Text
   
+  // ── Advanced judging fields ──────────────────────────────────
+  confidence   Int?     // Judge confidence 0–100 (null = unset). Weights the judge's contribution.
+  previousPoints Float? // Snapshot of last saved value — used for audit diff
+  
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   
@@ -860,4 +867,35 @@ model CriterionScore {
   @@index([criterionId])
   @@index([judgeId])
   @@map("criterion_scores")
+}
+
+// ═══════════════════════════════════════════════════════════
+// SCORE AUDIT LOG — tracks every score change by every judge
+// ═══════════════════════════════════════════════════════════
+
+model ScoreAuditLog {
+  id           String   @id @default(cuid())
+  submissionId String
+  criterionId  String   // ScoringCriterion.id
+  judgeId      String
+  judgeName    String
+
+  oldPoints    Float?   // null on first submission
+  newPoints    Float
+  oldComments  String?  @db.Text
+  newComments  String?  @db.Text
+  confidence   Int?     // confidence at time of change
+  
+  changeReason String?  // optional note from admin tools
+  ipAddress    String?
+  changedAt    DateTime @default(now())
+
+  submission Submission       @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  criterion  ScoringCriterion @relation(fields: [criterionId], references: [id])
+
+  @@index([submissionId])
+  @@index([criterionId])
+  @@index([judgeId])
+  @@index([changedAt])
+  @@map("score_audit_logs")
 }

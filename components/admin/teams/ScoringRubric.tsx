@@ -38,6 +38,7 @@ interface CriterionScoreData {
   criterionId: string;
   points: number;
   comments: string;
+  confidence?: number; // 0-100 judge confidence
 }
 
 interface JudgeSummary {
@@ -91,6 +92,8 @@ export function ScoringRubric({
   const [scores, setScores] = useState<Map<string, CriterionScoreData>>(new Map());
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [expandedCriterion, setExpandedCriterion] = useState<string | null>(null);
+  const [confidence, setConfidence] = useState<number>(80); // default 80%
+  const LOW_SCORE_THRESHOLD = 5; // must match API
 
   // Initialize scores from existing data
   useEffect(() => {
@@ -132,9 +135,21 @@ export function ScoringRubric({
       return;
     }
 
+    // Check mandatory comments for low scores
+    const lowScoresMissingComment = Array.from(scores.values()).filter(
+      (s) => s.points < LOW_SCORE_THRESHOLD && !s.comments.trim()
+    );
+    if (lowScoresMissingComment.length > 0) {
+      const names = lowScoresMissingComment
+        .map((s) => criteria.find((c) => c.criterionId === s.criterionId)?.name || s.criterionId)
+        .join(', ');
+      toast.error(`Add a comment for low scores (< ${LOW_SCORE_THRESHOLD}) in: ${names}`);
+      return;
+    }
+
     setIsSubmitting(true);
     try {
-      await onScoreUpdate(Array.from(scores.values()));
+      await onScoreUpdate(Array.from(scores.values()).map((s) => ({ ...s, confidence })));
       toast.success('Scores submitted successfully!');
     } catch (error: any) {
       toast.error(error.message || 'Failed to submit scores');
@@ -243,6 +258,51 @@ export function ScoringRubric({
         </div>
       )}
 
+      {/* ── Confidence Slider ────────────────────────────────────── */}
+      <div className="mb-4 p-3 bg-purple-500/5 border border-purple-500/20 rounded-lg">
+        <div className="flex items-center justify-between mb-2">
+          <label className="text-[9px] font-mono font-bold text-purple-400 uppercase tracking-[0.2em]">
+            YOUR CONFIDENCE IN THIS SCORING
+          </label>
+          <span className="text-xs font-mono font-bold text-purple-300">{confidence}%</span>
+        </div>
+        <input
+          type="range"
+          min={0}
+          max={100}
+          step={5}
+          value={confidence}
+          onChange={(e) => setConfidence(Number(e.target.value))}
+          className="w-full h-2 rounded-lg appearance-none cursor-pointer"
+          style={{
+            background: `linear-gradient(to right, rgb(168,85,247) 0%, rgb(168,85,247) ${confidence}%, rgba(255,255,255,0.05) ${confidence}%, rgba(255,255,255,0.05) 100%)`,
+          }}
+        />
+        <div className="flex justify-between mt-1">
+          <span className="text-[8px] font-mono text-gray-600">0% Unsure</span>
+          <span className="text-[8px] font-mono text-gray-600">100% Certain</span>
+        </div>
+        {confidence < 40 && (
+          <p className="text-[9px] font-mono text-amber-400 mt-1.5">
+            ⚠ Low confidence — your score will be weighted less in the final average
+          </p>
+        )}
+      </div>
+
+      {/* ── Low-score mandatory comment warning ──────────────────── */}
+      {Array.from(scores.values()).some((s) => s.points < LOW_SCORE_THRESHOLD && !s.comments.trim()) && (
+        <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg flex items-start gap-2">
+          <AlertTriangle className="h-4 w-4 text-red-400 mt-0.5 shrink-0" />
+          <div>
+            <p className="text-[10px] font-mono font-bold text-red-400">COMMENT REQUIRED FOR LOW SCORES</p>
+            <p className="text-[9px] font-mono text-red-300/70 mt-0.5">
+              Scores below {LOW_SCORE_THRESHOLD}/{criteria[0]?.maxPoints ?? 10} need a written justification.
+              Please add a comment for each highlighted criterion.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Progress Bar */}
       <div className="mb-5">
         <div className="flex items-center gap-2 mb-2">
@@ -342,11 +402,21 @@ export function ScoringRubric({
                 </div>
               </div>
 
+              {/* Low-score comment required highlight */}
+              {currentPoints < LOW_SCORE_THRESHOLD && (
+                <div className="mb-2 flex items-center gap-1.5">
+                  <AlertTriangle className="h-3 w-3 text-red-400 shrink-0" />
+                  <span className="text-[9px] font-mono text-red-400">Comment required for score below {LOW_SCORE_THRESHOLD}</span>
+                </div>
+              )}
+
               {/* Comments */}
               <div>
-                <label className="block text-[10px] font-mono text-gray-500 mb-1 flex items-center gap-1">
+                <label className={`block text-[10px] font-mono mb-1 flex items-center gap-1 ${
+                  currentPoints < LOW_SCORE_THRESHOLD ? 'text-red-400 font-bold' : 'text-gray-500'
+                }`}>
                   <MessageSquare className="h-3 w-3" />
-                  Comments (Optional)
+                  {currentPoints < LOW_SCORE_THRESHOLD ? 'Comment (Required)' : 'Comments (Optional)'}
                 </label>
                 <textarea
                   value={score?.comments || ''}
@@ -354,8 +424,12 @@ export function ScoringRubric({
                     updateScore(criterion.criterionId, currentPoints, e.target.value)
                   }
                   rows={2}
-                  className="w-full px-2 py-1.5 text-[11px] font-mono bg-white/[0.02] border border-white/[0.04] rounded text-gray-300 placeholder:text-gray-600 focus:outline-none focus:ring-1 focus:ring-amber-500/50 focus:border-amber-500/30 resize-none"
-                  placeholder={`Feedback for ${criterion.name.toLowerCase()}...`}
+                  className={`w-full px-2 py-1.5 text-[11px] font-mono bg-white/[0.02] rounded text-gray-300 placeholder:text-gray-600 focus:outline-none focus:ring-1 resize-none ${
+                    currentPoints < LOW_SCORE_THRESHOLD
+                      ? 'border border-red-500/40 focus:ring-red-500/50 focus:border-red-500/30'
+                      : 'border border-white/[0.04] focus:ring-amber-500/50 focus:border-amber-500/30'
+                  }`}
+                  placeholder={currentPoints < LOW_SCORE_THRESHOLD ? `Why is ${criterion.name.toLowerCase()} scored low? (required)` : `Feedback for ${criterion.name.toLowerCase()}...`}
                 />
               </div>
             </div>

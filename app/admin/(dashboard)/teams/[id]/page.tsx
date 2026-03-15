@@ -297,6 +297,16 @@ export default function TeamDetailPage({ params }: { params: Promise<{ id: strin
                 <History className="h-3.5 w-3.5" />
                 VIEW AUDIT TRAIL
               </button>
+              {/* Score Audit History — only for scored teams */}
+              {(team.status === 'APPROVED' || team.status === 'SHORTLISTED') && (
+                <button
+                  onClick={() => router.push(`/admin/teams/${id}/scoring-audit`)}
+                  className="px-3 py-1.5 text-[10px] font-mono font-bold tracking-wider text-amber-400 hover:bg-amber-500/10 border border-amber-500/20 rounded-md transition-all flex items-center gap-1.5 shrink-0"
+                >
+                  <History className="h-3.5 w-3.5" />
+                  SCORE AUDIT
+                </button>
+              )}
               <button
                 onClick={handleDelete}
                 disabled={deleteTeam.isPending}

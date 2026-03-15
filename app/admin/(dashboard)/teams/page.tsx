@@ -7,7 +7,9 @@ import { useAdminRole } from '@/components/admin/AdminRoleContext';
 import { TeamsTable } from '@/components/admin/teams/TeamsTable';
 import { TeamsFilters } from '@/components/admin/teams/TeamsFilters';
 import { BulkActions } from '@/components/admin/teams/BulkActions';
-import { Download, RefreshCw } from 'lucide-react';
+import { JudgeLeaderboard } from '@/components/admin/teams/JudgeLeaderboard';
+import { TiebreakerPanel } from '@/components/admin/teams/TiebreakerPanel';
+import { Download, RefreshCw, Wand2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function TeamsManagementPage() {
@@ -26,8 +28,11 @@ export default function TeamsManagementPage() {
   });
 
   const [selectedTeams, setSelectedTeams] = useState<string[]>([]);
+  const [showTiebreaker, setShowTiebreaker] = useState(false);
   // ✅ SECURITY FIX: Use React Context instead of DOM attribute
   const isReadOnly = isLogistics || isOrganizer;
+  const isJudge = role === 'JUDGE';
+  const canManageTiebreaker = role === 'SUPER_ADMIN' || role === 'ADMIN';
 
   const { data, isLoading, refetch } = trpc.admin.getTeams.useQuery(filters);
   const exportMutation = trpc.admin.exportTeams.useMutation();
@@ -81,30 +86,50 @@ export default function TeamsManagementPage() {
 
   return (
     <div className="space-y-4 md:space-y-6">
+      {/* Tiebreaker panel overlay */}
+      {showTiebreaker && <TiebreakerPanel onClose={() => setShowTiebreaker(false)} />}
+
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-lg md:text-xl font-mono font-bold text-white tracking-wider">
-            TEAMS_MANAGEMENT
+            {isJudge ? 'LEADERBOARD' : 'TEAMS_MANAGEMENT'}
           </h1>
           <p className="text-[11px] font-mono text-gray-500 mt-1">
-            {data?.totalCount || 0} total teams registered
-            {(filters.track !== 'all' || filters.status !== 'all') && (
-              <span className="text-orange-400 ml-2">
-                • Filtered: {data?.teams.length || 0} teams
-              </span>
-            )}
+            {isJudge
+              ? 'Ranked by score — per track'
+              : (
+                <>
+                  {data?.totalCount || 0} total teams registered
+                  {(filters.track !== 'all' || filters.status !== 'all') && (
+                    <span className="text-orange-400 ml-2">
+                      • Filtered: {data?.teams.length || 0} teams
+                    </span>
+                  )}
+                </>
+              )}
           </p>
         </div>
         <div className="flex gap-2">
-          <button
-            onClick={() => refetch()}
-            disabled={isLoading}
-            className="inline-flex items-center gap-2 px-3 py-1.5 text-[10px] font-mono font-bold tracking-wider text-gray-400 bg-white/[0.03] border border-white/[0.06] rounded-md hover:text-orange-400 hover:border-orange-500/20 transition-all disabled:opacity-40"
-          >
-            <RefreshCw className="h-3.5 w-3.5" />
-            REFRESH
-          </button>
-          {!isReadOnly && (
+          {canManageTiebreaker && (
+            <button
+              onClick={() => setShowTiebreaker(true)}
+              className="inline-flex items-center gap-2 px-3 py-1.5 text-[10px] font-mono font-bold tracking-wider text-orange-400 bg-orange-500/10 border border-orange-500/20 rounded-md hover:bg-orange-500/20 transition-all"
+            >
+              <Wand2 className="h-3.5 w-3.5" />
+              TIEBREAKER
+            </button>
+          )}
+          {!isJudge && (
+            <button
+              onClick={() => refetch()}
+              disabled={isLoading}
+              className="inline-flex items-center gap-2 px-3 py-1.5 text-[10px] font-mono font-bold tracking-wider text-gray-400 bg-white/[0.03] border border-white/[0.06] rounded-md hover:text-orange-400 hover:border-orange-500/20 transition-all disabled:opacity-40"
+            >
+              <RefreshCw className="h-3.5 w-3.5" />
+              REFRESH
+            </button>
+          )}
+          {!isReadOnly && !isJudge && (
             <button
               onClick={handleExport}
               disabled={exportMutation.isPending}
@@ -118,55 +143,62 @@ export default function TeamsManagementPage() {
         </div>
       </div>
 
-      <TeamsFilters
-        filters={filters}
-        onChange={(newFilters) => {
-          const merged = { ...filters, ...newFilters };
-          setFilters({
-            ...merged,
-            sortBy: merged.sortBy as 'createdAt' | 'name' | 'status' | 'college' | 'ideasprintRanking' | 'buildstormRanking' | 'overallScore',
-            sortOrder: merged.sortOrder as 'asc' | 'desc',
-          });
-        }}
-      />
+      {/* Judge view: full leaderboard instead of table */}
+      {isJudge ? (
+        <JudgeLeaderboard />
+      ) : (
+        <>
+          <TeamsFilters
+            filters={filters}
+            onChange={(newFilters) => {
+              const merged = { ...filters, ...newFilters };
+              setFilters({
+                ...merged,
+                sortBy: merged.sortBy as 'createdAt' | 'name' | 'status' | 'college' | 'ideasprintRanking' | 'buildstormRanking' | 'overallScore',
+                sortOrder: merged.sortOrder as 'asc' | 'desc',
+              });
+            }}
+          />
 
-      {selectedTeams.length > 0 && !isReadOnly && (
-        <BulkActions
-          selectedTeams={selectedTeams}
-          onComplete={() => {
-            setSelectedTeams([]);
-            refetch();
-          }}
-        />
+          {selectedTeams.length > 0 && !isReadOnly && (
+            <BulkActions
+              selectedTeams={selectedTeams}
+              onComplete={() => {
+                setSelectedTeams([]);
+                refetch();
+              }}
+            />
+          )}
+
+          <TeamsTable
+            teams={data?.teams || []}
+            totalCount={data?.totalCount || 0}
+            currentPage={filters.page}
+            pageSize={filters.pageSize}
+            isLoading={isLoading}
+            selectedTeams={isReadOnly ? [] : selectedTeams}
+            onSelectionChange={isReadOnly ? () => {} : setSelectedTeams}
+            onPageChange={(page: number) => setFilters({ ...filters, page })}
+            onSort={(field: string, order: string) => {
+              if (
+                field === 'createdAt' ||
+                field === 'name' ||
+                field === 'status' ||
+                field === 'college' ||
+                field === 'ideasprintRanking' ||
+                field === 'buildstormRanking' ||
+                field === 'overallScore'
+              ) {
+                if (order === 'asc' || order === 'desc') {
+                  setFilters({ ...filters, sortBy: field, sortOrder: order });
+                }
+              }
+            }}
+            judgeMode={false}
+            readOnly={isReadOnly}
+          />
+        </>
       )}
-
-      <TeamsTable
-        teams={data?.teams || []}
-        totalCount={data?.totalCount || 0}
-        currentPage={filters.page}
-        pageSize={filters.pageSize}
-        isLoading={isLoading}
-        selectedTeams={isReadOnly ? [] : selectedTeams}
-        onSelectionChange={isReadOnly ? () => {} : setSelectedTeams}
-        onPageChange={(page: number) => setFilters({ ...filters, page })}
-        onSort={(field: string, order: string) => {
-          if (
-            field === 'createdAt' ||
-            field === 'name' ||
-            field === 'status' ||
-            field === 'college' ||
-            field === 'ideasprintRanking' ||
-            field === 'buildstormRanking' ||
-            field === 'overallScore'
-          ) {
-            if (order === 'asc' || order === 'desc') {
-              setFilters({ ...filters, sortBy: field, sortOrder: order });
-            }
-          }
-        }}
-        judgeMode={role === 'JUDGE'}
-        readOnly={isReadOnly}
-      />
     </div>
   );
 }

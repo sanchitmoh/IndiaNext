@@ -215,9 +215,12 @@ export function TeamsTable({
                       onClick={() => router.push(`/admin/teams/${team.id}`)}
                     >
                       {/* Team name + status */}
-                      <div className="flex items-center gap-2 flex-wrap mb-1.5">
+                      <div className="flex items-center gap-2 flex-wrap mb-1">
                         <span className="text-sm font-medium text-gray-200 truncate">
                           {team.name}
+                        </span>
+                        <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 tracking-wider shrink-0">
+                          {team.shortCode}
                         </span>
                         <span
                           className={`inline-flex text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border shrink-0 ${
@@ -238,6 +241,19 @@ export function TeamsTable({
                               #{(team as any).globalRank || (team as any).currentRank || 'N/A'}
                             </span>
                           </div>
+                        )}
+                        {/* Admin view: Show score badge when team has been scored */}
+                        {!judgeMode && (team.submission as any)?.judgeScore != null && (
+                          <span className="inline-flex items-center gap-1 text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border border-emerald-500/20 bg-emerald-500/10 text-emerald-400 shrink-0">
+                            <Trophy className="h-2.5 w-2.5" />
+                            {Number((team.submission as any).judgeScore).toFixed(1)}
+                          </span>
+                        )}
+                        {/* Manual rank badge */}
+                        {!judgeMode && (team as any).rank != null && (
+                          <span className="inline-flex items-center gap-1 text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border border-orange-500/20 bg-orange-500/10 text-orange-400 shrink-0">
+                            🔒 #{(team as any).rank}
+                          </span>
                         )}
                       </div>
                       {/* Leader */}
@@ -415,7 +431,12 @@ export function TeamsTable({
                     )}
                     <td className="px-4 py-3">
                       <div>
-                        <div className="text-sm font-medium text-gray-200">{team.name}</div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-sm font-medium text-gray-200">{team.name}</span>
+                          <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 tracking-wider shrink-0">
+                            {team.shortCode}
+                          </span>
+                        </div>
                         <div className="flex items-center gap-1.5 mt-0.5">
                           {leader ? (
                             <>

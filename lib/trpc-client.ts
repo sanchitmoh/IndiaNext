@@ -4,9 +4,15 @@
 import { createTRPCReact } from '@trpc/react-query';
 import { httpBatchLink } from '@trpc/client';
 import type { AppRouter } from '@/server/routers/_app';
+import type { inferRouterOutputs, inferRouterInputs } from '@trpc/server';
 import superjson from 'superjson';
 
 export const trpc = createTRPCReact<AppRouter>();
+
+/** Inferred output types for every tRPC procedure — use in client components */
+export type RouterOutputs = inferRouterOutputs<AppRouter>;
+/** Inferred input types for every tRPC procedure — use in client components */
+export type RouterInputs = inferRouterInputs<AppRouter>;
 
 export function getBaseUrl() {
   if (typeof window !== 'undefined') return ''; // browser should use relative url
