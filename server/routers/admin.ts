@@ -54,6 +54,11 @@ export const adminRouter = router({
           totalSubmissions,
           newTeamsToday,
           newTeamsThisWeek,
+          // Attendance statistics
+          presentTeams,
+          absentTeams,
+          partialTeams,
+          totalPresentUsers,
         ] = await Promise.all([
           ctx.prisma.team.count({ where: { deletedAt: null } }),
           ctx.prisma.team.count({ where: { status: 'PENDING', deletedAt: null } }),
@@ -86,6 +91,17 @@ export const adminRouter = router({
               deletedAt: null,
             },
           }),
+          // Attendance statistics
+          ctx.prisma.team.count({ where: { attendance: 'PRESENT', deletedAt: null } }),
+          ctx.prisma.team.count({ where: { attendance: 'ABSENT', deletedAt: null } }),
+          ctx.prisma.team.count({ where: { attendance: 'PARTIAL', deletedAt: null } }),
+          ctx.prisma.teamMember.count({
+            where: {
+              isPresent: true,
+              leftAt: null,
+              team: { deletedAt: null },
+            },
+          }),
         ]);
 
         // ✅ FIX: Use raw SQL aggregate instead of biased take:100 sample
@@ -111,6 +127,12 @@ export const adminRouter = router({
           approvalRate: totalTeams > 0 ? (approvedTeams / totalTeams) * 100 : 0,
           rejectionRate: totalTeams > 0 ? (rejectedTeams / totalTeams) * 100 : 0,
           avgReviewTime: Math.round(avgReviewTime * 10) / 10,
+          // Attendance statistics
+          presentTeams,
+          absentTeams,
+          partialTeams,
+          totalPresentUsers,
+          attendanceRate: totalUsers > 0 ? (totalPresentUsers / totalUsers) * 100 : 0,
         };
       },
       { ttl: 300 } // Cache for 5 minutes
@@ -2240,5 +2262,179 @@ export const adminRouter = router({
         currentPage: input.page,
       };
     }),
+
+  // ═══════════════════════════════════════════════════════════
+  // ELIMINATION ROUNDS — Judge Portal
+  // ═══════════════════════════════════════════════════════════
+
+  /** Set a team's elimination status for a given round (JUDGE or ADMIN) */
+  setTeamRoundStatus: canViewTeams
+    .input(
+      z.object({
+        teamId: z.string(),
+        round: z.enum(['1', '2']),
+        status: z.enum(['QUALIFIED', 'ELIMINATED', 'PENDING']),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const now = new Date();
+      const data =
+        input.round === '1'
+          ? {
+              round1Status: input.status as any,
+              round1ActionBy: ctx.admin.id,
+              round1ActionAt: now,
+            }
+          : {
+              round2Status: input.status as any,
+              round2ActionBy: ctx.admin.id,
+              round2ActionAt: now,
+            };
+
+      const team = await ctx.prisma.team.update({
+        where: { id: input.teamId },
+        data,
+        select: { id: true, name: true, round1Status: true, round2Status: true },
+      });
+
+      return team;
+    }),
+
+  /** Get all teams for a round, with their round status and score */
+  getRoundTeams: canViewTeams
+    .input(
+      z.object({
+        round: z.enum(['1', '2']),
+        track: z.enum(['IDEA_SPRINT', 'BUILD_STORM', 'all']).default('all'),
+        status: z.enum(['PENDING', 'QUALIFIED', 'ELIMINATED', 'all']).default('all'),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const where: any = {
+        deletedAt: null,
+        status: { in: ['APPROVED', 'SHORTLISTED'] },
+      };
+
+      if (input.track !== 'all') where.track = input.track;
+
+      // Round 2 only shows teams that QUALIFIED round 1
+      if (input.round === '2') {
+        where.round1Status = 'QUALIFIED';
+      }
+
+      if (input.status !== 'all') {
+        if (input.round === '1') where.round1Status = input.status;
+        else where.round2Status = input.status;
+      }
+
+      const teams = await ctx.prisma.team.findMany({
+        where,
+        select: {
+          id: true,
+          name: true,
+          shortCode: true,
+          track: true,
+          college: true,
+          score: true,
+          round1Status: true,
+          round2Status: true,
+          round1ActionAt: true,
+          round2ActionAt: true,
+          round1ActionBy: true,
+          round2ActionBy: true,
+          members: { select: { id: true, role: true } },
+        },
+        orderBy: [{ score: 'desc' }, { name: 'asc' }],
+      });
+
+      // Resolve admin IDs → names for judge attribution in the UI
+      const actionByIds = [...new Set([
+        ...teams.map(t => t.round1ActionBy),
+        ...teams.map(t => t.round2ActionBy),
+      ].filter(Boolean) as string[])];
+
+      const adminMap: Record<string, string> = {};
+      if (actionByIds.length > 0) {
+        const users = await ctx.prisma.user.findMany({
+          where: { id: { in: actionByIds } },
+          select: { id: true, name: true, email: true },
+        });
+        for (const u of users) adminMap[u.id] = u.name || u.email || u.id;
+      }
+
+      return teams.map(t => ({
+        ...t,
+        round1ActionName: t.round1ActionBy ? (adminMap[t.round1ActionBy] ?? t.round1ActionBy) : null,
+        round2ActionName: t.round2ActionBy ? (adminMap[t.round2ActionBy] ?? t.round2ActionBy) : null,
+      }));
+    }),
+
+
+  /** Per-round analytics: total, qualified, eliminated, pending — per track */
+  getRoundAnalytics: canViewTeams.query(async ({ ctx }) => {
+    const eligible = await ctx.prisma.team.findMany({
+      where: {
+        deletedAt: null,
+        status: { in: ['APPROVED', 'SHORTLISTED'] },
+      },
+      select: { track: true, round1Status: true, round2Status: true },
+    });
+
+    const buildStats = (arr: typeof eligible, roundKey: 'round1Status' | 'round2Status') => {
+      const count = (track: string | null, status: string) =>
+        arr.filter(
+          (t) => (track ? t.track === track : true) && t[roundKey] === status
+        ).length;
+
+      return {
+        all: {
+          total: arr.length,
+          qualified: count(null, 'QUALIFIED'),
+          eliminated: count(null, 'ELIMINATED'),
+          pending: count(null, 'PENDING'),
+        },
+        ideaSprint: {
+          total: arr.filter((t) => t.track === 'IDEA_SPRINT').length,
+          qualified: count('IDEA_SPRINT', 'QUALIFIED'),
+          eliminated: count('IDEA_SPRINT', 'ELIMINATED'),
+          pending: count('IDEA_SPRINT', 'PENDING'),
+        },
+        buildStorm: {
+          total: arr.filter((t) => t.track === 'BUILD_STORM').length,
+          qualified: count('BUILD_STORM', 'QUALIFIED'),
+          eliminated: count('BUILD_STORM', 'ELIMINATED'),
+          pending: count('BUILD_STORM', 'PENDING'),
+        },
+      };
+    };
+
+    // Round 2 eligible = only those who passed round 1
+    const r2Eligible = eligible.filter((t) => t.round1Status === 'QUALIFIED');
+
+    return {
+      round1: buildStats(eligible, 'round1Status'),
+      round2: buildStats(r2Eligible, 'round2Status'),
+    };
+  }),
+
+  /** Admin: advance all Round-1 QUALIFIED teams (i.e. open Round 2) */
+  advanceToRound2: canEditTeamsRateLimited.mutation(async ({ ctx }) => {
+    if (ctx.admin.role !== 'SUPER_ADMIN' && ctx.admin.role !== 'ADMIN') {
+      throw new TRPCError({ code: 'FORBIDDEN', message: 'Only admins can advance rounds' });
+    }
+
+    const qualified = await ctx.prisma.team.count({
+      where: { round1Status: 'QUALIFIED', deletedAt: null },
+    });
+
+    if (qualified === 0) {
+      throw new TRPCError({
+        code: 'BAD_REQUEST',
+        message: 'No teams have been qualified in Round 1 yet',
+      });
+    }
+
+    return { qualifiedCount: qualified };
+  }),
 });
 

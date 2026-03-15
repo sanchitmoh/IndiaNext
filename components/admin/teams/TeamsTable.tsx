@@ -120,7 +120,7 @@ export function TeamsTable({
   selectedTeams,
   onSelectionChange,
   onPageChange,
-  onSort,
+  onSort: _onSort,
   judgeMode = false,
   readOnly = false,
 }: TeamsTableProps) {

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { trpc } from '@/lib/trpc-client';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Camera, Wifi, WifiOff, CheckCircle2, LogOut, Loader2, AlertCircle } from 'lucide-react';
+import { Camera, Wifi, WifiOff, CheckCircle2, LogOut, Loader2 } from 'lucide-react';
 import { useAdminRole } from '../AdminRoleContext';
 import { QRScannerErrorBoundary } from './QRScannerErrorBoundary';
 import { ClientOnlyWrapper } from './ClientOnlyWrapper';
@@ -26,7 +26,7 @@ function MobileScannerContent() {
   const [isLoading, setIsLoading] = useState(false);
 
   const lastScanMap = useRef<Map<string, number>>(new Map());
-  const readerRef = useRef<HTMLDivElement>(null);
+  const _readerRef = useRef<HTMLDivElement>(null);
 
   // Initialize desk from context or localStorage
   useEffect(() => {

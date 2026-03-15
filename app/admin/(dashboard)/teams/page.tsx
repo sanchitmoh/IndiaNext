@@ -9,11 +9,13 @@ import { TeamsFilters } from '@/components/admin/teams/TeamsFilters';
 import { BulkActions } from '@/components/admin/teams/BulkActions';
 import { JudgeLeaderboard } from '@/components/admin/teams/JudgeLeaderboard';
 import { TiebreakerPanel } from '@/components/admin/teams/TiebreakerPanel';
-import { Download, RefreshCw, Wand2 } from 'lucide-react';
+import { EliminationRoundPanel } from '@/components/admin/teams/EliminationRoundPanel';
+import { EliminationAnalytics } from '@/components/admin/teams/EliminationAnalytics';
+import { Download, RefreshCw, Wand2, Zap, BarChart3, Trophy, List } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function TeamsManagementPage() {
-  const { role, isLogistics, isOrganizer } = useAdminRole();
+  const { role: _role, isLogistics, isOrganizer, isAdmin, isSuperAdmin, isJudge } = useAdminRole();
   const [filters, setFilters] = useState({
     status: 'all',
     track: 'all',
@@ -29,10 +31,13 @@ export default function TeamsManagementPage() {
 
   const [selectedTeams, setSelectedTeams] = useState<string[]>([]);
   const [showTiebreaker, setShowTiebreaker] = useState(false);
+  const [activeTab, setActiveTab] = useState<'teams' | 'elimination' | 'analytics'>(
+    isJudge ? 'elimination' : 'teams'
+  );
   // ✅ SECURITY FIX: Use React Context instead of DOM attribute
   const isReadOnly = isLogistics || isOrganizer;
-  const isJudge = role === 'JUDGE';
-  const canManageTiebreaker = role === 'SUPER_ADMIN' || role === 'ADMIN';
+  const canManageTiebreaker = isAdmin || isSuperAdmin;
+  const canSeeElimination = isJudge || isAdmin || isSuperAdmin;
 
   const { data, isLoading, refetch } = trpc.admin.getTeams.useQuery(filters);
   const exportMutation = trpc.admin.exportTeams.useMutation();
@@ -143,10 +148,37 @@ export default function TeamsManagementPage() {
         </div>
       </div>
 
-      {/* Judge view: full leaderboard instead of table */}
-      {isJudge ? (
-        <JudgeLeaderboard />
-      ) : (
+      {/* ── Tab bar for Judge + Admin ── */}
+      {canSeeElimination && (
+        <div className="flex items-center gap-1 p-1 bg-white/[0.02] border border-white/[0.06] rounded-lg w-fit">
+          {[{ id: 'teams', label: isJudge ? 'LEADERBOARD' : 'TEAMS', icon: isJudge ? Trophy : List },
+            { id: 'elimination', label: 'ELIMINATION', icon: Zap },
+            { id: 'analytics', label: 'ANALYTICS', icon: BarChart3 }] .map(({ id, label, icon: Icon }) => (
+            <button
+              key={id}
+              onClick={() => setActiveTab(id as typeof activeTab)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-mono font-bold rounded-md transition-all ${
+                activeTab === id
+                  ? id === 'elimination'
+                    ? 'bg-violet-500/20 text-violet-300 border border-violet-500/30'
+                    : id === 'analytics'
+                    ? 'bg-orange-500/20 text-orange-300 border border-orange-500/30'
+                    : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                  : 'text-gray-500 hover:text-gray-300'
+              }`}
+            >
+              <Icon className="h-3 w-3" />
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Judge / Admin view: leaderboard or teams table */}
+      {activeTab === 'teams' && (
+        isJudge ? (
+          <JudgeLeaderboard />
+        ) : (
         <>
           <TeamsFilters
             filters={filters}
@@ -198,6 +230,17 @@ export default function TeamsManagementPage() {
             readOnly={isReadOnly}
           />
         </>
+        )
+      )}
+
+      {/* Elimination round panel — judges + admins */}
+      {activeTab === 'elimination' && canSeeElimination && (
+        <EliminationRoundPanel />
+      )}
+
+      {/* Elimination analytics — judges + admins */}
+      {activeTab === 'analytics' && canSeeElimination && (
+        <EliminationAnalytics />
       )}
     </div>
   );

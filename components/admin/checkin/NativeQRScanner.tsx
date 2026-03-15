@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Camera, AlertCircle } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface NativeQRScannerProps {
@@ -28,52 +28,6 @@ export function NativeQRScanner({ onScanSuccess, isActive }: NativeQRScannerProp
       scanIntervalRef.current = null;
     }
     setIsScanning(false);
-  }, []);
-
-  const startCamera = useCallback(async () => {
-    try {
-      // Check if camera API is available
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        throw new Error('Camera API not available. Please use HTTPS or localhost.');
-      }
-
-      // Request camera access
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { 
-          facingMode: 'environment',
-          width: { ideal: 640 },
-          height: { ideal: 480 }
-        }
-      });
-
-      streamRef.current = stream;
-
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play();
-        setIsScanning(true);
-        setCameraError(null);
-        
-        // Start QR code detection
-        startQRDetection();
-      }
-    } catch (err: any) {
-      console.error('Camera error:', err);
-      let errorMsg = 'Camera access failed';
-      
-      if (err.name === 'NotAllowedError') {
-        errorMsg = 'Camera permission denied. Please allow camera access and refresh.';
-      } else if (err.name === 'NotFoundError') {
-        errorMsg = 'No camera found on this device.';
-      } else if (err.name === 'NotSupportedError') {
-        errorMsg = 'Camera not supported. Please use HTTPS or localhost.';
-      } else if (err.message) {
-        errorMsg = err.message;
-      }
-      
-      setCameraError(errorMsg);
-      toast.error(errorMsg);
-    }
   }, []);
 
   const startQRDetection = useCallback(() => {
@@ -120,6 +74,52 @@ export function NativeQRScanner({ onScanSuccess, isActive }: NativeQRScannerProp
     // Run detection every 500ms
     scanIntervalRef.current = setInterval(detectQR, 500);
   }, [onScanSuccess, isActive]);
+
+  const startCamera = useCallback(async () => {
+    try {
+      // Check if camera API is available
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('Camera API not available. Please use HTTPS or localhost.');
+      }
+
+      // Request camera access
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { 
+          facingMode: 'environment',
+          width: { ideal: 640 },
+          height: { ideal: 480 }
+        }
+      });
+
+      streamRef.current = stream;
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        await videoRef.current.play();
+        setIsScanning(true);
+        setCameraError(null);
+        
+        // Start QR code detection
+        startQRDetection();
+      }
+    } catch (err: any) {
+      console.error('Camera error:', err);
+      let errorMsg = 'Camera access failed';
+      
+      if (err.name === 'NotAllowedError') {
+        errorMsg = 'Camera permission denied. Please allow camera access and refresh.';
+      } else if (err.name === 'NotFoundError') {
+        errorMsg = 'No camera found on this device.';
+      } else if (err.name === 'NotSupportedError') {
+        errorMsg = 'Camera not supported. Please use HTTPS or localhost.';
+      } else if (err.message) {
+        errorMsg = err.message;
+      }
+      
+      setCameraError(errorMsg);
+      toast.error(errorMsg);
+    }
+  }, [startQRDetection]);
 
   useEffect(() => {
     if (isActive) {

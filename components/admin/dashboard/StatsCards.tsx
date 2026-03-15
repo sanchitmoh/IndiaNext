@@ -5,10 +5,10 @@ import {
   Clock,
   CheckCircle,
   XCircle,
-  AlertTriangle,
-  Eye,
   UserCheck,
   Timer,
+  UserPlus,
+  Calendar,
 } from 'lucide-react';
 import { AnimatedCard } from '@/components/animations';
 
@@ -24,6 +24,12 @@ interface Stats {
   newTeamsThisWeek: number;
   approvalRate: number;
   avgReviewTime: number;
+  // Attendance statistics
+  presentTeams: number;
+  absentTeams: number;
+  partialTeams: number;
+  totalPresentUsers: number;
+  attendanceRate: number;
 }
 
 const statCards = [
@@ -37,6 +43,24 @@ const statCards = [
     iconBg: 'bg-cyan-500/10',
   },
   {
+    key: 'totalPresentUsers',
+    label: 'PRESENT USERS',
+    icon: UserPlus,
+    accent: 'text-emerald-400',
+    glow: 'shadow-[0_0_15px_rgba(16,185,129,0.08)]',
+    border: 'border-emerald-500/10',
+    iconBg: 'bg-emerald-500/10',
+  },
+  {
+    key: 'presentTeams',
+    label: 'PRESENT TEAMS',
+    icon: CheckCircle,
+    accent: 'text-green-400',
+    glow: 'shadow-[0_0_15px_rgba(34,197,94,0.08)]',
+    border: 'border-green-500/10',
+    iconBg: 'bg-green-500/10',
+  },
+  {
     key: 'pendingTeams',
     label: 'PENDING',
     icon: Clock,
@@ -48,11 +72,11 @@ const statCards = [
   {
     key: 'approvedTeams',
     label: 'APPROVED',
-    icon: CheckCircle,
-    accent: 'text-emerald-400',
-    glow: 'shadow-[0_0_15px_rgba(16,185,129,0.08)]',
-    border: 'border-emerald-500/10',
-    iconBg: 'bg-emerald-500/10',
+    icon: Calendar,
+    accent: 'text-blue-400',
+    glow: 'shadow-[0_0_15px_rgba(59,130,246,0.08)]',
+    border: 'border-blue-500/10',
+    iconBg: 'bg-blue-500/10',
   },
   {
     key: 'rejectedTeams',
@@ -62,24 +86,6 @@ const statCards = [
     glow: 'shadow-[0_0_15px_rgba(239,68,68,0.08)]',
     border: 'border-red-500/10',
     iconBg: 'bg-red-500/10',
-  },
-  {
-    key: 'underReviewTeams',
-    label: 'UNDER REVIEW',
-    icon: Eye,
-    accent: 'text-blue-400',
-    glow: 'shadow-[0_0_15px_rgba(96,165,250,0.08)]',
-    border: 'border-blue-500/10',
-    iconBg: 'bg-blue-500/10',
-  },
-  {
-    key: 'waitlistedTeams',
-    label: 'WAITLISTED',
-    icon: AlertTriangle,
-    accent: 'text-orange-400',
-    glow: 'shadow-[0_0_15px_rgba(255,102,0,0.08)]',
-    border: 'border-orange-500/10',
-    iconBg: 'bg-orange-500/10',
   },
   {
     key: 'totalUsers',
@@ -139,6 +145,16 @@ export function StatsCards({ stats }: { stats: Stats }) {
             {card.key === 'approvedTeams' && stats.totalTeams > 0 && (
               <div className="text-[10px] font-mono text-gray-600 mt-2 tracking-wider">
                 {stats.approvalRate.toFixed(1)}% approval rate
+              </div>
+            )}
+            {card.key === 'totalPresentUsers' && stats.totalUsers > 0 && (
+              <div className="text-[10px] font-mono text-emerald-400/70 mt-2 tracking-wider">
+                {stats.attendanceRate.toFixed(1)}% attendance rate
+              </div>
+            )}
+            {card.key === 'presentTeams' && (stats.absentTeams > 0 || stats.partialTeams > 0) && (
+              <div className="text-[10px] font-mono text-gray-600 mt-2 tracking-wider">
+                {stats.absentTeams} absent &middot; {stats.partialTeams} partial
               </div>
             )}
           </AnimatedCard>

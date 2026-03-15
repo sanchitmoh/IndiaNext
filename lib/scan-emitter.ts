@@ -24,6 +24,8 @@ export interface ScanEvent {
     user: { name: string; email: string };
   }>;
   scannedAt: string; // ISO timestamp
+  /** The admin ID of the desk that triggered this scan — used for per-desk SSE filtering */
+  scannerAdminId: string;
 }
 
 // Use a global singleton to survive Next.js hot-reload in development

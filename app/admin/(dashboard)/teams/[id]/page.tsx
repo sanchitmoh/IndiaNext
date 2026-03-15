@@ -104,7 +104,7 @@ export default function TeamDetailPage({ params }: { params: Promise<{ id: strin
   const router = useRouter();
   const { role } = useAdminRole();
   const [activeTab, setActiveTab] = useState<'members' | 'submission' | 'comments'>('members');
-  const [statusNote, setStatusNote] = useState('');
+  const [_statusNote, setStatusNote] = useState('');
   const [commentText, setCommentText] = useState('');
   const [newTag, setNewTag] = useState('');
   // ✅ SECURITY FIX: Use React Context instead of DOM attribute
@@ -238,9 +238,14 @@ export default function TeamDetailPage({ params }: { params: Promise<{ id: strin
             <ArrowLeft className="h-5 w-5 text-gray-500" />
           </button>
           <div className="min-w-0">
-            <h1 className="text-lg md:text-xl font-mono font-bold text-white tracking-wider truncate">
-              {team.name}
-            </h1>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-lg md:text-xl font-mono font-bold text-white tracking-wider truncate">
+                {team.name}
+              </h1>
+              <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 tracking-widest shrink-0">
+                {team.shortCode}
+              </span>
+            </div>
             {/* Leader info */}
             {(() => {
               const leader = team.members.find((m: { role: string }) => m.role === 'LEADER');
@@ -384,6 +389,7 @@ export default function TeamDetailPage({ params }: { params: Promise<{ id: strin
         reviewNotes={team.reviewNotes}
         shortlistedEmailSent={team.shortlistedEmailSent}
         approvedEmailSent={team.approvedEmailSent}
+        round2Status={team.round2Status}
         onStatusUpdate={handleStatusChange}
         onScoreUpdate={handleScoreUpdate}
       />

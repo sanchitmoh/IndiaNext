@@ -908,7 +908,7 @@ interface ShortlistEmailData {
 export function buildShortlistEmailHtml(data: ShortlistEmailData): string {
   const desk = assignDesk(data.teamIndex);
   const isBS = data.track === 'BUILD_STORM';
-  const trackColor = isBS ? '#2266FF' : '#00CC44';
+  const _trackColor = isBS ? '#2266FF' : '#00CC44';
   const qrData = encodeURIComponent(
     `https://www.indianexthackthon.online/checkin?code=${data.shortCode}&desk=${desk}`
   );

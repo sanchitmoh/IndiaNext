@@ -162,6 +162,14 @@ model Team {
   isFlagged              Boolean   @default(false)
   flagReason             String?   @db.Text
 
+  // ── Elimination Rounds (judge portal) ─────────────────────────────
+  round1Status    RoundStatus  @default(PENDING)  // judge decision for Round 1
+  round2Status    RoundStatus  @default(PENDING)  // judge decision for Round 2
+  round1ActionBy  String?                         // admin/judge who set round1Status
+  round2ActionBy  String?                         // admin/judge who set round2Status
+  round1ActionAt  DateTime?                       // when round 1 decision was made
+  round2ActionAt  DateTime?
+
   // Notification status
   shortlistedEmailSent   Boolean   @default(false)
   approvedEmailSent      Boolean   @default(false)
@@ -193,6 +201,8 @@ model Team {
   @@index([venueId])
   @@index([tableId])
   @@index([checkedIn])
+  @@index([round1Status])
+  @@index([round2Status])
   @@index([isFlagged])
   @@unique([createdBy, track]) // One team per leader per track (belt-and-suspenders with transaction check)
   @@map("teams")
@@ -898,4 +908,10 @@ model ScoreAuditLog {
   @@index([judgeId])
   @@index([changedAt])
   @@map("score_audit_logs")
+}
+
+enum RoundStatus {
+  PENDING
+  QUALIFIED
+  ELIMINATED
 }

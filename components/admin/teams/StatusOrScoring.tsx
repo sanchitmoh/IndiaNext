@@ -32,13 +32,15 @@ interface StatusOrScoringProps {
   teamId: string;
   teamStatus: string;
   teamTrack: 'IDEA_SPRINT' | 'BUILD_STORM';
-  currentScore: number | null; // used by parent for display
-  currentComments: string | null; // used by parent for display
+  currentScore: number | null;
+  currentComments: string | null;
   reviewNotes: string | null;
   shortlistedEmailSent?: boolean;
   approvedEmailSent?: boolean;
+  /** round2Status — judge scoring is only allowed when this is 'QUALIFIED' */
+  round2Status?: 'PENDING' | 'QUALIFIED' | 'ELIMINATED';
   onStatusUpdate: (status: string, notes?: string, sendEmail?: boolean) => Promise<void>;
-  onScoreUpdate: (score: number, comments: string) => Promise<void>; // used by judge flow
+  onScoreUpdate: (score: number, comments: string) => Promise<void>;
 }
 
 const statusActions = [
@@ -91,6 +93,7 @@ export function StatusOrScoring({
   reviewNotes,
   shortlistedEmailSent,
   approvedEmailSent,
+  round2Status,
   onStatusUpdate,
   onScoreUpdate: _onScoreUpdate,
 }: StatusOrScoringProps) {
@@ -140,7 +143,7 @@ export function StatusOrScoring({
 
   // Judges see scoring rubric
   if (userRole === 'JUDGE') {
-    // Judges can score APPROVED and SHORTLISTED teams
+    // Gate 1: Team must be APPROVED or SHORTLISTED
     if (teamStatus !== 'APPROVED' && teamStatus !== 'SHORTLISTED') {
       return (
         <div className="bg-[#0A0A0A] rounded-lg border border-yellow-500/20 p-5">
@@ -152,6 +155,40 @@ export function StatusOrScoring({
                 You can only score teams with APPROVED or SHORTLISTED status. Current status: {teamStatus}
               </p>
             </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Gate 2: Team must have QUALIFIED in Elimination Round 2
+    if (round2Status !== 'QUALIFIED') {
+      const statusMsg = !round2Status || round2Status === 'PENDING'
+        ? 'This team has not been evaluated in the Elimination Rounds yet.'
+        : 'This team was eliminated and cannot be scored.';
+      return (
+        <div className="bg-[#0A0A0A] rounded-lg border border-violet-500/20 p-5 space-y-3">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-lg bg-violet-500/10 border border-violet-500/20 flex items-center justify-center shrink-0">
+              <AlertTriangle className="h-4 w-4 text-violet-400" />
+            </div>
+            <div>
+              <h3 className="text-sm font-mono font-bold text-violet-300">
+                {round2Status === 'ELIMINATED' ? 'TEAM ELIMINATED' : 'ELIMINATION PENDING'}
+              </h3>
+              <p className="text-xs font-mono text-gray-500 mt-0.5">{statusMsg}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 pt-1">
+            <div className={`text-[10px] font-mono font-bold px-2.5 py-1 rounded border ${
+              round2Status === 'ELIMINATED'
+                ? 'text-red-400 bg-red-500/10 border-red-500/20'
+                : 'text-amber-400 bg-amber-500/10 border-amber-500/20'
+            }`}>
+              {round2Status === 'ELIMINATED' ? '❌ ELIMINATED' : round2Status === 'PENDING' ? '⏳ ROUND 2 PENDING' : '⏳ AWAITING ROUND 2'}
+            </div>
+            <p className="text-[10px] font-mono text-gray-600">
+              — Complete elimination rounds in the Teams section first
+            </p>
           </div>
         </div>
       );

@@ -401,8 +401,9 @@ export const logisticsRouter = router({
         })),
       };
 
-      // ── Push real-time notification to all connected SSE clients (laptops) ──
-      // Fire-and-forget: don't await, don't let emit errors fail the request.
+      // ── Push real-time notification to the scanning desk's SSE client ──
+      // scannerAdminId scopes this event to the admin (desk) that triggered the scan.
+      // SSE clients for other desks will ignore it.
       try {
         scanEmitter.emit('scan', {
           teamId: result.id,
@@ -419,6 +420,7 @@ export const logisticsRouter = router({
             user: { name: m.user.name ?? '', email: m.user.email },
           })),
           scannedAt: new Date().toISOString(),
+          scannerAdminId: ctx.admin.id, // ← desk identity
         });
       } catch { /* SSE emit errors must never break the main response */ }
 

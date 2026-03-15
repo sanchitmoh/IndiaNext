@@ -135,7 +135,7 @@ export function VenueManagement() {
 
       return { prev };
     },
-    onSuccess: (_data, { teamId }) => {
+    onSuccess: (_data, { teamId: _teamId }) => {
       toast.success('Logistics updated');
       setUpdatingTeamId(null);
       // Refresh tables map so "Occupied" badges update

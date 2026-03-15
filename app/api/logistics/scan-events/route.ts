@@ -48,8 +48,11 @@ export async function GET(req: NextRequest) {
       // Send an initial connected confirmation so the client knows it's live
       controller.enqueue(encoder.encode(': connected\n\n'));
 
-      // Forward every scan event to this SSE client
+      // Forward scan events — but ONLY if the scan came from this same admin/desk.
+      // Each logistics desk logs in as a unique admin account,
+      // so filtering by scannerAdminId prevents cross-desk leakage.
       const onScan = (event: ScanEvent) => {
+        if (event.scannerAdminId !== admin.id) return; // ← desk isolation
         try {
           const data = JSON.stringify(event);
           controller.enqueue(encoder.encode(`data: ${data}\n\n`));
