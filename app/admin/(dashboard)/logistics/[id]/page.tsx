@@ -19,6 +19,7 @@ import {
   Shield,
   Edit3,
   UserMinus,
+  UserPlus,
   QrCode,
   RefreshCw,
   Save,
@@ -32,6 +33,7 @@ import Link from 'next/link';
 import { EditMemberModal } from '@/components/admin/logistics/EditMemberModal';
 import { SwapMemberModal } from '@/components/admin/logistics/SwapMemberModal';
 import { TeamQRCode } from '@/components/admin/logistics/TeamQRCode';
+import { AddMemberModal } from '@/components/admin/logistics/AddMemberModal';
 
 const POLL_INTERVAL = 30_000;
 
@@ -75,6 +77,7 @@ export default function LogisticsTeamDetailPage({ params }: { params: Promise<{ 
   const [editMember, setEditMember] = useState<string | null>(null);
   const [swapMember, setSwapMember] = useState<string | null>(null);
   const [showQR, setShowQR] = useState(false);
+  const [showAddMember, setShowAddMember] = useState(false);
   const [attendanceNotes, setAttendanceNotes] = useState('');
   const [notesEditing, setNotesEditing] = useState(false);
 
@@ -408,9 +411,19 @@ export default function LogisticsTeamDetailPage({ params }: { params: Promise<{ 
           <h2 className="text-xs font-mono font-bold text-gray-400 tracking-widest">
             TEAM MEMBERS
           </h2>
-          <span className="text-[10px] font-mono text-gray-500">
-            {presentCount}/{currentTeam.members.length} present
-          </span>
+          <div className="flex items-center gap-3">
+            <span className="text-[10px] font-mono text-gray-500">
+              {presentCount}/{currentTeam.members.length} present
+            </span>
+            {(isAdmin || isSuperAdmin) && currentTeam.members.length < 6 && (
+              <button
+                onClick={() => setShowAddMember(true)}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[9px] font-mono font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded hover:bg-emerald-500/15 transition-all"
+              >
+                <UserPlus className="h-3 w-3" /> ADD MEMBER
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="space-y-3">
@@ -557,6 +570,20 @@ export default function LogisticsTeamDetailPage({ params }: { params: Promise<{ 
           shortCode={currentTeam.shortCode}
           teamName={currentTeam.name}
           onClose={() => setShowQR(false)}
+        />
+      )}
+
+      {/* Add Member Modal — ADMIN / SUPER_ADMIN only */}
+      {showAddMember && (
+        <AddMemberModal
+          teamId={currentTeam.id}
+          teamName={currentTeam.name}
+          currentMemberCount={currentTeam.members.length}
+          onClose={() => setShowAddMember(false)}
+          onSuccess={() => {
+            setShowAddMember(false);
+            refetch();
+          }}
         />
       )}
     </div>

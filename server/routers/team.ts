@@ -3,7 +3,7 @@
 // This router is for managing teams after registration
 
 import { z } from 'zod';
-import { router, protectedProcedure } from '../trpc';
+import { router, protectedProcedure, publicProcedure } from '../trpc';
 import { TRPCError } from '@trpc/server';
 
 export const teamRouter = router({
@@ -307,5 +307,130 @@ export const teamRouter = router({
       });
 
       return { success: true };
+    }),
+  // ── PUBLIC: Verify team before submission form ────────────────────────────
+  // No auth required — just shortCode + leader email
+  verifyTeamForSubmission: publicProcedure
+    .input(
+      z.object({
+        shortCode: z.string().min(1),
+        leaderEmail: z.string().email(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const teamRaw = await ctx.prisma.team.findFirst({
+        where: {
+          shortCode: input.shortCode.toUpperCase(),
+          deletedAt: null,
+        },
+        include: {
+          members: {
+            include: {
+              user: { select: { id: true, name: true, email: true } },
+            },
+          },
+          submission: true,
+        },
+      });
+
+      if (!teamRaw) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Team not found. Check your short code.' });
+      }
+
+      // Alias for cleaner access
+      const team = teamRaw;
+
+      // Verify the email belongs to the LEADER
+      const leader = team.members.find(m => m.role === 'LEADER');
+      if (!leader) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'No team leader found. Contact support.' });
+      }
+      if (leader.user.email.toLowerCase() !== input.leaderEmail.toLowerCase().trim()) {
+        throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Email does not match the team leader email.' });
+      }
+
+      return {
+        teamId: team.id,
+        teamName: team.name,
+        shortCode: team.shortCode,
+        track: team.track,
+        members: team.members.map(m => ({ name: m.user.name, role: m.role })),
+        hasSubmission: !!team.submission?.submittedAt,
+        existingSubmission: team.submission
+          ? {
+              githubLink: team.submission.githubLink,
+              liveUrl: team.submission.liveUrl,
+            }
+          : null,
+      };
+    }),
+
+  // ── PUBLIC: Submit project ────────────────────────────────────────────────
+  submitProject: publicProcedure
+    .input(
+      z.object({
+        teamId: z.string(),
+        leaderEmail: z.string().email(), // re-validated server-side
+        githubLink: z
+          .string()
+          .url('Must be a valid URL')
+          .refine(v => v.startsWith('https://github.com/'), {
+            message: 'Must be a GitHub repository URL (https://github.com/...)',
+          }),
+        presentationLink: z.string().url().optional().or(z.literal('')),
+        liveUrl: z.string().url('Must be a valid deployment URL'),
+        appDownloadUrl: z.string().url().optional().or(z.literal('')),
+        solutionQ1: z.string().min(10, 'Please describe the problem (min 10 chars)').max(2000),
+        solutionQ2: z.string().min(10, 'Please describe your solution (min 10 chars)').max(2000),
+        solutionQ3: z.string().min(10, 'Please describe uniqueness (min 10 chars)').max(2000),
+        solutionQ4: z.string().min(10, 'Please describe scalability (min 10 chars)').max(2000),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Re-verify leader email on server side
+      const team = await ctx.prisma.team.findUnique({
+        where: { id: input.teamId, deletedAt: null },
+        include: {
+          members: {
+            include: { user: { select: { id: true, email: true } } },
+          },
+        },
+      });
+
+      if (!team) throw new TRPCError({ code: 'NOT_FOUND', message: 'Team not found.' });
+
+      const leader = team.members.find(m => m.role === 'LEADER');
+      if (!leader || leader.user.email.toLowerCase() !== input.leaderEmail.toLowerCase().trim()) {
+        throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Leader email mismatch.' });
+      }
+
+      const now = new Date();
+      const { teamId, leaderEmail: _e, ...fields } = input;
+
+      // Upsert submission with all form fields
+      await ctx.prisma.submission.upsert({
+        where: { teamId },
+        create: {
+          teamId,
+          ...fields,
+          submittedAt: now,
+          lastEditedAt: now,
+        },
+        update: {
+          ...fields,
+          submittedAt: now,
+          lastEditedAt: now,
+        },
+      });
+
+      // Move team to PENDING if still DRAFT
+      if (team.status === 'DRAFT' || team.status === 'PENDING') {
+        await ctx.prisma.team.update({
+          where: { id: teamId },
+          data: { status: 'PENDING' },
+        });
+      }
+
+      return { success: true, teamName: team.name };
     }),
 });

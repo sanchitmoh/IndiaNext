@@ -674,6 +674,14 @@ interface SubmissionData {
   challenges: string | null;
   futureScope: string | null;
   submittedAt: Date | string | null;
+  // Hackathon submission form fields
+  presentationLink: string | null;
+  liveUrl: string | null;
+  appDownloadUrl: string | null;
+  solutionQ1: string | null;
+  solutionQ2: string | null;
+  solutionQ3: string | null;
+  solutionQ4: string | null;
   assignedProblemStatement: {
     id: string;
     title: string;
@@ -846,6 +854,46 @@ function SubmissionTab({
                 <ExternalLink className="h-2.5 w-2.5" />
               </a>
             )}
+          </div>
+        )}
+
+        {/* ── Hackathon Submission Form Data ── */}
+        {(submission.liveUrl || submission.solutionQ1) && (
+          <div className="mt-5 pt-5 border-t border-white/[0.06] space-y-4">
+            <h4 className="text-[9px] font-mono font-bold text-orange-400 uppercase tracking-[0.3em]">
+              PROJECT SUBMISSION FORM
+            </h4>
+            <div className="flex flex-wrap gap-2">
+              {submission.liveUrl && (
+                <a href={submission.liveUrl} target="_blank" rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-mono font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-md hover:bg-emerald-500/15 transition-all">
+                  <Globe className="h-3.5 w-3.5" /> LIVE SITE <ExternalLink className="h-2.5 w-2.5" />
+                </a>
+              )}
+              {submission.presentationLink && (
+                <a href={submission.presentationLink} target="_blank" rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-mono font-bold text-violet-400 bg-violet-500/10 border border-violet-500/20 rounded-md hover:bg-violet-500/15 transition-all">
+                  <FileText className="h-3.5 w-3.5" /> SLIDES <ExternalLink className="h-2.5 w-2.5" />
+                </a>
+              )}
+              {submission.appDownloadUrl && (
+                <a href={submission.appDownloadUrl} target="_blank" rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-mono font-bold text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 rounded-md hover:bg-cyan-500/15 transition-all">
+                  <Globe className="h-3.5 w-3.5" /> APP <ExternalLink className="h-2.5 w-2.5" />
+                </a>
+              )}
+            </div>
+            {[
+              { q: 'Q1. What problem are you solving?', a: submission.solutionQ1 },
+              { q: 'Q2. How does your solution work?', a: submission.solutionQ2 },
+              { q: 'Q3. What makes your solution unique?', a: submission.solutionQ3 },
+              { q: 'Q4. How scalable is your solution?', a: submission.solutionQ4 },
+            ].filter(({ a }) => !!a).map(({ q, a }) => (
+              <div key={q}>
+                <h5 className="text-[9px] font-mono font-bold text-gray-500 uppercase tracking-[0.15em] mb-1">{q}</h5>
+                <p className="text-xs font-mono text-gray-300 whitespace-pre-wrap leading-relaxed bg-white/[0.02] border border-white/[0.04] rounded-lg p-3">{a}</p>
+              </div>
+            ))}
           </div>
         )}
       </div>

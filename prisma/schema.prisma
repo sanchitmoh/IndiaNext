@@ -278,6 +278,15 @@ model Submission {
   futureScope                String?            @db.Text
   assignedProblemStatementId String?
   assignedProblemStatement   ProblemStatement?  @relation(fields: [assignedProblemStatementId], references: [id])
+
+  // ── Hackathon Submission Form (public /submit page) ─────────────────────
+  presentationLink String?          // Google Drive / slide deck URL
+  liveUrl          String?          // Deployment live URL (required)
+  appDownloadUrl   String?          // App download link (optional)
+  solutionQ1       String? @db.Text // "What problem are you solving?" (150w)
+  solutionQ2       String? @db.Text // "How does your solution work?" (200w)
+  solutionQ3       String? @db.Text // "What makes your solution unique?" (150w)
+  solutionQ4       String? @db.Text // "How scalable is your solution?" (100w)
   
   // Judging (legacy single score - kept for backward compatibility)
   judgeScore       Float?

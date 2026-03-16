@@ -1062,4 +1062,101 @@ export const logisticsRouter = router({
         count: teams.length,
       };
     }),
+
+  // ═══════════════════════════════════════════════════════════
+  // ADD MEMBER — ADMIN / SUPER_ADMIN only
+  // Creates a new User (if not exists) and adds to team
+  // ═══════════════════════════════════════════════════════════
+  addMember: rateLimitedAdminProcedure
+    .input(
+      z.object({
+        teamId: z.string(),
+        email: z.string().email('Must be a valid email'),
+        name: z.string().min(1, 'Name is required').max(100),
+        phone: z.string().optional(),
+        college: z.string().optional(),
+        degree: z.string().optional(),
+        year: z.string().optional(),
+        role: z.enum(['MEMBER', 'CO_LEADER']).default('MEMBER'),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      // 1. Admin/SuperAdmin guard
+      if (!ADMIN_OVERRIDE_ROLES.includes(ctx.admin.role)) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Only ADMIN or SUPER_ADMIN can add members',
+        });
+      }
+
+      // 2. Fetch team (must be APPROVED)
+      const team = await ctx.prisma.team.findUnique({
+        where: { id: input.teamId, deletedAt: null },
+        include: { members: true },
+      });
+      if (!team) throw new TRPCError({ code: 'NOT_FOUND', message: 'Team not found' });
+      if (team.status !== 'APPROVED' && team.status !== 'SHORTLISTED') {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Team must be APPROVED to add members' });
+      }
+
+      // 3. Team size limit (max 6 members)
+      const MAX_MEMBERS = 6;
+      if (team.members.length >= MAX_MEMBERS) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: `Team already has the maximum ${MAX_MEMBERS} members`,
+        });
+      }
+
+      const email = input.email.toLowerCase().trim();
+
+      // 4. Check if user already exists
+      let user = await ctx.prisma.user.findUnique({ where: { email } });
+
+      if (user) {
+        // Check if already in a team
+        const existingMembership = await ctx.prisma.teamMember.findUnique({
+          where: { userId: user.id },
+        });
+        if (existingMembership) {
+          throw new TRPCError({
+            code: 'CONFLICT',
+            message: `${email} is already a member of another team`,
+          });
+        }
+      } else {
+        // Create new user
+        user = await ctx.prisma.user.create({
+          data: {
+            email,
+            name: input.name.trim(),
+            phone: input.phone?.trim() || null,
+            college: input.college?.trim() || null,
+            degree: input.degree?.trim() || null,
+            year: input.year?.trim() || null,
+            emailVerified: false,
+          },
+        });
+      }
+
+      // 5. Add TeamMember record
+      const member = await ctx.prisma.teamMember.create({
+        data: {
+          userId: user.id,
+          teamId: input.teamId,
+          role: input.role,
+        },
+      });
+
+      // 6. Update team size count
+      await ctx.prisma.team.update({
+        where: { id: input.teamId },
+        data: { size: { increment: 1 } },
+      });
+
+      return {
+        success: true,
+        member: { id: member.id, role: member.role, user: { id: user.id, name: user.name, email: user.email } },
+      };
+    }),
 });
