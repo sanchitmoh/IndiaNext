@@ -47,7 +47,12 @@ export function AddMemberModal({
 
   const set = (key: string, val: string) => {
     setForm((f) => ({ ...f, [key]: val }));
-    setErrors((e) => { const n = { ...e }; delete n[key]; delete n._global; return n; });
+    setErrors((e) => {
+      const n = { ...e };
+      delete n[key];
+      delete n._global;
+      return n;
+    });
   };
 
   const handleSubmit = (ev: React.FormEvent) => {
@@ -55,7 +60,10 @@ export function AddMemberModal({
     const errs: Record<string, string> = {};
     if (!form.email.trim()) errs.email = 'Email is required';
     if (!form.name.trim()) errs.name = 'Name is required';
-    if (Object.keys(errs).length > 0) { setErrors(errs); return; }
+    if (Object.keys(errs).length > 0) {
+      setErrors(errs);
+      return;
+    }
     addMember.mutate({
       teamId,
       email: form.email.trim(),
@@ -82,7 +90,10 @@ export function AddMemberModal({
               </p>
             </div>
           </div>
-          <button onClick={onClose} className="p-1 text-gray-500 hover:text-gray-300 transition-colors">
+          <button
+            onClick={onClose}
+            className="p-1 text-gray-500 hover:text-gray-300 transition-colors"
+          >
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -98,7 +109,9 @@ export function AddMemberModal({
 
           {/* Required fields */}
           <div className="space-y-3 bg-emerald-500/5 border border-emerald-500/15 rounded-lg p-3">
-            <p className="text-[8px] font-mono font-bold text-emerald-400 tracking-widest">REQUIRED</p>
+            <p className="text-[8px] font-mono font-bold text-emerald-400 tracking-widest">
+              REQUIRED
+            </p>
 
             <div>
               <label className="block text-[8px] font-mono font-bold text-gray-500 tracking-widest mb-1">
@@ -112,7 +125,9 @@ export function AddMemberModal({
                 className={`${inputCls} ${errors.email ? 'border-red-500/30' : ''}`}
                 autoFocus
               />
-              {errors.email && <p className="text-[9px] font-mono text-red-400 mt-1">{errors.email}</p>}
+              {errors.email && (
+                <p className="text-[9px] font-mono text-red-400 mt-1">{errors.email}</p>
+              )}
               <p className="text-[8px] font-mono text-gray-700 mt-1">
                 If this email is already registered, the existing account will be used.
               </p>
@@ -129,7 +144,9 @@ export function AddMemberModal({
                 placeholder="Full name"
                 className={`${inputCls} ${errors.name ? 'border-red-500/30' : ''}`}
               />
-              {errors.name && <p className="text-[9px] font-mono text-red-400 mt-1">{errors.name}</p>}
+              {errors.name && (
+                <p className="text-[9px] font-mono text-red-400 mt-1">{errors.name}</p>
+              )}
             </div>
           </div>
 
@@ -139,31 +156,61 @@ export function AddMemberModal({
 
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="block text-[8px] font-mono font-bold text-gray-600 tracking-widest mb-1">PHONE</label>
-                <input type="tel" value={form.phone} onChange={(e) => set('phone', e.target.value)}
-                  placeholder="+91 XXXXXXXXXX" className={inputCls} />
+                <label className="block text-[8px] font-mono font-bold text-gray-600 tracking-widest mb-1">
+                  PHONE
+                </label>
+                <input
+                  type="tel"
+                  value={form.phone}
+                  onChange={(e) => set('phone', e.target.value)}
+                  placeholder="+91 XXXXXXXXXX"
+                  className={inputCls}
+                />
               </div>
               <div>
-                <label className="block text-[8px] font-mono font-bold text-gray-600 tracking-widest mb-1">YEAR</label>
-                <input type="text" value={form.year} onChange={(e) => set('year', e.target.value)}
-                  placeholder="2nd Year" className={inputCls} />
+                <label className="block text-[8px] font-mono font-bold text-gray-600 tracking-widest mb-1">
+                  YEAR
+                </label>
+                <input
+                  type="text"
+                  value={form.year}
+                  onChange={(e) => set('year', e.target.value)}
+                  placeholder="2nd Year"
+                  className={inputCls}
+                />
               </div>
             </div>
 
             <div>
-              <label className="block text-[8px] font-mono font-bold text-gray-600 tracking-widest mb-1">COLLEGE</label>
-              <input type="text" value={form.college} onChange={(e) => set('college', e.target.value)}
-                placeholder="College name" className={inputCls} />
+              <label className="block text-[8px] font-mono font-bold text-gray-600 tracking-widest mb-1">
+                COLLEGE
+              </label>
+              <input
+                type="text"
+                value={form.college}
+                onChange={(e) => set('college', e.target.value)}
+                placeholder="College name"
+                className={inputCls}
+              />
             </div>
 
             <div>
-              <label className="block text-[8px] font-mono font-bold text-gray-600 tracking-widest mb-1">DEGREE / BRANCH</label>
-              <input type="text" value={form.degree} onChange={(e) => set('degree', e.target.value)}
-                placeholder="B.Tech Computer Science" className={inputCls} />
+              <label className="block text-[8px] font-mono font-bold text-gray-600 tracking-widest mb-1">
+                DEGREE / BRANCH
+              </label>
+              <input
+                type="text"
+                value={form.degree}
+                onChange={(e) => set('degree', e.target.value)}
+                placeholder="B.Tech Computer Science"
+                className={inputCls}
+              />
             </div>
 
             <div>
-              <label className="block text-[8px] font-mono font-bold text-gray-600 tracking-widest mb-1">ROLE IN TEAM</label>
+              <label className="block text-[8px] font-mono font-bold text-gray-600 tracking-widest mb-1">
+                ROLE IN TEAM
+              </label>
               <div className="flex gap-2">
                 {(['MEMBER', 'CO_LEADER'] as const).map((r) => (
                   <button
@@ -199,16 +246,26 @@ export function AddMemberModal({
 
           {/* Actions */}
           <div className="flex items-center gap-2 pt-2 border-t border-white/[0.06]">
-            <button type="button" onClick={onClose}
-              className="px-4 py-2 text-[10px] font-mono font-bold text-gray-400 bg-white/[0.03] border border-white/[0.06] rounded-lg hover:bg-white/[0.05] transition-all">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 text-[10px] font-mono font-bold text-gray-400 bg-white/[0.03] border border-white/[0.06] rounded-lg hover:bg-white/[0.05] transition-all"
+            >
               CANCEL
             </button>
-            <button type="submit" disabled={addMember.isPending || currentMemberCount >= 6}
-              className="flex-1 py-2 text-[10px] font-mono font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-all disabled:opacity-40 flex items-center justify-center gap-2">
+            <button
+              type="submit"
+              disabled={addMember.isPending || currentMemberCount >= 6}
+              className="flex-1 py-2 text-[10px] font-mono font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-all disabled:opacity-40 flex items-center justify-center gap-2"
+            >
               {addMember.isPending ? (
-                <><Loader2 className="h-3.5 w-3.5 animate-spin" /> ADDING...</>
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" /> ADDING...
+                </>
               ) : (
-                <><CheckCircle2 className="h-3.5 w-3.5" /> ADD MEMBER</>
+                <>
+                  <CheckCircle2 className="h-3.5 w-3.5" /> ADD MEMBER
+                </>
               )}
             </button>
           </div>

@@ -2384,7 +2384,6 @@ export const adminRouter = router({
         else where.round2Status = input.status;
       }
 
-
       const teams = await ctx.prisma.team.findMany({
         where,
         select: {

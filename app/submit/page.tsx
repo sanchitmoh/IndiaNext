@@ -3,10 +3,21 @@
 import { useState, useRef } from 'react';
 import { trpc } from '@/lib/trpc-client';
 import {
-  CheckCircle2, XCircle, Github, Globe, Smartphone,
-  ArrowLeft, Loader2, Presentation,
-  Users, Code2, Lightbulb, Rocket, AlertTriangle,
-  Lock, Search,
+  CheckCircle2,
+  XCircle,
+  Github,
+  Globe,
+  Smartphone,
+  ArrowLeft,
+  Loader2,
+  Presentation,
+  Users,
+  Code2,
+  Lightbulb,
+  Rocket,
+  AlertTriangle,
+  Lock,
+  Search,
 } from 'lucide-react';
 
 // ── Word Counter ─────────────────────────────────────────────────────────────
@@ -31,8 +42,18 @@ function WordCount({ text, max }: { text: string; max: number }) {
 
 // ── Form Input ──────────────────────────────────────────────────────────────
 function FormField({
-  label, required, hint, error, children
-}: { label: string; required?: boolean; hint?: string; error?: string; children: React.ReactNode }) {
+  label,
+  required,
+  hint,
+  error,
+  children,
+}: {
+  label: string;
+  required?: boolean;
+  hint?: string;
+  error?: string;
+  children: React.ReactNode;
+}) {
   return (
     <div className="space-y-1.5">
       <label className="flex items-center gap-1.5 text-[10px] font-mono font-bold text-gray-400 uppercase tracking-widest">
@@ -50,15 +71,12 @@ function FormField({
   );
 }
 
-const inputCls = "w-full px-3 py-2.5 text-sm font-mono bg-[#0d0d0d] border border-white/[0.07] rounded-lg text-gray-200 placeholder:text-gray-700 focus:outline-none focus:ring-1 focus:ring-orange-500/40 focus:border-orange-500/30 transition-all";
+const inputCls =
+  'w-full px-3 py-2.5 text-sm font-mono bg-[#0d0d0d] border border-white/[0.07] rounded-lg text-gray-200 placeholder:text-gray-700 focus:outline-none focus:ring-1 focus:ring-orange-500/40 focus:border-orange-500/30 transition-all';
 const textareaCls = `${inputCls} resize-none leading-relaxed`;
 
 // ── Step 1: Verify ──────────────────────────────────────────────────────────
-function StepVerify({
-  onVerified,
-}: {
-  onVerified: (data: any, email: string) => void;
-}) {
+function StepVerify({ onVerified }: { onVerified: (data: any, email: string) => void }) {
   const [shortCode, setShortCode] = useState('');
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
@@ -87,7 +105,7 @@ function StepVerify({
         <input
           type="text"
           value={shortCode}
-          onChange={e => setShortCode(e.target.value.toUpperCase())}
+          onChange={(e) => setShortCode(e.target.value.toUpperCase())}
           placeholder="IND-001"
           maxLength={20}
           className={`${inputCls} font-black text-orange-300 tracking-widest`}
@@ -99,7 +117,7 @@ function StepVerify({
         <input
           type="email"
           value={email}
-          onChange={e => setEmail(e.target.value)}
+          onChange={(e) => setEmail(e.target.value)}
           placeholder="leader@example.com"
           className={inputCls}
         />
@@ -118,16 +136,21 @@ function StepVerify({
         className="w-full py-3 text-sm font-mono font-bold bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400 rounded-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2"
       >
         {verify.isPending ? (
-          <><Loader2 className="h-4 w-4 animate-spin" /> VERIFYING...</>
+          <>
+            <Loader2 className="h-4 w-4 animate-spin" /> VERIFYING...
+          </>
         ) : (
-          <><Search className="h-4 w-4" /> VERIFY TEAM</>
+          <>
+            <Search className="h-4 w-4" /> VERIFY TEAM
+          </>
         )}
       </button>
 
       <div className="flex items-center gap-2 bg-white/[0.02] border border-white/[0.06] rounded-lg p-3">
         <Lock className="h-3.5 w-3.5 text-gray-600 shrink-0" />
         <p className="text-[10px] font-mono text-gray-600">
-          Only the registered team leader can submit. Your email is verified against the registration database.
+          Only the registered team leader can submit. Your email is verified against the
+          registration database.
         </p>
       </div>
     </form>
@@ -143,14 +166,19 @@ function TeamCard({ data }: { data: any }) {
           <p className="text-base font-mono font-black text-white">{data.teamName}</p>
           <p className="text-[10px] font-mono text-orange-400 mt-0.5">{data.shortCode}</p>
         </div>
-        <span className={`text-[9px] font-mono font-bold px-2.5 py-1 rounded border ${data.track === 'IDEA_SPRINT' ? 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20' : 'text-orange-400 bg-orange-500/10 border-orange-500/20'}`}>
+        <span
+          className={`text-[9px] font-mono font-bold px-2.5 py-1 rounded border ${data.track === 'IDEA_SPRINT' ? 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20' : 'text-orange-400 bg-orange-500/10 border-orange-500/20'}`}
+        >
           {data.track === 'IDEA_SPRINT' ? '💡 IDEA SPRINT' : '⚡ BUILD STORM'}
         </span>
       </div>
       <div className="flex items-center gap-2 flex-wrap">
         <Users className="h-3 w-3 text-gray-600" />
         {data.members.map((m: any, i: number) => (
-          <span key={i} className={`text-[9px] font-mono px-1.5 py-0.5 rounded ${m.role === 'LEADER' ? 'bg-orange-500/10 text-orange-400 border border-orange-500/20' : 'bg-white/[0.03] text-gray-500 border border-white/[0.06]'}`}>
+          <span
+            key={i}
+            className={`text-[9px] font-mono px-1.5 py-0.5 rounded ${m.role === 'LEADER' ? 'bg-orange-500/10 text-orange-400 border border-orange-500/20' : 'bg-white/[0.03] text-gray-500 border border-white/[0.06]'}`}
+          >
             {m.name} {m.role === 'LEADER' ? '(Leader)' : ''}
           </span>
         ))}
@@ -199,8 +227,12 @@ function StepForm({
   });
 
   const set = (key: string, val: string) => {
-    setForm(f => ({ ...f, [key]: val }));
-    setErrors(e => { const n = { ...e }; delete n[key]; return n; });
+    setForm((f) => ({ ...f, [key]: val }));
+    setErrors((e) => {
+      const n = { ...e };
+      delete n[key];
+      return n;
+    });
   };
 
   const validate = () => {
@@ -210,7 +242,7 @@ function StepForm({
       { key: 'solutionQ3', min: 10, max: 150, label: 'Q3' },
       { key: 'solutionQ4', min: 10, max: 100, label: 'Q4' },
     ];
-    const countWords = (t: string) => t.trim() === '' ? 0 : t.trim().split(/\s+/).length;
+    const countWords = (t: string) => (t.trim() === '' ? 0 : t.trim().split(/\s+/).length);
     const errs: Record<string, string> = {};
     if (!form.githubLink.startsWith('https://github.com/'))
       errs.githubLink = 'Must be a GitHub repository URL (https://github.com/...)';
@@ -219,7 +251,8 @@ function StepForm({
     for (const { key, min, max, label } of Q_LIMITS) {
       const w = countWords(form[key as keyof typeof form]);
       if (w < min) errs[key] = `${label} needs at least ${min} words (you have ${w})`;
-      else if (w > max) errs[key] = `${label} exceeds ${max}-word limit (${w} words — trim ${w - max})`;
+      else if (w > max)
+        errs[key] = `${label} exceeds ${max}-word limit (${w} words — trim ${w - max})`;
     }
     return errs;
   };
@@ -258,21 +291,34 @@ function StepForm({
           <Code2 className="h-3 w-3" /> PROJECT LINKS
         </h3>
 
-        <FormField label="GitHub Repository" required hint="must be https://github.com/..." error={errors.githubLink}>
+        <FormField
+          label="GitHub Repository"
+          required
+          hint="must be https://github.com/..."
+          error={errors.githubLink}
+        >
           <div className="relative">
             <Github className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-600" />
-            <input type="url" value={form.githubLink} onChange={e => set('githubLink', e.target.value)}
+            <input
+              type="url"
+              value={form.githubLink}
+              onChange={(e) => set('githubLink', e.target.value)}
               placeholder="https://github.com/your-org/your-repo"
-              className={`${inputCls} pl-9 ${errors.githubLink ? 'border-red-500/30 ring-1 ring-red-500/20' : ''}`} />
+              className={`${inputCls} pl-9 ${errors.githubLink ? 'border-red-500/30 ring-1 ring-red-500/20' : ''}`}
+            />
           </div>
         </FormField>
 
         <FormField label="Presentation / Slide Deck" hint="Google Drive link — optional">
           <div className="relative">
             <Presentation className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-600" />
-            <input type="url" value={form.presentationLink} onChange={e => set('presentationLink', e.target.value)}
+            <input
+              type="url"
+              value={form.presentationLink}
+              onChange={(e) => set('presentationLink', e.target.value)}
               placeholder="https://drive.google.com/..."
-              className={`${inputCls} pl-9`} />
+              className={`${inputCls} pl-9`}
+            />
           </div>
         </FormField>
       </section>
@@ -283,21 +329,34 @@ function StepForm({
           <Rocket className="h-3 w-3" /> DEPLOYMENT
         </h3>
 
-        <FormField label="Live Website URL" required hint="deployed app — compulsory" error={errors.liveUrl}>
+        <FormField
+          label="Live Website URL"
+          required
+          hint="deployed app — compulsory"
+          error={errors.liveUrl}
+        >
           <div className="relative">
             <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-600" />
-            <input type="url" value={form.liveUrl} onChange={e => set('liveUrl', e.target.value)}
+            <input
+              type="url"
+              value={form.liveUrl}
+              onChange={(e) => set('liveUrl', e.target.value)}
               placeholder="https://your-app.vercel.app"
-              className={`${inputCls} pl-9 ${errors.liveUrl ? 'border-red-500/30' : ''}`} />
+              className={`${inputCls} pl-9 ${errors.liveUrl ? 'border-red-500/30' : ''}`}
+            />
           </div>
         </FormField>
 
         <FormField label="App Download Link" hint="APK / App Store / Play Store — optional">
           <div className="relative">
             <Smartphone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-600" />
-            <input type="url" value={form.appDownloadUrl} onChange={e => set('appDownloadUrl', e.target.value)}
+            <input
+              type="url"
+              value={form.appDownloadUrl}
+              onChange={(e) => set('appDownloadUrl', e.target.value)}
               placeholder="https://play.google.com/..."
-              className={`${inputCls} pl-9`} />
+              className={`${inputCls} pl-9`}
+            />
           </div>
         </FormField>
       </section>
@@ -309,15 +368,41 @@ function StepForm({
         </h3>
 
         {[
-          { key: 'solutionQ1', label: 'Q1. What problem are you solving?', max: 150, required: true },
-          { key: 'solutionQ2', label: 'Q2. How does your solution work?', max: 200, required: true },
-          { key: 'solutionQ3', label: 'Q3. What makes your solution unique?', max: 150, required: true },
-          { key: 'solutionQ4', label: 'Q4. How scalable is your solution?', max: 100, required: true },
+          {
+            key: 'solutionQ1',
+            label: 'Q1. What problem are you solving?',
+            max: 150,
+            required: true,
+          },
+          {
+            key: 'solutionQ2',
+            label: 'Q2. How does your solution work?',
+            max: 200,
+            required: true,
+          },
+          {
+            key: 'solutionQ3',
+            label: 'Q3. What makes your solution unique?',
+            max: 150,
+            required: true,
+          },
+          {
+            key: 'solutionQ4',
+            label: 'Q4. How scalable is your solution?',
+            max: 100,
+            required: true,
+          },
         ].map(({ key, label, max, required }) => (
-          <FormField key={key} label={label} required={required} hint={`${max} words max`} error={errors[key]}>
+          <FormField
+            key={key}
+            label={label}
+            required={required}
+            hint={`${max} words max`}
+            error={errors[key]}
+          >
             <textarea
               value={form[key as keyof typeof form]}
-              onChange={e => set(key, e.target.value)}
+              onChange={(e) => set(key, e.target.value)}
               rows={4}
               placeholder={`Write your answer here (up to ${max} words)...`}
               className={`${textareaCls} ${errors[key] ? 'border-red-500/30' : ''}`}
@@ -329,16 +414,26 @@ function StepForm({
 
       {/* ── Actions ── */}
       <div className="flex gap-3 pt-2">
-        <button type="button" onClick={onBack}
-          className="px-4 py-2.5 text-xs font-mono font-bold text-gray-500 bg-white/[0.03] border border-white/[0.06] rounded-lg hover:bg-white/[0.06] transition-all flex items-center gap-2">
+        <button
+          type="button"
+          onClick={onBack}
+          className="px-4 py-2.5 text-xs font-mono font-bold text-gray-500 bg-white/[0.03] border border-white/[0.06] rounded-lg hover:bg-white/[0.06] transition-all flex items-center gap-2"
+        >
           <ArrowLeft className="h-3.5 w-3.5" /> BACK
         </button>
-        <button type="submit" disabled={submit.isPending}
-          className="flex-1 py-2.5 text-sm font-mono font-bold bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400 rounded-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+        <button
+          type="submit"
+          disabled={submit.isPending}
+          className="flex-1 py-2.5 text-sm font-mono font-bold bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400 rounded-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+        >
           {submit.isPending ? (
-            <><Loader2 className="h-4 w-4 animate-spin" /> SUBMITTING...</>
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" /> SUBMITTING...
+            </>
           ) : (
-            <><Rocket className="h-4 w-4" /> SUBMIT PROJECT</>
+            <>
+              <Rocket className="h-4 w-4" /> SUBMIT PROJECT
+            </>
           )}
         </button>
       </div>
@@ -360,7 +455,8 @@ function StepConfirm({ teamName }: { teamName: string }) {
       <div>
         <h2 className="text-2xl font-mono font-black text-white mb-2">SUBMISSION RECEIVED</h2>
         <p className="text-sm font-mono text-gray-400">
-          <span className="text-emerald-400 font-bold">{teamName}</span> — your project has been successfully submitted!
+          <span className="text-emerald-400 font-bold">{teamName}</span> — your project has been
+          successfully submitted!
         </p>
       </div>
 
@@ -397,19 +493,27 @@ function StepIndicator({ current }: { current: number }) {
       {STEPS.map((s, i) => (
         <div key={s.n} className="flex items-center flex-1">
           <div className="flex flex-col items-center gap-1 flex-1">
-            <div className={`w-7 h-7 rounded-full border-2 flex items-center justify-center text-[10px] font-mono font-black transition-all ${
-              current > s.n ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400'
-              : current === s.n ? 'bg-orange-500/20 border-orange-500/50 text-orange-300'
-              : 'bg-white/[0.02] border-white/[0.08] text-gray-700'
-            }`}>
+            <div
+              className={`w-7 h-7 rounded-full border-2 flex items-center justify-center text-[10px] font-mono font-black transition-all ${
+                current > s.n
+                  ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400'
+                  : current === s.n
+                    ? 'bg-orange-500/20 border-orange-500/50 text-orange-300'
+                    : 'bg-white/[0.02] border-white/[0.08] text-gray-700'
+              }`}
+            >
               {current > s.n ? <CheckCircle2 className="h-3.5 w-3.5" /> : s.n}
             </div>
-            <span className={`text-[8px] font-mono font-bold tracking-widest ${current === s.n ? 'text-orange-400' : current > s.n ? 'text-emerald-600' : 'text-gray-700'}`}>
+            <span
+              className={`text-[8px] font-mono font-bold tracking-widest ${current === s.n ? 'text-orange-400' : current > s.n ? 'text-emerald-600' : 'text-gray-700'}`}
+            >
               {s.label}
             </span>
           </div>
           {i < STEPS.length - 1 && (
-            <div className={`h-[1px] flex-1 mx-1 mb-4 transition-all ${current > s.n ? 'bg-emerald-500/30' : 'bg-white/[0.04]'}`} />
+            <div
+              className={`h-[1px] flex-1 mx-1 mb-4 transition-all ${current > s.n ? 'bg-emerald-500/30' : 'bg-white/[0.04]'}`}
+            />
           )}
         </div>
       ))}
@@ -435,10 +539,14 @@ export default function SubmitPage() {
         <div className="mb-10 text-center">
           <div className="inline-flex items-center gap-2 bg-orange-500/10 border border-orange-500/20 rounded-full px-3 py-1 mb-4">
             <div className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse" />
-            <span className="text-[9px] font-mono font-bold text-orange-400 tracking-widest">INDIANEXT 2026</span>
+            <span className="text-[9px] font-mono font-bold text-orange-400 tracking-widest">
+              INDIANEXT 2026
+            </span>
           </div>
           <h1 className="text-3xl font-mono font-black text-white mb-2">PROJECT SUBMISSION</h1>
-          <p className="text-sm font-mono text-gray-500">Submit your hackathon project for review</p>
+          <p className="text-sm font-mono text-gray-500">
+            Submit your hackathon project for review
+          </p>
         </div>
 
         {/* Card */}
@@ -459,14 +567,15 @@ export default function SubmitPage() {
             <StepForm
               teamData={teamData}
               leaderEmail={leaderEmail}
-              onSuccess={(name) => { setSubmittedTeamName(name); setStep(3); }}
+              onSuccess={(name) => {
+                setSubmittedTeamName(name);
+                setStep(3);
+              }}
               onBack={() => setStep(1)}
             />
           )}
 
-          {step === 3 && (
-            <StepConfirm teamName={submittedTeamName} />
-          )}
+          {step === 3 && <StepConfirm teamName={submittedTeamName} />}
         </div>
 
         {/* Footer */}

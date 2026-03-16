@@ -479,10 +479,14 @@ async function seedLogisticsTeams() {
       include: { members: true },
     });
 
-    const attendanceIcon = 
-      teamDef.attendance === 'PRESENT' ? '✅' :
-      teamDef.attendance === 'PARTIAL' ? '⚠️' :
-      teamDef.attendance === 'ABSENT' ? '❌' : '⏳';
+    const attendanceIcon =
+      teamDef.attendance === 'PRESENT'
+        ? '✅'
+        : teamDef.attendance === 'PARTIAL'
+          ? '⚠️'
+          : teamDef.attendance === 'ABSENT'
+            ? '❌'
+            : '⏳';
 
     console.log(`   ${attendanceIcon} ${team.name} — ${team.shortCode} — ${team.attendance}`);
     for (const m of teamDef.members) {
@@ -494,13 +498,16 @@ async function seedLogisticsTeams() {
   }
 
   console.log('🎉 Done! 8 test teams seeded with varied attendance states.\n');
-  
+
   // Summary statistics
-  const presentTeams = TEST_TEAMS.filter(t => t.attendance === 'PRESENT').length;
-  const absentTeams = TEST_TEAMS.filter(t => t.attendance === 'ABSENT').length;
-  const partialTeams = TEST_TEAMS.filter(t => t.attendance === 'PARTIAL').length;
-  const notMarkedTeams = TEST_TEAMS.filter(t => t.attendance === 'NOT_MARKED').length;
-  const totalPresentUsers = TEST_TEAMS.reduce((sum, t) => sum + t.members.filter(m => m.isPresent).length, 0);
+  const presentTeams = TEST_TEAMS.filter((t) => t.attendance === 'PRESENT').length;
+  const absentTeams = TEST_TEAMS.filter((t) => t.attendance === 'ABSENT').length;
+  const partialTeams = TEST_TEAMS.filter((t) => t.attendance === 'PARTIAL').length;
+  const notMarkedTeams = TEST_TEAMS.filter((t) => t.attendance === 'NOT_MARKED').length;
+  const totalPresentUsers = TEST_TEAMS.reduce(
+    (sum, t) => sum + t.members.filter((m) => m.isPresent).length,
+    0
+  );
   const totalUsers = TEST_TEAMS.length * 4;
 
   console.log('📊 Attendance Summary:');
@@ -508,8 +515,10 @@ async function seedLogisticsTeams() {
   console.log(`   Absent Teams: ${absentTeams}`);
   console.log(`   Partial Teams: ${partialTeams}`);
   console.log(`   Not Marked Teams: ${notMarkedTeams}`);
-  console.log(`   Present Users: ${totalPresentUsers}/${totalUsers} (${((totalPresentUsers/totalUsers)*100).toFixed(1)}%)`);
-  
+  console.log(
+    `   Present Users: ${totalPresentUsers}/${totalUsers} (${((totalPresentUsers / totalUsers) * 100).toFixed(1)}%)`
+  );
+
   console.log('\n📱 Test QR scan URLs:');
   for (const t of TEST_TEAMS) {
     console.log(`   https://www.indianexthackthon.online/checkin?code=${t.shortCode}`);

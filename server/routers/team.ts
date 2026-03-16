@@ -334,19 +334,28 @@ export const teamRouter = router({
       });
 
       if (!teamRaw) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'Team not found. Check your short code.' });
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Team not found. Check your short code.',
+        });
       }
 
       // Alias for cleaner access
       const team = teamRaw;
 
       // Verify the email belongs to the LEADER
-      const leader = team.members.find(m => m.role === 'LEADER');
+      const leader = team.members.find((m) => m.role === 'LEADER');
       if (!leader) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'No team leader found. Contact support.' });
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'No team leader found. Contact support.',
+        });
       }
       if (leader.user.email.toLowerCase() !== input.leaderEmail.toLowerCase().trim()) {
-        throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Email does not match the team leader email.' });
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'Email does not match the team leader email.',
+        });
       }
 
       return {
@@ -354,7 +363,7 @@ export const teamRouter = router({
         teamName: team.name,
         shortCode: team.shortCode,
         track: team.track,
-        members: team.members.map(m => ({ name: m.user.name, role: m.role })),
+        members: team.members.map((m) => ({ name: m.user.name, role: m.role })),
         hasSubmission: !!team.submission?.submittedAt,
         existingSubmission: team.submission
           ? {
@@ -374,7 +383,7 @@ export const teamRouter = router({
         githubLink: z
           .string()
           .url('Must be a valid URL')
-          .refine(v => v.startsWith('https://github.com/'), {
+          .refine((v) => v.startsWith('https://github.com/'), {
             message: 'Must be a GitHub repository URL (https://github.com/...)',
           }),
         presentationLink: z.string().url().optional().or(z.literal('')),
@@ -399,7 +408,7 @@ export const teamRouter = router({
 
       if (!team) throw new TRPCError({ code: 'NOT_FOUND', message: 'Team not found.' });
 
-      const leader = team.members.find(m => m.role === 'LEADER');
+      const leader = team.members.find((m) => m.role === 'LEADER');
       if (!leader || leader.user.email.toLowerCase() !== input.leaderEmail.toLowerCase().trim()) {
         throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Leader email mismatch.' });
       }

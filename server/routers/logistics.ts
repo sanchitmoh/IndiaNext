@@ -1096,7 +1096,10 @@ export const logisticsRouter = router({
       });
       if (!team) throw new TRPCError({ code: 'NOT_FOUND', message: 'Team not found' });
       if (team.status !== 'APPROVED' && team.status !== 'SHORTLISTED') {
-        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Team must be APPROVED to add members' });
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Team must be APPROVED to add members',
+        });
       }
 
       // 3. Team size limit (max 6 members)
@@ -1156,7 +1159,11 @@ export const logisticsRouter = router({
 
       return {
         success: true,
-        member: { id: member.id, role: member.role, user: { id: user.id, name: user.name, email: user.email } },
+        member: {
+          id: member.id,
+          role: member.role,
+          user: { id: user.id, name: user.name, email: user.email },
+        },
       };
     }),
 });
